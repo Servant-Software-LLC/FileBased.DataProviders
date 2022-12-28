@@ -3,13 +3,14 @@ EF Core data providers for common serializable formats stored to disk.
 
 ## Requirements
 - You will need to sign an Assignment of Intellectual Property Rights agreement that Servant Software LLC provides.
-- Instructions on [Writing a Database Provider](https://learn.microsoft.com/en-us/ef/core/providers/writing-a-provider) and [So you want to write an EF Core provider](https://blog.oneunicorn.com/2016/11/11/so-you-want-to-write-an-ef-core-provider/)
+- Instructions on [Writing a Database Provider](https://learn.microsoft.com/en-us/ef/core/providers/writing-a-provider) and [So you want to write an EF Core provider](https://blog.oneunicorn.com/2016/11/11/so-you-want-to-write-an-ef-core-provider/)(This documentation is grossly outdated.  Written in EFCore 1.1) 
 - https://github.com/morrisjdev/FileContextCore has some features needed, but may only be used as a reference due to its Apache 2.0 license, none of its code can be copied.  Further, it lacks any database-first support (i.e. [scaffolding](https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/?tabs=dotnet-core-cli) with a class that inherits IDesignTimeServices)
 - Data providers for each of the following serializable formats (json, csv, xml)
 - Each data provider to live in its own project and have its own set of unit tests which at a minimum provide the same coverage as the unit tests provided in this repo for the Sqlite in-memory data provider.
 - Provider's source code, for the classes needed to achieve the definition of done for this task, should follow a similar class naming/signature and folder structure as the [Sqlite data provider](https://github.com/dotnet/efcore/tree/main/src/EFCore.Sqlite.Core).
 - Extension methods on [DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder?view=efcore-7.0) for use on each of the different data providers will be made that take a folder path.  This folder will represent the 'database' and each file within the folder (recursion of sub-folders is unnecessary) will represent a 'table'.
 - If a SQL intermediate syntax is required or makes development easier, use the [Sqlite in-memory database](https://www.sqlite.org/inmemorydb.html).  This avoids having to generate and parse a SQL-like syntax for each of our providers and provides in-memory structured data.
+- Per recommendations of the EFCore contributors start with the [Npgsql](https://github.com/npgsql/efcore.pg) or [Pomelo MySQL](https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql) providers as the basis for our providers.
 
 ### CSV Data Provider
 - The CSV format has no data typing.  If a code-first approach is taken by a consumer of this library, then using the [CsvHelper](https://joshclose.github.io/CsvHelper/) library, the serialization of each column of CSV will map to the proper data types of CSV.  When scaffolding a CSV file, you can require that the first line of the file be a list of column names and assume that all properties in the generated model class be of type System.String.
