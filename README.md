@@ -3,6 +3,7 @@ EF Core data providers for common serializable formats stored to disk.
 
 ## Requirements
 - You will need to sign an Assignment of Intellectual Property Rights agreement that Servant Software LLC provides.
+- Instructions on [Writing a Database Provider](https://learn.microsoft.com/en-us/ef/core/providers/writing-a-provider) and [So you want to write an EF Core provider](https://blog.oneunicorn.com/2016/11/11/so-you-want-to-write-an-ef-core-provider/)
 - https://github.com/morrisjdev/FileContextCore has some features needed, but may only be used as a reference due to its Apache 2.0 license, none of its code can be copied.  Further, it lacks any database-first support (i.e. [scaffolding](https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/?tabs=dotnet-core-cli) with a class that inherits IDesignTimeServices)
 - Data providers for each of the following serializable formats (json, csv, xml)
 - Each data provider to live in its own project and have its own set of unit tests which at a minimum provide the same coverage as the unit tests provided in this repo for the Sqlite in-memory data provider.
