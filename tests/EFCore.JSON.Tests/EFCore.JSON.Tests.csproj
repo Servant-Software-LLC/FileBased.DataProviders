@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="FluentAssertions" />
+	<PackageReference Include="Microsoft.NET.Test.Sdk" />
+	<PackageReference Include="Moq" />
+	<PackageReference Include="xunit" />
+	<PackageReference Include="xunit.runner.visualstudio">
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+	<PackageReference Include="coverlet.collector">
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+	<PackageReference Include="coverlet.msbuild">
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\EFCore.FileBasedProviders.Common\EFCore.FileBasedProviders.Common.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.JSON\EFCore.JSON.csproj" />
+    <ProjectReference Include="..\EFCore.Common.Tests\EFCore.Common.Tests.csproj" />
+  </ItemGroup>
+
+</Project>
