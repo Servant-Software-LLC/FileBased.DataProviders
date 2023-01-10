@@ -17,7 +17,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
     { "name":"Bob", "email":"bob32@gmail.com", "salary":95000 },  
 ]
 ```
-In the above example, this table would have 4 columns, one for each unique name/value pair.  Note: If is valid that there is not a name/value pair for "married" in the second object.  Internally, this object will be represented as having a "married" property of null.
+In the above example, this table would have 4 columns, one for each unique name/value pair.  Note: If is valid that there is not a name/value pair as is seen for the "married" property in the second object.  Internally, this object will be represented as having a "married" property of null.
   
   - If a path to a json file, then the json file represents a database.  In that case then, you can expect the format of the file to be an object containing name\value pairs.  Each name\value pair represents a table and the value of that pair will a JSON array of objects.
 ```
