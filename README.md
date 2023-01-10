@@ -4,7 +4,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 ## Requirements
 - You will need to sign an Assignment of Intellectual Property Rights agreement that Servant Software LLC provides.
 - Here are instructions on [Implementing a .NET Framework Data Provider](https://learn.microsoft.com/en-us/previous-versions/aa720164(v=vs.71))
-- The Definition of Done will be when all requested features in this document are implemented, the provided set of unit tests pass and code coverage is at least 70%.
+- The Definition of Done will be when all requested features in this document are implemented, the provided set of unit tests pass and code coverage is at least 75%.
 - Create a JSON data provider that provides CRUD operations.
 
 ### JSON Data Provider
