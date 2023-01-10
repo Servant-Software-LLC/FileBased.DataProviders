@@ -6,6 +6,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 - All interfaces in [the table on this page](https://learn.microsoft.com/en-us/previous-versions/aa720599(v=vs.71)) must have an implementation.  Here are instructions on [Implementing a .NET Framework Data Provider](https://learn.microsoft.com/en-us/previous-versions/aa720164(v=vs.71))
 - The Definition of Done will be when all requested features in this document are implemented, the provided set of unit tests pass and code coverage is at least 75%.
 - Create a JSON ADO.NET data provider that provides CRUD operations.
+- As is typically expected in the software industry, appropriate commenting of the code should be in place.
 
 ### JSON Data Provider
 - Only use classes from the [System.Text.Json](https://learn.microsoft.com/en-us/dotnet/api/system.text.json) namespace to [serialize/deserialize JSON](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-7-0).  No dependencies on Newtonsoft allowed.
