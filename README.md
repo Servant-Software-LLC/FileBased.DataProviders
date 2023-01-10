@@ -3,7 +3,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 
 ## Requirements
 - You will need to sign an Assignment of Intellectual Property Rights agreement that Servant Software LLC provides.
-- Here are instructions on [Implementing a .NET Framework Data Provider](https://learn.microsoft.com/en-us/previous-versions/aa720164(v=vs.71))
+- All interfaces in [the table on this page](https://learn.microsoft.com/en-us/previous-versions/aa720599(v=vs.71)) must have an implementation.  Here are instructions on [Implementing a .NET Framework Data Provider](https://learn.microsoft.com/en-us/previous-versions/aa720164(v=vs.71))
 - The Definition of Done will be when all requested features in this document are implemented, the provided set of unit tests pass and code coverage is at least 75%.
 - Create a JSON ADO.NET data provider that provides CRUD operations.
 
@@ -37,4 +37,6 @@ In the above example, this table would have 4 columns, one for each unique name/
 The above example would represent a database containing 2 tables.  The first table would be named "employees" containing 4 columns.  The second table would be named "locations" and contain 3 columns.
   
 - For determination of the data type of a property of a model, limit the valid data types to string, number (System.Int64 or System.Double depending on the data provided), and boolean ([See JSON Data Types](https://www.w3schools.com/js/js_json_datatypes.asp)) or an IEnumerable<> of any of those data types.   Values of type Int64, double and bool, you must determine if any of the properties in the array of objects contains a null value.  If so, then the property within the model must be [nullable](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types).
+
+  - For determining data type in this flattened structure, if the value of a name/value pair is a JSON object, then assume a data type of string and the value of that column is just the JSON string of the object.  A future task (but is not part of the bid on this task) may be to extend this data provider to determine tables based on nested objects within the JSON data structure.
 
