@@ -5,7 +5,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 - You will need to sign an Assignment of Intellectual Property Rights agreement that Servant Software LLC provides.
 - Here are instructions on [Implementing a .NET Framework Data Provider](https://learn.microsoft.com/en-us/previous-versions/aa720164(v=vs.71))
 - The Definition of Done will be when all requested features in this document are implemented, the provided set of unit tests pass and code coverage is at least 75%.
-- Create a JSON data provider that provides CRUD operations.
+- Create a JSON ADO.NET data provider that provides CRUD operations.
 
 ### JSON Data Provider
 - Only use classes from the [System.Text.Json](https://learn.microsoft.com/en-us/dotnet/api/system.text.json) namespace to [serialize/deserialize JSON](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-7-0).  No dependencies on Newtonsoft allowed.
