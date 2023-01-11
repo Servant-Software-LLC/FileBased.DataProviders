@@ -10,6 +10,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 
 ### JSON Data Provider
 - Only use classes from the [System.Text.Json](https://learn.microsoft.com/en-us/dotnet/api/system.text.json) namespace to [serialize/deserialize JSON](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-7-0).  No dependencies on Newtonsoft allowed.
+- Using non-Microsoft libraries requires approval.  Minimal dependencies is ideal and if we want/need to bring in other dependencies, those dependencies need to be platform agnostic, royality-free and lean toward unrestrictive licensing such as a MIT license. 
 - The connection string is used mainly to determine the data source for the provider.  The data source can be either a file path to a folder or to a json file.   
   - If a path to a folder, then the folder represents the json database and each json file in the folder represents a table.  The file name then becomes the table's name and you can expect that data within the file be a JSON array of objects.  For example:
 ```
