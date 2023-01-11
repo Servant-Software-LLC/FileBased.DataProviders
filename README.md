@@ -42,3 +42,11 @@ The above example would represent a database containing 2 tables.  The first tab
 
   - For determining data type in this flattened structure, if the value of a name/value pair is a JSON object, then assume a data type of string and the value of that column is just the JSON string of the object.  A future task (but is not part of the bid on this task) may be to extend this data provider to determine tables based on nested objects within the JSON data structure.
 
+- JSON comments is to have some support in this data provider.  When the [Caption](https://learn.microsoft.com/en-us/dotnet/api/system.data.datacolumn.caption?view=net-7.0) property of a DataColumn is set in a DataSet and then the JsonDataAdapter's Update() method is called, that Caption property, if it has been set, (Note:  According to the docs, its value will be the name of the Column if it hasn't been set.  So ignore that case.) it will be written within the JSON stored to disk.  For example:
+```
+{
+"key": "value" // comment for this key here.
+}
+```
+System.Text.Json has some support for this [JsonCommentHandling Enum](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsoncommenthandling?view=net-7.0) & [JsonTokenType.Comment Enum](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsontokentype?view=net-7.0), but no research has been done to determine if it supports writting these comments to disk.
+When reading the JSON from disk, if multiple rows of a table for a particular column have a comment, it is okay to use just the first occurence of a comment if/when setting the DataColumn's Caption property.
