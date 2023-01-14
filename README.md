@@ -8,6 +8,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
   - when all requested features in this document are implemented
   - the provided set of unit tests pass
   - code coverage is at least 75%. (The GitHub Actions build of this repo provides code coverage statistics)
+  - all PRs have been approved and merged into the master branch
 - Create a JSON ADO.NET data provider that provides CRUD operations.
 - As is typically expected in the software industry, appropriate commenting of the code should be in place.
 
