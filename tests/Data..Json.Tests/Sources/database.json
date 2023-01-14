@@ -1,0 +1,27 @@
+{
+  "employees": [
+    {
+      "name": "Joe",
+      "email": "Joe@gmail.com",
+      "salary": 56000,
+      "married": true
+    },
+    {
+      "name": "Bob",
+      "email": "bob32@gmail.com",
+      "salary": 95000
+    }
+  ],
+  "locations": [
+    {
+      "city": "Houston",
+      "state": "Texas",
+      "zip": 77846
+    },
+    {
+      "city": "New Braunfels",
+      "state": "Texas",
+      "zip": 78132
+    }
+  ]
+}
