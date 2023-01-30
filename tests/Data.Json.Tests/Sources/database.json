@@ -10,6 +10,16 @@
       "name": "Bob",
       "email": "bob32@gmail.com",
       "salary": 95000
+    },
+    {
+      "name": "Jim",
+      "email": "Jim@gmail.com",
+      "salary": 10
+    },
+    {
+      "name": "Mike",
+      "email": "Mike@gmail.com",
+      "salary": 10
     }
   ],
   "locations": [
