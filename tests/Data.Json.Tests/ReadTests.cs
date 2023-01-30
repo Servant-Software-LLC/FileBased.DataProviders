@@ -1,10 +1,4 @@
-﻿using Iced.Intel;
-using System;
-using System.Collections.Generic;
-using System.Data.JsonClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data.JsonClient;
 using Xunit;
 
 namespace Data.Json.Tests
