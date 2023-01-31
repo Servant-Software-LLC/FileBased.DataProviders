@@ -14,6 +14,8 @@
             : base(name, userGivenName)
         {
         }
+        public IEnumerable<JsonColumn>? Columns { get; set; }
+        public bool GetAll { get; set; } = false;
     }
 
 }

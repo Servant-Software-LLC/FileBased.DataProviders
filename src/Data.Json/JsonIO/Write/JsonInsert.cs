@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonIO.Write
+﻿using Data.Json.JsonQuery;
+
+namespace Data.Json.JsonIO.Write
 {
     internal class JsonInsert : JsonWriter
     {

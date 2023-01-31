@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonIO.Read
+﻿using Data.Json.JsonQuery;
+
+namespace Data.Json.JsonIO.Read
 {
     internal class JsonReader : JsonDataAccess, IEnumerator<DataRow>
     {

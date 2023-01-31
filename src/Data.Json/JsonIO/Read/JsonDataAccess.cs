@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonIO.Read
+﻿using Data.Json.JsonQuery;
+
+namespace Data.Json.JsonIO.Read
 {
     internal abstract class JsonDataAccess
     {
@@ -25,7 +27,7 @@
         }
         public void Prepare(JsonElement rootElement)
         {
-            if (queryParser.IsJsonDB)
+            if (queryParser)
             {
                 var tables = GetTables();
                 //enumerate via tables

@@ -1,5 +1,5 @@
 ﻿using Irony.Parsing;
-namespace Data.Json.JsonIO
+namespace Data.Json.JsonQuery
 {
     internal abstract class JsonQueryParser
     {
@@ -36,17 +36,14 @@ namespace Data.Json.JsonIO
         internal JsonQueryParser(ParseTreeNode node)
         {
             this.node = node;
-            this.Filter = GetFilter();
-            this.Table = GetTable();
+            Filter = GetFilter();
+            Table = GetTable();
         }
 
-        public bool IsSelectQuery => this.GetType() == typeof(JsonSelectQuery);
-        public bool IsInsertQuery => this.GetType() == typeof(JsonInsertQuery);
-        public bool IsDeleteQuery => this.GetType() == typeof(JsonDeleteQuery);
-        public bool IsUpdateQuery => this.GetType() == typeof(JsonUpdateQuery);
-
-        public bool IsJsonDB { get; internal set; } = true;
-
+        public bool IsSelectQuery => GetType() == typeof(JsonSelectQuery);
+        public bool IsInsertQuery => GetType() == typeof(JsonInsertQuery);
+        public bool IsDeleteQuery => GetType() == typeof(JsonDeleteQuery);
+        public bool IsUpdateQuery => GetType() == typeof(JsonUpdateQuery);
         public abstract string GetTable();
         public abstract IEnumerable<string> GetColumns();
         public virtual Filter? GetFilter()
@@ -54,7 +51,7 @@ namespace Data.Json.JsonIO
             var whereClause = node
                 .ChildNodes
                 .FirstOrDefault(item => item.Term.Name == "whereClauseOpt");
-            if (whereClause?.ChildNodes.Count <= 0||whereClause==null)
+            if (whereClause?.ChildNodes.Count <= 0 || whereClause == null)
             {
                 return null;
             }

@@ -1,4 +1,6 @@
-﻿namespace Data.Json.Extension
+﻿using Data.Json.Enum;
+
+namespace Data.Json.Extension
 {
     public static class ExtensionMethods
     {
@@ -56,5 +58,21 @@
 
         }
 
+        public static DataTable ToDataTable(this JsonDocument dataTable)
+        {
+            return null;
+        }
+       public static PathType GetPathType(this JsonConnection jsonConnection)
+        {
+            if (File.Exists(jsonConnection.ConnectionString))
+            {
+                return PathType.File;
+            }
+            else if (Directory.Exists(jsonConnection.ConnectionString))
+            {
+                return PathType.Directory;
+            }
+                return PathType.None;
+        }
     }
 }

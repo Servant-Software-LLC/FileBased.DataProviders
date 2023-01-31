@@ -1,11 +1,11 @@
 ﻿using Irony.Parsing;
-namespace Data.Json.JsonIO.Delete
+namespace Data.Json.JsonQuery
 {
     internal class JsonDeleteQuery : JsonQueryParser
     {
         public JsonDeleteQuery(ParseTreeNode tree) : base(tree)
         {
-            this.Table = GetTable();
+            Table = GetTable();
         }
 
         public override IEnumerable<string> GetColumns()

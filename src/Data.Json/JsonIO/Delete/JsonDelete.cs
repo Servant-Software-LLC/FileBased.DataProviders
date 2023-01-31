@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonIO.Delete
+﻿using Data.Json.JsonQuery;
+
+namespace Data.Json.JsonIO.Delete
 {
     internal class JsonDelete : JsonWriter
     {

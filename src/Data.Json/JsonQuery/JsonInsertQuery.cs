@@ -1,6 +1,6 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Json.JsonIO.Write
+namespace Data.Json.JsonQuery
 {
     internal class JsonInsertQuery : JsonQueryParser
     {

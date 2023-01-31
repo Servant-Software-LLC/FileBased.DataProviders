@@ -1,6 +1,6 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Json.JsonIO.Read
+namespace Data.Json.JsonQuery
 {
     internal class JsonSelectQuery : JsonQueryParser
     {

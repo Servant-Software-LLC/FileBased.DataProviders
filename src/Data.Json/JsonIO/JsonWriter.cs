@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonIO
+﻿using Data.Json.JsonQuery;
+
+namespace Data.Json.JsonIO
 {
 
     internal abstract class JsonWriter : JsonDataAccess

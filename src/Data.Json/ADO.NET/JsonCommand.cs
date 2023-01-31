@@ -1,4 +1,6 @@
-﻿namespace System.Data.JsonClient
+﻿using Data.Json.JsonQuery;
+
+namespace System.Data.JsonClient
 {
     public class JsonCommand : IDbCommand
     {

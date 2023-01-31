@@ -1,6 +1,6 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Json.JsonIO.Write
+namespace Data.Json.JsonQuery
 {
     internal class JsonUpdateQuery : JsonQueryParser
     {
@@ -15,11 +15,11 @@ namespace Data.Json.JsonIO.Write
             var cols = node
          .ChildNodes[3].ChildNodes
          .Select(item => item.ChildNodes[0].ChildNodes[0].Token.ValueString);
-         
+
             return cols;
         }
 
-    
+
 
         public override string GetTable()
         {
