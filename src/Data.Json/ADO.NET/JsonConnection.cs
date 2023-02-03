@@ -56,14 +56,9 @@ namespace System.Data.JsonClient
         internal Reader JsonReader { get; private set; }
         public IDbCommand CreateCommand()
         {
-            if (_state == ConnectionState.Open)
-            {
+            
                 return new JsonCommand(this);
-            }
-            else
-            {
-                throw new InvalidOperationException("Connection should be opened before creating a command.");
-            }
+          
         }
        internal static ReaderWriterLockSlim  LockSlim = new ReaderWriterLockSlim();
        internal PathType PathType { get; private set; }

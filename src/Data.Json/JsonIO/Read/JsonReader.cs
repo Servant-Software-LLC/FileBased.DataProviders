@@ -3,9 +3,9 @@ using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Read
 {
-    internal class JsonReader : IEnumerator<DataRow>
+    internal class JsonReader : IEnumerator<object?[]>
     {
-        DataRow? _currentRow;
+        object?[] _currentRow;
         public JsonReader(JsonCommand jsonCommand,JsonConnection jsonConnection)
         {
             this.jsonConnection = jsonConnection;
@@ -16,28 +16,52 @@ namespace Data.Json.JsonIO.Read
             {
                 jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.RowFilter = filter.Evaluate();
             }
+            columns =new List<string>(jsonCommand.QueryParser.GetColumns());
         }
-        public DataRow Current
+        public object?[] Current
         {
             get
             {
-                return _currentRow!;
+                return _currentRow;
             }
         }
         object IEnumerator.Current => Current;
 
 
-        public int FieldCount => jsonConnection.JsonReader.FieldCount;
+        public int FieldCount
+        {
+            get
+            {
+                if (columns?.FirstOrDefault()?.Trim() != "*")
+                {
+                    return columns!.Count;
+                }
+                return  jsonConnection.JsonReader.FieldCount;
+            }
+        }
 
         public int currentIndex = -1;
         private readonly JsonConnection jsonConnection;
+        private readonly List<string> columns;
 
         public bool MoveNext()
         {
             currentIndex++;
             if (jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.Count > currentIndex)
             {
-                _currentRow = jsonConnection.JsonReader.DataSet.Tables[0].DefaultView[currentIndex].Row;
+                var row = jsonConnection.JsonReader.DataSet.Tables[0].DefaultView[currentIndex].Row;
+                if (columns?.FirstOrDefault()?.Trim() != "*")
+                {
+                    _currentRow = new object?[columns.Count];
+                    for (int i = 0; i < columns?.Count; i++)
+                    {
+                        _currentRow[i] = row[i];
+                    }
+                }
+                else
+                {
+                    _currentRow = row.ItemArray;
+                }
                 return true;
             }
             return false;

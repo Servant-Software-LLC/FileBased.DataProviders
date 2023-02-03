@@ -1,4 +1,7 @@
 ﻿using Data.Json.JsonQuery;
+using System.Management;
+using System.Net.Http.Headers;
+using Utilities;
 
 namespace System.Data.JsonClient
 {
@@ -105,7 +108,21 @@ namespace System.Data.JsonClient
 
         public object? ExecuteScalar()
         {
-            throw new NotImplementedException();
+            var selectQuery = (JsonSelectQuery)QueryParser;
+            selectQuery.GetColumns();
+            var reader = _connection.JsonReader;
+            _connection.JsonReader.JsonQueryParser = QueryParser;
+            reader.ReadJson();
+            if (QueryParser.Filter!=null)
+            reader.DataSet!.Tables[0].DefaultView.RowFilter = QueryParser.Filter.Evaluate();
+
+            object? result = null;
+            if (selectQuery.IsCountQuery)
+            {
+                result = reader.DataSet!.Tables[0].DefaultView.Count;
+            }
+
+            return result;
         }
     }
 }

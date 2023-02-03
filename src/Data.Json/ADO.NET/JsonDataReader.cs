@@ -1,9 +1,11 @@
-﻿namespace System.Data.JsonClient
+﻿using BenchmarkDotNet.Analysers;
+
+namespace System.Data.JsonClient
 {
     public class JsonDataReader : IDataReader
     {
         private readonly JsonReader _reader;
-        private DataRow? _currentObjectEnumerator;
+        private object?[] _currentObjectEnumerator;
 
         public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
         {
@@ -138,7 +140,7 @@
         }
         public object GetValue(int i)
         {
-            return _currentObjectEnumerator[i];
+            return _currentObjectEnumerator[i]!;
         }
         public int GetValues(object[] values)
         {
@@ -153,7 +155,7 @@
         }
         public bool IsDBNull(int i)
         {
-            return _currentObjectEnumerator.IsNull(i);
+            return _currentObjectEnumerator[i]!=null;
         }
         public void Dispose()
         {
@@ -169,7 +171,7 @@
         }
         public T GetValueAsType<T>(int index)
         {
-            return (T)Convert.ChangeType(_currentObjectEnumerator![index], typeof(T));
+            return (T)Convert.ChangeType(_currentObjectEnumerator![index], typeof(T))!;
         }
 
 

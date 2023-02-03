@@ -27,7 +27,7 @@ namespace Data.Json.New
             JsonConnection = jsonConnection;
            
             DataSet = null;
-
+            
         }
         
         public void StartWatching()
@@ -39,7 +39,7 @@ namespace Data.Json.New
         {
             _jsonWatcher.Changed -= JsonWatcher_Changed;
         }
-
+        public List<string>? Columns = null;
         int _fieldCount;
         public int FieldCount
         {
@@ -51,7 +51,9 @@ namespace Data.Json.New
             internal set => _fieldCount = value;
         }
 
-
+        bool _shouldUpdate = false;
+        List<string> tables =
+            new List<string>();
         private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
         {
             //we dont need to update anything if dataset is null
@@ -59,14 +61,9 @@ namespace Data.Json.New
             {
                 return;
             }
-            if (JsonConnection.PathType==PathType.File)
-            {
-                UpdateFromFile();
-            }
-            else
-            {
-                UpdateFromFolder(Path.GetFileNameWithoutExtension(e.FullPath));
-            }
+            _shouldUpdate = true;
+            tables.Add(Path.GetFileNameWithoutExtension(e.FullPath));
+        
         }
         private JsonDocument Read(string path)
         {
@@ -77,6 +74,7 @@ namespace Data.Json.New
 
         public void ReadJson()
         {
+
             if (_jsonWatcher==null)
             {
                 _jsonWatcher = new FileSystemWatcher();
@@ -89,7 +87,7 @@ namespace Data.Json.New
                 else
                 {
                     var file = new FileInfo(JsonConnection.ConnectionString);
-                    _jsonWatcher.Path = file!.DirectoryName;
+                    _jsonWatcher.Path = file.DirectoryName!;
                     _jsonWatcher.Filter= file.Name;
                 }
               //  _jsonWatcher.EnableRaisingEvents= true;
@@ -111,6 +109,23 @@ namespace Data.Json.New
                 {
                     FieldCount = DataSet.Tables[0].Columns.Count;
                 }
+            }
+
+            if (_shouldUpdate)
+            {
+                if (JsonConnection.PathType == PathType.File)
+                {
+                    UpdateFromFile();
+                }
+                else
+                {
+                    foreach (var item in tables)
+                    {
+                        UpdateFromFolder(item);
+                    }
+                }
+                tables.Clear();
+                _shouldUpdate = false;
             }
 
         }
@@ -136,6 +151,7 @@ namespace Data.Json.New
              $"{JsonConnection.ConnectionString}/{tableName}.json";
         private void ReadFromFolder(IEnumerable<string> tables)
         {
+            Columns ??=new List<string>(JsonQueryParser!.GetColumns());
             foreach (var name in tables)
             {
                 var path = GetTablePath(name);

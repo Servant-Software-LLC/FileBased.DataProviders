@@ -25,14 +25,31 @@ namespace Data.Json.JsonQuery
                 };
             }
             var cols = colListNode
-                .ChildNodes[0]
-                .ChildNodes[0]
-                .ChildNodes
-                .Select(x => x.ChildNodes[0].Token.ValueString).ToList();
+                .ChildNodes.Select(x =>
+                {
+                    string col = string.Empty;
+                   var colNode= x.ChildNodes[0]
+                    .ChildNodes[0];
+                    //Check If it is an aggregate query
+                    if (colNode.ChildNodes.Count>1)
+                    {
+                        var aggregateName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+                        ThrowHelper.ThrowIfNotSupportedAggregateFunctionException(aggregateName);
+                        col = colNode.ChildNodes[1].ChildNodes[0].Token.ValueString;
+                        ThrowHelper.ThrowIfNotAsterik(col);
+                        IsCountQuery = true;
+                    }
+                    else
+                    {
+                        col = colNode.ChildNodes[0].Token.ValueString;
+                    }
+                    return col;
+
+                }).ToList();
             return cols;
         }
         public JsonJoin.JsonJoin? JsonJoin { get; set; }
-
+        public bool IsCountQuery { get; set; }
         public override string GetTable()
         {
             var fromClauseOpt = node

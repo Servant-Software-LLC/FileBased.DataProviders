@@ -64,5 +64,21 @@ namespace Data.Json.JsonException
             throw new InvalidConnectionStringException(string.Format(INVALID_CON_STRING));
 
         }
+
+        internal static void ThrowIfNotSupportedAggregateFunctionException(string aggregateName)
+        {
+            if (aggregateName.ToLower()!="count")
+            {
+            throw new NotImplementedException($"The aggregate function {aggregateName} is not yet implemented.");
+
+            }
+        }
+
+        internal static void ThrowIfNotAsterik(string col)
+        {
+            if(col!="*")
+            throw new NotImplementedException($"Count by a specific column is not yet implemented.");
+
+        }
     }
 }
