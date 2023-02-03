@@ -4,18 +4,18 @@ namespace Data.Json.JsonIO.Write
 {
     internal class JsonInsert : JsonWriter
     {
-        public JsonInsert(JsonCommand command, JsonDocument jsonDocument, JsonInsertQuery query) : base(command, jsonDocument, query)
+        public JsonInsert(JsonCommand command,JsonConnection jsonConnection)
+            : base(command, jsonConnection)
         {
-            Query = query;
-            this.columnValues = query.GetValues();
+            Query = (JsonInsertQuery)command.QueryParser;
         }
         public JsonInsertQuery Query { get; }
-        private readonly IEnumerable<KeyValuePair<string, object>> columnValues;
         public override int Execute()
         {
-            DataTable datatable = DataSet.Tables[queryParser.Table]!;
+            JsonReader.ReadJson();
+            DataTable datatable = JsonReader.DataSet!.Tables[Query.Table]!;
             var row = datatable.NewRow();
-            foreach (var val in columnValues)
+            foreach (var val in Query.GetValues())
             {
                 row[val.Key] = val.Value;
             }

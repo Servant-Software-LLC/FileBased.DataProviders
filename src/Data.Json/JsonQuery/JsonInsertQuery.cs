@@ -4,13 +4,9 @@ namespace Data.Json.JsonQuery
 {
     internal class JsonInsertQuery : JsonQueryParser
     {
-
         public JsonInsertQuery(ParseTreeNode node) : base(node)
         {
-
-
         }
-
         public IEnumerable<KeyValuePair<string, object>> GetValues()
         {
             var cols = GetColumns();
@@ -27,14 +23,11 @@ namespace Data.Json.JsonQuery
 
             return result;
         }
-
         public override IEnumerable<string> GetColumns()
         {
-
             var cols = node
            .ChildNodes[3].ChildNodes[0].ChildNodes
            .Select(item => item.ChildNodes[0].Token.ValueString);
-
             return cols;
         }
         public override string GetTable()

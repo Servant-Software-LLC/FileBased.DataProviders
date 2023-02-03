@@ -1,29 +1,35 @@
 ﻿using Data.Json.JsonQuery;
+using Data.Json.New;
 
 namespace Data.Json.JsonIO
 {
 
-    internal abstract class JsonWriter : JsonDataAccess
+    internal abstract class JsonWriter
     {
-        private readonly JsonCommand command;
-        public JsonWriter(JsonCommand command,JsonDocument jsonDocument, JsonQueryParser jSONQuery) : base(jsonDocument, jSONQuery)
+        protected readonly JsonCommand command;
+        protected readonly JsonConnection jsonConnection;
+
+        public Reader JsonReader { get; }
+
+        public JsonWriter(JsonCommand command,JsonConnection jsonConnection)
         {
             this.command = command;
-        }
-        public override IEnumerable<string> GetTables()
-        {
-            return jsonDocument.RootElement.EnumerateObject().Select(x=>x.Name);
+            this.jsonConnection = jsonConnection;
+            JsonReader = jsonConnection.JsonReader;
+            jsonConnection.JsonReader.JsonQueryParser = command.QueryParser;
         }
         public abstract int Execute();
        
         public bool Save()
         {
+            //as we have modified the json file so we don't need to update the tables
+            JsonReader.StopWatching();
         JsonConnection.LockSlim.EnterWriteLock();
             using (var fileStream = new FileStream(command.Connection.ConnectionString, FileMode.Create, FileAccess.Write))
             using (var jsonWriter = new Utf8JsonWriter(fileStream))
             {
                 jsonWriter.WriteStartObject();
-                foreach (DataTable table in base.DataSet.Tables)
+                foreach (DataTable table in JsonReader.DataSet!.Tables)
                 {
                     jsonWriter.WriteStartArray(table.TableName);
                     foreach (DataRow row in table.Rows)
@@ -63,6 +69,7 @@ namespace Data.Json.JsonIO
                 jsonWriter.WriteEndObject();
             }
                 JsonConnection.LockSlim.ExitWriteLock();
+            JsonReader.StartWatching();
 
             return true;
         }

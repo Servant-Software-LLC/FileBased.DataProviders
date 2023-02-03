@@ -1,4 +1,5 @@
-﻿using Irony.Parsing;
+﻿using Data.Json.JsonJoin;
+using Irony.Parsing;
 
 namespace Data.Json.JsonQuery
 {
@@ -30,7 +31,7 @@ namespace Data.Json.JsonQuery
                 .Select(x => x.ChildNodes[0].Token.ValueString).ToList();
             return cols;
         }
-
+        public JsonJoin.JsonJoin? JsonJoin { get; set; }
 
         public override string GetTable()
         {

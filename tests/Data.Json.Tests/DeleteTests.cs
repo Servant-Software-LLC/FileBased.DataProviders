@@ -15,22 +15,29 @@ namespace Data.Json.Tests
         [Fact]
         public void Delete_ShouldDeleteData()
         {
-            // Arrange
-            var connection = new JsonConnection(connectionString);
-            var command = new JsonCommand("DELETE FROM [employees] WHERE name='Jim'", connection);
-
-
-            // Act
+         
+            // Arrange Insert the data first
+            using var connection = new JsonConnection(connectionString);
+            var command = new JsonCommand("INSERT INTO [employees] (name, email, salary) VALUES ('JIMM', 'JIMM@gmail.com', 65000)", connection);
+            //Act
             connection.Open();
             var result = command.ExecuteNonQuery();
-            connection.Close();
-
-            connection = new JsonConnection(connectionString);
-            connection.Open();
             // Assert
             Assert.Equal(1, result);
-            var readCommand = new JsonCommand("SELECT * FROM [employees] WHERE name='Jim'", connection);
-            var reader = readCommand.ExecuteReader();
+
+            // Arrange Delete it
+            command = new JsonCommand("DELETE FROM [employees] WHERE name='JIMM' AND salary=65000", connection);
+            // Act
+            result = command.ExecuteNonQuery();
+            // Assert
+            Assert.Equal(1, result);
+
+
+            // Arrange Check it
+            command = new JsonCommand("SELECT * FROM [employees] WHERE name='JIMM'", connection);
+            var reader = command.ExecuteReader();
+
+            // Assert
             Assert.False(reader.Read());
         }
     }

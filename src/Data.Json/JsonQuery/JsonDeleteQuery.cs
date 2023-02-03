@@ -7,17 +7,10 @@ namespace Data.Json.JsonQuery
         {
             Table = GetTable();
         }
-
         public override IEnumerable<string> GetColumns()
         {
             throw new NotImplementedException();
         }
-
-        //public override Filter? GetFilter()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         public override string GetTable()
         {
             return node

@@ -2,17 +2,17 @@
 
 namespace Data.Json.Extension
 {
-    public static class ExtensionMethods
+    internal static class ExtensionMethods
     {
-        public static TTarget Convert<TTarget>(this object source)
+        internal static TTarget Convert<TTarget>(this object source)
         {
             return (TTarget)source;
         }
-        public static TTarget Convert<TTarget>(this string source)
+        internal static TTarget Convert<TTarget>(this string source)
         {
           return (TTarget)System.Convert.ChangeType(source, typeof(TTarget));
         }
-        public static Type GetClrFieldType(this JsonValueKind kind) => kind switch
+        internal static Type GetClrFieldType(this JsonValueKind kind) => kind switch
         {
             JsonValueKind.String => typeof(string),
             JsonValueKind.Number => typeof(decimal),
@@ -24,7 +24,7 @@ namespace Data.Json.Extension
             _ => throw new NotSupportedException("Unsupported JSON value kind: " + kind)
         };
 
-        public static string GetClrDataTypeName(this JsonValueKind kind) => kind switch
+        internal static string GetClrDataTypeName(this JsonValueKind kind) => kind switch
         {
             JsonValueKind.String => "string",
             JsonValueKind.Number => "decimal",
@@ -35,12 +35,12 @@ namespace Data.Json.Extension
             JsonValueKind.Object => "string",
             _ => throw new NotSupportedException("Unsupported JSON value kind: " + kind)
         };
-        public static object? GetValue(this JsonElement row, string propName)
+        internal static object? GetValue(this JsonElement row, string propName)
         {
             var jsonElement = row.EnumerateObject().First(x => x.Name == propName).Value;
             return GetValue(jsonElement);
         }
-        public static object? GetValue(this JsonElement jsonElement)
+        internal static object? GetValue(this JsonElement jsonElement)
         {
             var kind = jsonElement.ValueKind;
             return kind switch
@@ -58,11 +58,11 @@ namespace Data.Json.Extension
 
         }
 
-        public static DataTable ToDataTable(this JsonDocument dataTable)
+        internal static DataTable ToDataTable(this JsonDocument dataTable)
         {
             return null;
         }
-       public static PathType GetPathType(this JsonConnection jsonConnection)
+       internal static PathType GetPathType(this JsonConnection jsonConnection)
         {
             if (File.Exists(jsonConnection.ConnectionString))
             {

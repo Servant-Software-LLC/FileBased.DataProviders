@@ -8,6 +8,8 @@ namespace Data.Json.Syncronizer
 {
     internal class JsonWatcher:FileSystemWatcher
     {
+        private FileSystemEventHandler? _onChangedHandler;
+
         public ReaderWriterLock ReaderWriterLock { get; private set; }
         = new ReaderWriterLock();
         public JsonWatcher(string path,DataSet dataSet,bool isDirectory)
@@ -27,12 +29,11 @@ namespace Data.Json.Syncronizer
                 base.Path = path;
                 base.Filter=System.IO.Path.GetFileName(path);
             }
-            base.Changed += JsonWatcher_Changed;
+            EnableRaisingEvents= true;
+           
         }
-
-        private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
+        public JsonWatcher()
         {
-            throw new NotImplementedException();
         }
     }
 }

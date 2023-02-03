@@ -7,18 +7,17 @@ namespace Data.Json.JsonIO.Delete
         private readonly JsonDeleteQuery jsonDeleteQuery;
 
         public JsonDelete(JsonCommand command,
-            JsonDocument jsonDocument,
-            JsonDeleteQuery jsonDeleteQuery)
+            JsonConnection jsonConnection)
             : base(command,
-                  jsonDocument,
-                  jsonDeleteQuery)
+                  jsonConnection)
         {
-            this.jsonDeleteQuery = jsonDeleteQuery;
+            this.jsonDeleteQuery = (JsonDeleteQuery)command.QueryParser;
         }
 
         public override int Execute()
         {
-            DataTable datatable = DataSet.Tables[jsonDeleteQuery.Table]!;
+            JsonReader.ReadJson();
+            DataTable datatable =JsonReader.DataSet!.Tables[jsonDeleteQuery.Table]!;
             datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
             var rowsAffected = datatable.DefaultView.Count;
             foreach (DataRowView dataRow in datatable.DefaultView)

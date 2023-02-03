@@ -1,4 +1,5 @@
 ﻿using Data.Json.Enum;
+using Data.Json.New;
 
 namespace System.Data.JsonClient
 {
@@ -19,10 +20,9 @@ namespace System.Data.JsonClient
         public JsonConnection(string connectionString)
         {
             ArgumentNullException.ThrowIfNull(nameof(connectionString));
-            if (!connectionString.ToLower().Replace(" ", "").Contains("datasource="))
-                ThrowHelper.ThrowInvalidConnectionStringException();
             _connectionString = connectionString.Split('=')[1].TrimEnd(';');
             _state = ConnectionState.Closed;
+            JsonReader = new Reader(this);
         }
         public IDbTransaction BeginTransaction()
         {
@@ -44,6 +44,16 @@ namespace System.Data.JsonClient
         {
             _state = ConnectionState.Closed;
         }
+
+
+
+
+
+
+
+       
+
+        internal Reader JsonReader { get; private set; }
         public IDbCommand CreateCommand()
         {
             if (_state == ConnectionState.Open)
@@ -61,17 +71,6 @@ namespace System.Data.JsonClient
         {
             PathType = this.GetPathType();
             ThrowHelper.ThrowIfInvalidPath(PathType);
-            //while (JsonConnection.LockSlim.RecursiveWriteCount>0)
-            //{
-
-            //}
-            //LockSlim.EnterReadLock();
-
-            using (var file =new FileStream(_connectionString,FileMode.Open,FileAccess.Read))
-            {
-                _database = JsonDocument.Parse(file);
-            }
-            LockSlim.ExitReadLock();
             _state = ConnectionState.Open;
         }
         void IDisposable.Dispose()
@@ -79,10 +78,6 @@ namespace System.Data.JsonClient
             _state = ConnectionState.Closed;
             _database?.Dispose();
             
-        }
-        internal JsonDocument GetDatabase()
-        {
-            return _database!;
         }
     }
 }

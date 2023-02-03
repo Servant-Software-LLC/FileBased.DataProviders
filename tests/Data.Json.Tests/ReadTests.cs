@@ -11,7 +11,7 @@ namespace Data.Json.Tests
 {
     public class ReadTests
     {
-        
+
         string connectionString = "Data Source=Sources/database.json;";
         [Fact]
         public void Read_ShouldReturnData()
@@ -27,7 +27,7 @@ namespace Data.Json.Tests
             Assert.NotNull(reader);
             Assert.Equal(4, reader.FieldCount);
             //first Row
-            Assert.Equal(true,reader.Read());
+            Assert.True(reader.Read());
             Assert.Equal("Joe", reader["name"]);
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("Joe@gmail.com", reader["email"]);
@@ -38,7 +38,7 @@ namespace Data.Json.Tests
             Assert.IsType<bool>(reader["married"]);
 
             //second row
-            Assert.Equal(true, reader.Read());
+            Assert.True(reader.Read());
             Assert.Equal("Bob", reader["name"]);
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("bob32@gmail.com", reader["email"]);
@@ -54,9 +54,9 @@ namespace Data.Json.Tests
         }
 
 
-  
 
-   
-  
+
+
+
     }
 }

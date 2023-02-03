@@ -3,12 +3,11 @@
     public class JsonDataReader : IDataReader
     {
         private readonly JsonReader _reader;
-        private DataRow _currentObjectEnumerator;
+        private DataRow? _currentObjectEnumerator;
 
         public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
         {
-            _reader = new JsonReader(command.QueryParser,
-                ((JsonConnection)jsonConnection).GetDatabase());
+            _reader = new JsonReader(command,(JsonConnection)jsonConnection);
         }
 
         public int Depth => 0;
@@ -65,7 +64,7 @@
 
         public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
         {
-            return GetValueAsType<long>(i);
+            return GetValueAsType<long>(i)!;
 
         }
 
@@ -170,7 +169,7 @@
         }
         public T GetValueAsType<T>(int index)
         {
-            return (T)Convert.ChangeType(_currentObjectEnumerator[index], typeof(T));
+            return (T)Convert.ChangeType(_currentObjectEnumerator![index], typeof(T));
         }
 
 

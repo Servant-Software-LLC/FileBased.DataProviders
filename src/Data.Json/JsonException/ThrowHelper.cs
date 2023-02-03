@@ -18,9 +18,26 @@ namespace Data.Json.JsonException
                 throw new InvalidConnectionStringException(FILE_NOT_FOUND);
             }
         }
-        public static void ThrowIfInvalidJson(JsonDocument jsonDocument)
+        public static void ThrowIfInvalidJson(JsonDocument jsonDocument,JsonConnection jsonConnection)
         {
-            if (jsonDocument.RootElement.ValueKind!=JsonValueKind.Object)
+            if ((jsonDocument.RootElement.ValueKind==JsonValueKind.Object &&
+                 jsonConnection.PathType==PathType.File )
+                 ||
+                 (jsonDocument.RootElement.ValueKind == JsonValueKind.Array &&
+                 jsonConnection.PathType == PathType.Directory)
+                 )
+            {
+                throw new InvalidJsonFileException(INVALID_JSON);
+            }
+        }
+        public static void ThrowIfInvalidJson(JsonElement jsonElement, JsonConnection jsonConnection)
+        {
+            if (!(jsonElement.ValueKind == JsonValueKind.Object &&
+                 jsonConnection.PathType == PathType.File)
+                 &&
+                 !(jsonElement.ValueKind == JsonValueKind.Array &&
+                 jsonConnection.PathType == PathType.Directory)
+                 )
             {
                 throw new InvalidJsonFileException(INVALID_JSON);
             }
@@ -42,7 +59,7 @@ namespace Data.Json.JsonException
             throw new ColumnNotFoundException(string.Format(COLUMN_NOT_FOUND, columnName));
         }
 
-        internal static void ThrowInvalidConnectionStringException()
+        internal static void ThrowInvalidConnectionString()
         {
             throw new InvalidConnectionStringException(string.Format(INVALID_CON_STRING));
 

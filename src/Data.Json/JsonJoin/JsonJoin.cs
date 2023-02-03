@@ -9,7 +9,8 @@
     }
         public class JsonJoin
     {
-
+        public IEnumerable<string> Tables { get; set; }
+        =Enumerable.Empty<string>();
         IList<JoinFilter> JoinFilters { get; set; }
         public JsonJoin()
         {

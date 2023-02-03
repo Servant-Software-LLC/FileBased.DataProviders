@@ -75,11 +75,11 @@ namespace System.Data.JsonClient
                 throw new InvalidOperationException("Connection should be opened before executing a command.");
             }
             JsonWriter jsonWriter = QueryParser.IsInsertQuery ?
-                new JsonInsert(this, ((JsonConnection)Connection).GetDatabase(), (JsonInsertQuery)QueryParser)
+                new JsonInsert(this, (JsonConnection)Connection)
                 : QueryParser.IsUpdateQuery ?
-                new JsonUpdate(this, ((JsonConnection)Connection).GetDatabase(), QueryParser)
+                new JsonUpdate(this, (JsonConnection)Connection)
                 :
-                new JsonDelete(this, ((JsonConnection)Connection).GetDatabase(), (JsonDeleteQuery)QueryParser);
+                new JsonDelete(this, (JsonConnection)Connection);
 
             return jsonWriter.Execute();
         }

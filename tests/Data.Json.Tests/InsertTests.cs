@@ -11,6 +11,7 @@ namespace Data.Json.Tests
     public class InsertTests
     {
         string connectionString = "Data Source=Sources/database.json;";
+        string folderConnectionString = "Data Source=Sources/Folder;";
 
 
         [Fact]
@@ -18,25 +19,65 @@ namespace Data.Json.Tests
         {
             // Arrange
             var connection = new JsonConnection(connectionString);
-            var command = new JsonCommand("INSERT INTO [employees] (name, email, salary) VALUES ('Jane', 'jane@gmail.com', 65000)", connection);
-
-
+            var command = new JsonCommand("INSERT INTO [employees] (name, email, salary) VALUES ('Vincenzo', 'Vincenzo@gmail.com', 65000)", connection);
             // Act
             connection.Open();
             var result = command.ExecuteNonQuery();
-            //Arrange
-            connection = new JsonConnection(connectionString);
-            connection.Open();
-
             // Assert
             Assert.Equal(1, result);
-            var readCommand = new JsonCommand("SELECT * FROM [employees] WHERE name='Jane'", connection);
+            var readCommand = new JsonCommand("SELECT * FROM [employees] WHERE name='Vincenzo'", connection);
             var readResult = readCommand.ExecuteReader();
-            while (readResult.Read())
-            {
-                Assert.Equal("jane@gmail.com", readResult["email"]);
+            readResult.Read();
+
+                Assert.Equal("Vincenzo@gmail.com", readResult["email"]);
                 Assert.Equal((decimal)65000, readResult["salary"]);
-            }
+        }
+
+        [Fact]
+        public void FolderAsDB_Insert_ShouldInsertData()
+        {
+            // Arrange
+            var connection = new JsonConnection(folderConnectionString);
+            var command = new JsonCommand("INSERT INTO [employees] (name, email, salary) VALUES ('Vincenzo', 'Vincenzo@gmail.com', 65000)", connection);
+            // Act
+            connection.Open();
+            var result = command.ExecuteNonQuery();
+            // Assert
+            Assert.Equal(1, result);
+
+            //Arrange
+            var readCommand = new JsonCommand("SELECT * FROM [employees] WHERE name='Vincenzo'", connection);
+            //Act
+            var readResult = readCommand.ExecuteReader();
+
+            //Assert
+            Assert.True(readResult.Read());
+            Assert.Equal("Vincenzo@gmail.com", readResult["email"]);
+            Assert.Equal((decimal)65000, readResult["salary"]);
+
+
+
+
+
+            // Arrange
+            command = new JsonCommand("INSERT INTO [locations] (id, city, state) VALUES (100, 'Washington', 'US')", connection);
+            // Act
+            connection.Open();
+            result = command.ExecuteNonQuery();
+            // Assert
+            Assert.Equal(1, result);
+
+            //Arrange
+            readCommand = new JsonCommand("SELECT * FROM [locations] WHERE city='Washington'", connection);
+            //Act
+            readResult = readCommand.ExecuteReader();
+
+            //Assert
+            Assert.True(readResult.Read());
+            Assert.Equal("Washington", readResult["city"]);
+            Assert.Equal((decimal)100, readResult["id"]);
+
+
         }
     }
 }

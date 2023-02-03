@@ -5,9 +5,7 @@ namespace Data.Json.JsonQuery
     {
         public string Table { get; set; }
         public Filter? Filter { get; set; }
-
         protected readonly ParseTreeNode node;
-
         public static JsonQueryParser Create(string query)
         {
             var parser = new Parser(new JsonGrammar());
@@ -39,7 +37,6 @@ namespace Data.Json.JsonQuery
             Filter = GetFilter();
             Table = GetTable();
         }
-
         public bool IsSelectQuery => GetType() == typeof(JsonSelectQuery);
         public bool IsInsertQuery => GetType() == typeof(JsonInsertQuery);
         public bool IsDeleteQuery => GetType() == typeof(JsonDeleteQuery);
@@ -57,7 +54,6 @@ namespace Data.Json.JsonQuery
             }
             return ExtractFilter(whereClause!.ChildNodes[1].ChildNodes!);
         }
-
         protected Filter ExtractFilter(ParseTreeNodeList x)
         {
             Filter mainFilter = null;
