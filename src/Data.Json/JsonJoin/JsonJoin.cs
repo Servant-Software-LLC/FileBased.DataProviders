@@ -1,67 +1,133 @@
 ﻿namespace Data.Json.JsonJoin
 {
-    public struct JoinFilter
+
+    public class DataTableJoin
     {
-        public string Table1Name { get; set; }
-        public string Table1Col { get; set; }
-        public string Table2Col { get; set; }
-        public string Op { get; set; }
+        private readonly Join dataTableInnerJoin;
+        private readonly string mainTable;
+
+        public DataTableJoin(Join dataTableInnerJoin, string mainTable)
+        {
+            this.dataTableInnerJoin = dataTableInnerJoin;
+            this.mainTable = mainTable;
+        }
+
+        public DataTable Join(DataSet database)
+        {
+            var resultTable = new DataTable();
+            foreach (DataTable item in database.Tables)
+            {
+                foreach (DataColumn col in item.Columns)
+                {
+                    if (resultTable.Columns[col.ColumnName] != null)
+                    {
+                        continue;
+                    }
+                    resultTable.Columns.Add(col.ColumnName, col.DataType);
+                }
+            }
+
+            foreach (DataRow sourceRow in database.Tables[mainTable]!.Rows)
+            {
+                var rows = new List<DataRow>();
+                JoinRows(sourceRow,
+                         resultTable,
+                         dataTableInnerJoin,
+                         database,
+                         rows);
+                foreach (var item in rows)
+                {
+                    resultTable.Rows.Add(item);
+                }
+            }
+            return resultTable;
+        }
+        public List<DataRow> JoinRows(DataRow sourceRow,
+                                      DataTable resultTable,
+                                      Join dataTableInnerJoin,
+                                      DataSet database,
+                                      List<DataRow> dataRows)
+        {
+            var sourceColumnVal = sourceRow[dataTableInnerJoin.SourceColumn];
+            var dataTableToJoin = database.Tables[dataTableInnerJoin.TableName];
+
+            var filter = new SimpleFilter(dataTableInnerJoin.JoinColumn, dataTableInnerJoin.Operation, sourceColumnVal);
+            dataTableToJoin!.DefaultView.RowFilter = filter.Evaluate();
+
+
+            foreach (DataRowView row in dataTableToJoin.DefaultView)
+            {
+                var resultRow = resultTable.NewRow();
+                if (dataTableInnerJoin.InnerJoin.Count > 0)
+                {
+                    foreach (var innerjion in dataTableInnerJoin.InnerJoin)
+                    {
+                        var rows = new List<DataRow>();
+                        var otherRows = JoinRows(row.Row,
+                            resultTable,
+                            innerjion,
+                            database,
+                            rows);
+                        foreach (var item in otherRows)
+                        {
+                            AddRow(item, sourceRow.Table, sourceRow);
+                            AddRow(item, dataTableToJoin!, row.Row);
+                        }
+                        dataRows.AddRange(rows);
+                    }
+                    continue;
+                }
+                AddRow(resultRow, sourceRow.Table, sourceRow);
+                AddRow(resultRow, dataTableToJoin!, row.Row);
+                dataRows.Add(resultRow);
+            }
+
+            return dataRows;
+        }
+
+        private static void AddRow(DataRow sourceRow, DataTable dataTableToJoin, DataRow row)
+        {
+            foreach (DataColumn col in dataTableToJoin.Columns)
+            {
+                sourceRow[col.ColumnName] = row[col.ColumnName];
+            }
+        }
+
     }
-        public class JsonJoin
+  
+
+
+
+    public class Join
     {
-        public IEnumerable<string> Tables { get; set; }
-        =Enumerable.Empty<string>();
-        IList<JoinFilter> JoinFilters { get; set; }
-        public JsonJoin()
-        {
+        public string TableName { get; }
+        public string JoinColumn { get; }
+        public string Operation { get; }
+        public string SourceColumn { get; }
+        public IList<Join> InnerJoin { get; }
 
-        }
-        public IEnumerable<JsonTable> GetTables()
+        public Join(string tableName, string joinColumn, string sourceColumn)
         {
-            return JoinFilters?.Select(filter => new JsonTable(filter.Table1Name));
-
-        }
-        public bool Join(DataRow mainRow,DataSet dataSet)
-        {
-            if (JoinFilters==null)
+            if (string.IsNullOrEmpty(tableName))
             {
-                return true;
+                throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
             }
-            bool canjoin = false;
-            foreach (var filter in JoinFilters)
+
+            if (string.IsNullOrEmpty(joinColumn))
             {
-                //var table2TempName = filter.Table1Col.Split('.')[0];
-                ////var table2Name = GetTableNameFromTemp(table2TempName,tables);
-                ////Get Table 1 Name
-                //var table1 = dataSet.Tablestables.First(x=>x.tableName==filter.Table1Name);
-                //var table2 = tables.First(x => x.tableName.EndsWith(table2TempName));
-                //var val1 = table2.element.GetValue(filter.Table1Col.Split('.')[1]);
-                //var simpleFilter = new SimpleFilter(filter.Table2Col.Split('.')[1], filter.Op, val1!);
-                //canjoin = simpleFilter.Evaluate(table1.element);
-                //if (!canjoin)
-                //{
-                //    return false;
-                //}
+                throw new ArgumentException($"'{nameof(joinColumn)}' cannot be null or empty.", nameof(joinColumn));
             }
-            return canjoin;
+
+            if (string.IsNullOrEmpty(sourceColumn))
+            {
+                throw new ArgumentException($"'{nameof(sourceColumn)}' cannot be null or empty.", nameof(sourceColumn));
+            }
+
+            InnerJoin = new List<Join>();
+            TableName = tableName;
+            JoinColumn = joinColumn;
+            SourceColumn = sourceColumn;
         }
 
-        private static (string tableName, JsonElement element) GetTable(IEnumerable<(string tableName, JsonElement element)> tables, string tableName)
-        {
-            return tables.First(x => x.tableName.Split(' ')[0].Trim() == tableName);
-        }
-
-        private string GetTableNameFromTemp(string table2TempName, IEnumerable<(string tableName, JsonElement element)> tables)
-        {
-            var table = tables.First(x => x.tableName.Split(' ').Last().Trim() == table2TempName);
-            return table.tableName.Split(' ')[0].Trim();
-        }
-
-
-        public void AddTable(JoinFilter joinFilter)
-        {
-            JoinFilters ??= new List<JoinFilter>();
-            JoinFilters.Add(joinFilter);
-        }
     }
 }

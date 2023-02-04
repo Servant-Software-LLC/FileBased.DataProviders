@@ -48,7 +48,7 @@ namespace Data.Json.JsonQuery
                 }).ToList();
             return cols;
         }
-        public JsonJoin.JsonJoin? JsonJoin { get; set; }
+        public JsonJoin.DataTableJoin? Join { get; set; }
         public bool IsCountQuery { get; set; }
         public override string GetTable()
         {
@@ -61,6 +61,10 @@ namespace Data.Json.JsonQuery
             .ChildNodes[0]
             .Token
             .ValueString;
+        }
+        public JsonJoin.DataTableJoin? GetJsonJoin()
+        {
+            return default;
         }
     }
 }

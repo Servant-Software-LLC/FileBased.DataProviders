@@ -1,5 +1,7 @@
 ﻿using Data.Json.Enum;
+using Data.Json.JsonQuery;
 using Data.Json.New;
+using Irony.Parsing;
 
 namespace System.Data.JsonClient
 {
@@ -19,6 +21,22 @@ namespace System.Data.JsonClient
         //}
         public JsonConnection(string connectionString)
         {
+            var query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[ProductName] FROM [Customers] [c] INNER JOIN [Orders] [o] ON [c].[CustomerID] = [o].[CustomerID];";
+            var fg= query.Substring(96, (query.Length - 96));
+            var parser = new Parser(new SqlGrammer());
+            var parseTree = parser.Parse(query);
+            if (parseTree.HasErrors())
+            {
+                ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
+            }
+            var mainNode = parseTree.Root.ChildNodes[0];
+
+            var selectQuery = new JsonSelectQuery(mainNode);
+            //// Act
+            var table = selectQuery.GetTable();
+            var col = selectQuery.GetColumns();
+            var f = selectQuery.GetFilter();
+
             ArgumentNullException.ThrowIfNull(nameof(connectionString));
             _connectionString = connectionString.Split('=')[1].TrimEnd(';');
             _state = ConnectionState.Closed;

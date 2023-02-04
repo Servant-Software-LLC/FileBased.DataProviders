@@ -17,7 +17,7 @@ namespace Data.Json.JsonIO.Delete
         public override int Execute()
         {
             JsonReader.ReadJson();
-            DataTable datatable =JsonReader.DataSet!.Tables[jsonDeleteQuery.Table]!;
+            DataTable datatable =JsonReader.DataTable;
             datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
             var rowsAffected = datatable.DefaultView.Count;
             foreach (DataRowView dataRow in datatable.DefaultView)

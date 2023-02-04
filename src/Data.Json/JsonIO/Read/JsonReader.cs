@@ -47,9 +47,9 @@ namespace Data.Json.JsonIO.Read
         public bool MoveNext()
         {
             currentIndex++;
-            if (jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.Count > currentIndex)
+            if (jsonConnection.JsonReader.DataTable.DefaultView.Count > currentIndex)
             {
-                var row = jsonConnection.JsonReader.DataSet.Tables[0].DefaultView[currentIndex].Row;
+                var row = jsonConnection.JsonReader.DataTable.DefaultView[currentIndex].Row;
                 if (columns?.FirstOrDefault()?.Trim() != "*")
                 {
                     _currentRow = new object?[columns.Count];
@@ -85,15 +85,15 @@ namespace Data.Json.JsonIO.Read
         }
        internal string GetName(int i)
         {
-           return jsonConnection.JsonReader.DataSet.Tables[0].Columns[i].ColumnName;
+           return jsonConnection.JsonReader.DataTable.Columns[i].ColumnName;
         }
         internal int GetOrdinal(string name)
         {
-            return jsonConnection.JsonReader.DataSet.Tables[0].Columns[name].Ordinal;
+            return jsonConnection.JsonReader.DataTable.Columns[name].Ordinal;
         }
         internal Type GetType(int i)
         {
-            return jsonConnection.JsonReader.DataSet.Tables[0].Columns[i].DataType;
+            return jsonConnection.JsonReader.DataTable.Columns[i].DataType;
         }
 
     }

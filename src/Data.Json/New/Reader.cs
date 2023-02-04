@@ -22,6 +22,7 @@ namespace Data.Json.New
 
         private FileSystemWatcher _jsonWatcher;
         public DataSet? DataSet { get; set; }
+        public DataTable DataTable { get; set; }
         public Reader(JsonConnection jsonConnection)
         {
             JsonConnection = jsonConnection;
@@ -97,6 +98,7 @@ namespace Data.Json.New
                 DataSet ??= new DataSet();
                 var newTables = GetTables();
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
+                DataTable = DataSet.Tables[JsonQueryParser.Table];
             }
             else
             {
@@ -105,9 +107,10 @@ namespace Data.Json.New
             }
             if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
             {
-                if (jsonSelectQuery.JsonJoin==null)
+                if (jsonSelectQuery.Join==null)
                 {
-                    FieldCount = DataSet.Tables[0].Columns.Count;
+                    FieldCount = DataSet.Tables[jsonSelectQuery.Table].Columns.Count;
+                    DataTable = DataSet.Tables[JsonQueryParser.Table];
                 }
             }
 
@@ -126,6 +129,7 @@ namespace Data.Json.New
                 }
                 tables.Clear();
                 _shouldUpdate = false;
+                DataTable = DataSet.Tables[JsonQueryParser.Table];
             }
 
         }
@@ -138,10 +142,10 @@ namespace Data.Json.New
                 };
             if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
             {
-                foreach (var item in jsonSelectQuery.JsonJoin.Tables)
-                {
-                    tables.Add(item);
-                }
+                //foreach (var item in jsonSelectQuery.join.Tables)
+                //{
+                //    tables.Add(item);
+                //}
             }
 
             return tables;
