@@ -1,4 +1,5 @@
 ﻿using Data.Json.Enum;
+using Data.Json.JsonJoin;
 using Data.Json.JsonQuery;
 using Data.Json.New;
 using Irony.Parsing;
@@ -21,21 +22,21 @@ namespace System.Data.JsonClient
         //}
         public JsonConnection(string connectionString)
         {
-            var query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[ProductName] FROM [Customers] [c] INNER JOIN [Orders] [o] ON [c].[CustomerID] = [o].[CustomerID];";
-            var fg= query.Substring(96, (query.Length - 96));
-            var parser = new Parser(new SqlGrammer());
-            var parseTree = parser.Parse(query);
-            if (parseTree.HasErrors())
-            {
-                ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
-            }
-            var mainNode = parseTree.Root.ChildNodes[0];
+            //var query = "SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[ProductName] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [Order_Items oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [c].[ProductID] where id>8;";
+            //var fg= query.Substring(96, (query.Length - 96));
+            //var parser = new Parser(new JsonGrammar());
+            //var parseTree = parser.Parse(query);
+            //if (parseTree.HasErrors())
+            //{
+            //    ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
+            //}
+            //var mainNode = parseTree.Root.ChildNodes[0];
 
-            var selectQuery = new JsonSelectQuery(mainNode);
-            //// Act
-            var table = selectQuery.GetTable();
-            var col = selectQuery.GetColumns();
-            var f = selectQuery.GetFilter();
+            //var selectQuery = new JsonSelectQuery(mainNode);
+            ////// Act
+            //var table = selectQuery.GetTable();
+            //var col = selectQuery.GetColumns();
+            //var f = selectQuery.GetFilter();
 
             ArgumentNullException.ThrowIfNull(nameof(connectionString));
             _connectionString = connectionString.Split('=')[1].TrimEnd(';');

@@ -17,6 +17,14 @@ namespace Data.Json.JsonIO.Read
                 jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.RowFilter = filter.Evaluate();
             }
             columns =new List<string>(jsonCommand.QueryParser.GetColumns());
+            if (columns?.FirstOrDefault()?.Trim() == "*"&&columns!=null)
+            {
+                columns.Clear();
+                foreach (DataColumn column in jsonConnection.JsonReader.DataTable.Columns)
+                {
+                    columns.Add(column.ColumnName);
+                }
+            }
         }
         public object?[] Current
         {
@@ -32,11 +40,7 @@ namespace Data.Json.JsonIO.Read
         {
             get
             {
-                if (columns?.FirstOrDefault()?.Trim() != "*")
-                {
-                    return columns!.Count;
-                }
-                return  jsonConnection.JsonReader.FieldCount;
+              return  columns.Count;
             }
         }
 
@@ -55,7 +59,7 @@ namespace Data.Json.JsonIO.Read
                     _currentRow = new object?[columns.Count];
                     for (int i = 0; i < columns?.Count; i++)
                     {
-                        _currentRow[i] = row[i];
+                        _currentRow[i] = row[columns[i]];
                     }
                 }
                 else
@@ -85,15 +89,16 @@ namespace Data.Json.JsonIO.Read
         }
        internal string GetName(int i)
         {
-           return jsonConnection.JsonReader.DataTable.Columns[i].ColumnName;
+           return columns[i];
         }
         internal int GetOrdinal(string name)
         {
-            return jsonConnection.JsonReader.DataTable.Columns[name].Ordinal;
+            return columns.IndexOf(name);
         }
         internal Type GetType(int i)
         {
-            return jsonConnection.JsonReader.DataTable.Columns[i].DataType;
+            var name = GetName(i);
+            return jsonConnection.JsonReader.DataTable.Columns[name]!.DataType;
         }
 
     }

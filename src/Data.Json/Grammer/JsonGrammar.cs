@@ -16,6 +16,11 @@ namespace Data.Json.Grammer
             var number = new NumberLiteral("number");
             var string_literal = new StringLiteral("string", "'", StringOptions.AllowsDoubledQuote);
             var Id_simple = TerminalFactory.CreateSqlExtIdentifier(this, "id_simple"); //covers normal identifiers (abc) and quoted id's ([abc d], "abc d")
+
+            var tableName = TerminalFactory.CreateSqlExtIdentifier(this, "table_name");
+            var tableAlias = TerminalFactory.CreateSqlExtIdentifier(this, "table_alias");
+
+
             var table_alias = new RegexBasedTerminal("table_alias", "[a-zA-Z0-9_]+\\s+[a-zA-Z0-9_]+");
 
             var comma = ToTerm(",");
@@ -118,6 +123,7 @@ namespace Data.Json.Grammer
             var funArgs = new NonTerminal("funArgs");
             var inStmt = new NonTerminal("inStmt");
             var join = new NonTerminal("join");
+            
             //var tableAlias = new NonTerminal("joinTableAlias");
 
             //BNF Rules
@@ -198,8 +204,13 @@ namespace Data.Json.Grammer
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + Id;
             fromClauseOpt.Rule = FROM + idlist + joinChainOpt;
-            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idlist + ON + Id + "=" + Id;
+            //joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idlist + ON + Id + "=" + Id;
+            join.Rule = (JOIN + idlist + ON + Id + "=" + Id);
 
+            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + tableName + " " + tableAlias + ON + Id + "=" + Id + joinChainOpt;
+
+
+            joinChainOpt.Rule = Empty | joinKindOpt + (join) + joinChainOpt;
             //joinChainOpt.Rule = MakePlusRule(joinChainOpt, join);
             //tableAlias.Rule = Id_simple + asOpt + Id_simple;
             //join.Rule = joinKindOpt + JOIN + idlist + ON + Id + "=" + Id;

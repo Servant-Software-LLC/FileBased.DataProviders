@@ -8,7 +8,7 @@ namespace Data.Json.JsonQuery
         protected readonly ParseTreeNode node;
         public static JsonQueryParser Create(string query)
         {
-            var parser = new Parser(new SqlGrammer());
+            var parser = new Parser(new JsonGrammar());
             var parseTree = parser.Parse(query);
             if (parseTree.HasErrors())
             {

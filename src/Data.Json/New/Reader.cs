@@ -1,5 +1,6 @@
 ﻿using Bogus.DataSets;
 using Data.Json.Enum;
+using Data.Json.JsonJoin;
 using Data.Json.JsonQuery;
 using Data.Json.Syncronizer;
 using System;
@@ -41,15 +42,13 @@ namespace Data.Json.New
             _jsonWatcher.Changed -= JsonWatcher_Changed;
         }
         public List<string>? Columns = null;
-        int _fieldCount;
         public int FieldCount
         {
             get
             {
                 ReadJson();
-                return _fieldCount;
+                return DataTable.Columns.Count;
             }
-            internal set => _fieldCount = value;
         }
 
         bool _shouldUpdate = false;
@@ -76,7 +75,7 @@ namespace Data.Json.New
         public void ReadJson()
         {
 
-            if (_jsonWatcher==null)
+            if (_jsonWatcher == null)
             {
                 _jsonWatcher = new FileSystemWatcher();
                 _jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -89,28 +88,24 @@ namespace Data.Json.New
                 {
                     var file = new FileInfo(JsonConnection.ConnectionString);
                     _jsonWatcher.Path = file.DirectoryName!;
-                    _jsonWatcher.Filter= file.Name;
+                    _jsonWatcher.Filter = file.Name;
                 }
-              //  _jsonWatcher.EnableRaisingEvents= true;
+                //  _jsonWatcher.EnableRaisingEvents= true;
             }
-            if (JsonConnection.PathType==PathType.Directory)
+            if (JsonConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
                 var newTables = GetTables();
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
-                DataTable = DataSet.Tables[JsonQueryParser.Table];
+                DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
+                CheckIfSelect();
             }
             else
             {
-                if(DataSet==null)
-                ReadFromFile();
-            }
-            if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
-            {
-                if (jsonSelectQuery.Join==null)
+                if (DataSet == null)
                 {
-                    FieldCount = DataSet.Tables[jsonSelectQuery.Table].Columns.Count;
-                    DataTable = DataSet.Tables[JsonQueryParser.Table];
+                    ReadFromFile();
+                    CheckIfSelect();
                 }
             }
 
@@ -132,6 +127,22 @@ namespace Data.Json.New
                 DataTable = DataSet.Tables[JsonQueryParser.Table];
             }
 
+            void CheckIfSelect()
+            {
+                if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
+                {
+                    var dataTableJoin = jsonSelectQuery.GetJsonJoin();
+                    if (dataTableJoin == null)
+                    {
+                        DataTable = DataSet!.Tables[JsonQueryParser.Table]!;
+                    }
+                    else
+                    {
+                        DataTable = dataTableJoin.Join(DataSet!);
+
+                    }
+                }
+            }
         }
 
         private List<string> GetTables()
@@ -165,7 +176,6 @@ namespace Data.Json.New
                 dataTable.TableName = name;
                 Fill(dataTable, element);
                 DataSet!.Tables.Add(dataTable);
-                FieldCount += dataTable.Columns.Count;
             }
         }
         private void UpdateFromFolder(string tableName)

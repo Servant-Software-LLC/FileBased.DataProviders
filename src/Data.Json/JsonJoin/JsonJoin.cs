@@ -3,12 +3,12 @@
 
     public class DataTableJoin
     {
-        private readonly Join dataTableInnerJoin;
+        private readonly IEnumerable<Join> dataTableInnerJoins;
         private readonly string mainTable;
 
-        public DataTableJoin(Join dataTableInnerJoin, string mainTable)
+        public DataTableJoin(IEnumerable<Join> dataTableInnerJoins, string mainTable)
         {
-            this.dataTableInnerJoin = dataTableInnerJoin;
+            this.dataTableInnerJoins = dataTableInnerJoins;
             this.mainTable = mainTable;
         }
 
@@ -30,11 +30,14 @@
             foreach (DataRow sourceRow in database.Tables[mainTable]!.Rows)
             {
                 var rows = new List<DataRow>();
-                JoinRows(sourceRow,
-                         resultTable,
-                         dataTableInnerJoin,
-                         database,
-                         rows);
+                foreach (var dataTableInnerJoin in dataTableInnerJoins)
+                {
+                    JoinRows(sourceRow,
+                             resultTable,
+                             dataTableInnerJoin,
+                             database,
+                             rows);
+                }
                 foreach (var item in rows)
                 {
                     resultTable.Rows.Add(item);
@@ -100,10 +103,10 @@
 
     public class Join
     {
-        public string TableName { get; }
-        public string JoinColumn { get; }
-        public string Operation { get; }
-        public string SourceColumn { get; }
+        public string TableName { get; internal set; }
+        public string JoinColumn { get; internal set; }
+        public string Operation { get; } = "=";
+        public string SourceColumn { get; internal set; }
         public IList<Join> InnerJoin { get; }
 
         public Join(string tableName, string joinColumn, string sourceColumn)
