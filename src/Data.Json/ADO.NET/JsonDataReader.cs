@@ -1,15 +1,19 @@
 ﻿using BenchmarkDotNet.Analysers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data.JsonClient
 {
     public class JsonDataReader : IDataReader
     {
         private readonly JsonReader _reader;
-        private object?[] _currentObjectEnumerator;
+        private readonly JsonConnection jsonConnection;
+        private object?[]? _currentObjectEnumerator;
 
         public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
         {
-            _reader = new JsonReader(command,(JsonConnection)jsonConnection);
+            this.jsonConnection = (JsonConnection)jsonConnection;
+            _reader = new JsonReader(command,this.jsonConnection);
         }
 
         public int Depth => 0;
@@ -18,11 +22,141 @@ namespace System.Data.JsonClient
 
         public void Close()
         {
+            Dispose();
         }
 
         public DataTable GetSchemaTable()
         {
-            throw new NotImplementedException();
+            return GetSchemaTableFromDataTable(jsonConnection.JsonReader.DataTable);
+        }
+        internal DataTable GetSchemaTableFromDataTable(DataTable table)
+        {
+         
+            DataTable tempSchemaTable = new DataTable("SchemaTable");
+            tempSchemaTable.Locale = System.Globalization.CultureInfo.InvariantCulture;
+
+            DataColumn ColumnName = new DataColumn(SchemaTableColumn.ColumnName, typeof(string));
+            DataColumn ColumnOrdinal = new DataColumn(SchemaTableColumn.ColumnOrdinal, typeof(int));
+            DataColumn ColumnSize = new DataColumn(SchemaTableColumn.ColumnSize, typeof(int));
+            DataColumn NumericPrecision = new DataColumn(SchemaTableColumn.NumericPrecision, typeof(short));
+            DataColumn NumericScale = new DataColumn(SchemaTableColumn.NumericScale, typeof(short));
+            DataColumn DataType = GetSystemTypeDataColumn();
+
+            [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2111:ReflectionToDynamicallyAccessedMembers",
+                Justification = "The problem is Type.TypeInitializer which requires constructors on the Type instance." +
+                    "In this case the TypeInitializer property is not accessed dynamically.")]
+            static DataColumn GetSystemTypeDataColumn() =>
+                new DataColumn(SchemaTableColumn.DataType, typeof(Type));
+
+            DataColumn ProviderType = new DataColumn(SchemaTableColumn.ProviderType, typeof(int));
+            DataColumn IsLong = new DataColumn(SchemaTableColumn.IsLong, typeof(bool));
+            DataColumn AllowDBNull = new DataColumn(SchemaTableColumn.AllowDBNull, typeof(bool));
+            DataColumn IsReadOnly = new DataColumn(SchemaTableOptionalColumn.IsReadOnly, typeof(bool));
+            DataColumn IsRowVersion = new DataColumn(SchemaTableOptionalColumn.IsRowVersion, typeof(bool));
+            DataColumn IsUnique = new DataColumn(SchemaTableColumn.IsUnique, typeof(bool));
+            DataColumn IsKeyColumn = new DataColumn(SchemaTableColumn.IsKey, typeof(bool));
+            DataColumn IsAutoIncrement = new DataColumn(SchemaTableOptionalColumn.IsAutoIncrement, typeof(bool));
+            DataColumn BaseSchemaName = new DataColumn(SchemaTableColumn.BaseSchemaName, typeof(string));
+            DataColumn BaseCatalogName = new DataColumn(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
+            DataColumn BaseTableName = new DataColumn(SchemaTableColumn.BaseTableName, typeof(string));
+            DataColumn BaseColumnName = new DataColumn(SchemaTableColumn.BaseColumnName, typeof(string));
+            DataColumn AutoIncrementSeed = new DataColumn(SchemaTableOptionalColumn.AutoIncrementSeed, typeof(long));
+            DataColumn AutoIncrementStep = new DataColumn(SchemaTableOptionalColumn.AutoIncrementStep, typeof(long));
+            DataColumn DefaultValue = new DataColumn(SchemaTableOptionalColumn.DefaultValue, typeof(object));
+            DataColumn Expression = new DataColumn(SchemaTableOptionalColumn.Expression, typeof(string));
+            DataColumn ColumnMapping = new DataColumn(SchemaTableOptionalColumn.ColumnMapping, typeof(MappingType));
+            DataColumn BaseTableNamespace = new DataColumn(SchemaTableOptionalColumn.BaseTableNamespace, typeof(string));
+            DataColumn BaseColumnNamespace = new DataColumn(SchemaTableOptionalColumn.BaseColumnNamespace, typeof(string));
+
+            ColumnSize.DefaultValue = -1;
+
+            if (table.DataSet != null)
+            {
+                BaseCatalogName.DefaultValue = table.DataSet.DataSetName;
+            }
+
+            BaseTableName.DefaultValue = table.TableName;
+            BaseTableNamespace.DefaultValue = table.Namespace;
+            IsRowVersion.DefaultValue = false;
+            IsLong.DefaultValue = false;
+            IsReadOnly.DefaultValue = false;
+            IsKeyColumn.DefaultValue = false;
+            IsAutoIncrement.DefaultValue = false;
+            AutoIncrementSeed.DefaultValue = 0;
+            AutoIncrementStep.DefaultValue = 1;
+
+            tempSchemaTable.Columns.Add(ColumnName);
+            tempSchemaTable.Columns.Add(ColumnOrdinal);
+            tempSchemaTable.Columns.Add(ColumnSize);
+            tempSchemaTable.Columns.Add(NumericPrecision);
+            tempSchemaTable.Columns.Add(NumericScale);
+            tempSchemaTable.Columns.Add(DataType);
+            tempSchemaTable.Columns.Add(ProviderType);
+            tempSchemaTable.Columns.Add(IsLong);
+            tempSchemaTable.Columns.Add(AllowDBNull);
+            tempSchemaTable.Columns.Add(IsReadOnly);
+            tempSchemaTable.Columns.Add(IsRowVersion);
+            tempSchemaTable.Columns.Add(IsUnique);
+            tempSchemaTable.Columns.Add(IsKeyColumn);
+            tempSchemaTable.Columns.Add(IsAutoIncrement);
+            tempSchemaTable.Columns.Add(BaseCatalogName);
+            tempSchemaTable.Columns.Add(BaseSchemaName);
+
+            // specific to datatablereader
+            tempSchemaTable.Columns.Add(BaseTableName);
+            tempSchemaTable.Columns.Add(BaseColumnName);
+            tempSchemaTable.Columns.Add(AutoIncrementSeed);
+            tempSchemaTable.Columns.Add(AutoIncrementStep);
+            tempSchemaTable.Columns.Add(DefaultValue);
+            tempSchemaTable.Columns.Add(Expression);
+            tempSchemaTable.Columns.Add(ColumnMapping);
+            tempSchemaTable.Columns.Add(BaseTableNamespace);
+            tempSchemaTable.Columns.Add(BaseColumnNamespace);
+
+            foreach (string cl in _reader.Columns)
+            {
+                DataColumn dc = table.Columns[cl];
+                DataRow dr = tempSchemaTable.NewRow();
+
+                dr[ColumnName] = dc.ColumnName;
+                dr[ColumnOrdinal] = dc.Ordinal;
+                dr[DataType] = dc.DataType;
+
+                if (dc.DataType == typeof(string))
+                {
+                    dr[ColumnSize] = dc.MaxLength;
+                }
+
+                dr[AllowDBNull] = dc.AllowDBNull;
+                dr[IsReadOnly] = dc.ReadOnly;
+                dr[IsUnique] = dc.Unique;
+
+                if (dc.AutoIncrement)
+                {
+                    dr[IsAutoIncrement] = true;
+                    dr[AutoIncrementSeed] = dc.AutoIncrementSeed;
+                    dr[AutoIncrementStep] = dc.AutoIncrementStep;
+                }
+
+                if (dc.DefaultValue != DBNull.Value)
+                {
+                    dr[DefaultValue] = dc.DefaultValue;
+                }
+                dr[ColumnMapping] = dc.ColumnMapping;
+                dr[BaseColumnName] = dc.ColumnName;
+                dr[BaseColumnNamespace] = dc.Namespace;
+
+                tempSchemaTable.Rows.Add(dr);
+            }
+
+            foreach (DataColumn key in table.PrimaryKey)
+            {
+                tempSchemaTable.Rows[key.Ordinal][IsKeyColumn] = true;
+            }
+
+            tempSchemaTable.AcceptChanges();
+
+            return tempSchemaTable;
         }
 
         public bool NextResult()
@@ -159,7 +293,7 @@ namespace System.Data.JsonClient
         }
         public void Dispose()
         {
-            _reader.Dispose();
+            _currentObjectEnumerator = null;
         }
         public object this[string name]
         {

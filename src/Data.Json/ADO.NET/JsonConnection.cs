@@ -15,11 +15,7 @@ namespace System.Data.JsonClient
         public int ConnectionTimeout { get; }
         public string Database => _connectionString;
         public ConnectionState State => _state;
-        //public JsonConnection(JsonDocument jsonDocument)
-        //   : this($"Data Source=:memory:;Json={jsonDocument}")
-        //{
-        //    jsonDocument.
-        //}
+     
         public JsonConnection(string connectionString)
         {
             //var query = "SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[ProductName] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [Order_Items oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [c].[ProductID] where id>8;";
@@ -64,18 +60,10 @@ namespace System.Data.JsonClient
             _state = ConnectionState.Closed;
         }
 
-
-
-
-
-
-
-       
-
         internal Reader JsonReader { get; private set; }
         public IDbCommand CreateCommand()
         {
-            
+          
                 return new JsonCommand(this);
           
         }
@@ -91,6 +79,7 @@ namespace System.Data.JsonClient
         {
             _state = ConnectionState.Closed;
             _database?.Dispose();
+            JsonReader.Dispose();
             
         }
     }

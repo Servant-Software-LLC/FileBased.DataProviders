@@ -2,7 +2,6 @@
 using Data.Json.Enum;
 using Data.Json.JsonJoin;
 using Data.Json.JsonQuery;
-using Data.Json.Syncronizer;
 using System;
 using System.Collections.Generic;
 using System.Data.JsonClient;
@@ -18,7 +17,7 @@ namespace Data.Json.New
 {
     internal class Reader:IDisposable
     {
-        public JsonConnection JsonConnection { get; }
+        JsonConnection JsonConnection { get; }
         public JsonQueryParser? JsonQueryParser { get;internal set; }
 
         private FileSystemWatcher _jsonWatcher;
@@ -41,7 +40,6 @@ namespace Data.Json.New
         {
             _jsonWatcher.Changed -= JsonWatcher_Changed;
         }
-        public List<string>? Columns = null;
         public int FieldCount
         {
             get
@@ -166,7 +164,6 @@ namespace Data.Json.New
              $"{JsonConnection.ConnectionString}/{tableName}.json";
         private void ReadFromFolder(IEnumerable<string> tables)
         {
-            Columns ??=new List<string>(JsonQueryParser!.GetColumns());
             foreach (var name in tables)
             {
                 var path = GetTablePath(name);

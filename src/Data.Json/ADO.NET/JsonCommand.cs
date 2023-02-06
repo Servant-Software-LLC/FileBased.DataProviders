@@ -68,7 +68,7 @@ namespace System.Data.JsonClient
         public void Dispose()
         {
             _connection.Close();
-            _commandText = null;
+            _commandText = string.Empty;
             _parameters.Clear();
         }
         public int ExecuteNonQuery()
@@ -89,7 +89,6 @@ namespace System.Data.JsonClient
 
         public IDataReader ExecuteReader()
         {
-
             return ExecuteReader(CommandBehavior.Default);
         }
         public IDataReader ExecuteReader(CommandBehavior behavior)

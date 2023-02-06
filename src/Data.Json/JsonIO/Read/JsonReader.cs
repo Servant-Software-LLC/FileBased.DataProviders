@@ -16,13 +16,13 @@ namespace Data.Json.JsonIO.Read
             {
                 jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.RowFilter = filter.Evaluate();
             }
-            columns =new List<string>(jsonCommand.QueryParser.GetColumns());
-            if (columns?.FirstOrDefault()?.Trim() == "*"&&columns!=null)
+            Columns = new List<string>(jsonCommand.QueryParser.GetColumns());
+            if (Columns.FirstOrDefault()?.Trim() == "*"&& Columns != null)
             {
-                columns.Clear();
+                Columns.Clear();
                 foreach (DataColumn column in jsonConnection.JsonReader.DataTable.Columns)
                 {
-                    columns.Add(column.ColumnName);
+                    Columns.Add(column.ColumnName);
                 }
             }
         }
@@ -46,7 +46,8 @@ namespace Data.Json.JsonIO.Read
 
         public int currentIndex = -1;
         private readonly JsonConnection jsonConnection;
-        private readonly List<string> columns;
+        internal readonly List<string> Columns=
+            new List<string>();
 
         public bool MoveNext()
         {
@@ -54,12 +55,12 @@ namespace Data.Json.JsonIO.Read
             if (jsonConnection.JsonReader.DataTable.DefaultView.Count > currentIndex)
             {
                 var row = jsonConnection.JsonReader.DataTable.DefaultView[currentIndex].Row;
-                if (columns?.FirstOrDefault()?.Trim() != "*")
+                if (Columns?.FirstOrDefault()?.Trim() != "*")
                 {
-                    _currentRow = new object?[columns.Count];
-                    for (int i = 0; i < columns?.Count; i++)
+                    _currentRow = new object?[Columns!.Count];
+                    for (int i = 0; i < Columns?.Count; i++)
                     {
-                        _currentRow[i] = row[columns[i]];
+                        _currentRow[i] = row[Columns[i]];
                     }
                 }
                 else

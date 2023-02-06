@@ -82,9 +82,9 @@
             }
         }
 
-        public byte Precision { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public byte Scale { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public int Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public byte Precision { get; set; }
+        public byte Scale { get ; set; }
+        public int Size { get ; set; }
 
         private DbType _inferType(object value)
         {

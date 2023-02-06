@@ -11,7 +11,7 @@ namespace System.Data.JsonClient
     {
         public object this[string index]
         {
-            get => this[IndexOf(index)];
+            get => this[IndexOf(index)]!;
             set => this[IndexOf(index)] = value;
         }
 
