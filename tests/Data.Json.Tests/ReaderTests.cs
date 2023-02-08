@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Data.Json.Tests.FolderAsDb
+namespace Data.Json.Tests
 {
     public class ReaderTests
     {
