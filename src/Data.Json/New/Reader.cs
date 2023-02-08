@@ -66,88 +66,97 @@ namespace Data.Json.New
         }
         private JsonDocument Read(string path)
         {
-            JsonDocument dc = null;
-            JsonWriter._rwLock.EnterReadLock();
+         
             //ThrowHelper.ThrowIfInvalidPath(path);
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                dc = JsonDocument.Parse(stream);
+                return JsonDocument.Parse(stream);
             }
-            JsonWriter._rwLock.ExitReadLock();
-            return dc;
+         
+            
         }
 
         public void ReadJson()
         {
-
-            if (_jsonWatcher == null)
+            JsonWriter._rwLock.EnterReadLock();
+            try
             {
-                _jsonWatcher = new FileSystemWatcher();
-                _jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                if (JsonConnection.PathType == PathType.Directory)
+                if (_jsonWatcher == null)
                 {
-                    _jsonWatcher.Path = JsonConnection.ConnectionString;
-                    _jsonWatcher.Filter = "*.json";
-                }
-                else
-                {
-                    var file = new FileInfo(JsonConnection.ConnectionString);
-                    _jsonWatcher.Path = file.DirectoryName!;
-                    _jsonWatcher.Filter = file.Name;
-                }
-                //  _jsonWatcher.EnableRaisingEvents= true;
-            }
-            if (JsonConnection.PathType == PathType.Directory)
-            {
-                DataSet ??= new DataSet();
-                var newTables = GetTables();
-                ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
-                DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
-                CheckIfSelect();
-            }
-            else
-            {
-                if (DataSet == null)
-                {
-                    ReadFromFile();
-                    CheckIfSelect();
-                }
-                DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
-            }
-
-            if (_shouldUpdate)
-            {
-                if (JsonConnection.PathType == PathType.File)
-                {
-                    UpdateFromFile();
-                }
-                else
-                {
-                    foreach (var item in tables)
+                    _jsonWatcher = new FileSystemWatcher();
+                    _jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
+                    if (JsonConnection.PathType == PathType.Directory)
                     {
-                        UpdateFromFolder(item);
-                    }
-                }
-                tables.Clear();
-                _shouldUpdate = false;
-                DataTable = DataSet.Tables[JsonQueryParser.Table];
-            }
-
-            void CheckIfSelect()
-            {
-                if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
-                {
-                    var dataTableJoin = jsonSelectQuery.GetJsonJoin();
-                    if (dataTableJoin == null)
-                    {
-                        DataTable = DataSet!.Tables[JsonQueryParser.Table]!;
+                        _jsonWatcher.Path = JsonConnection.ConnectionString;
+                        _jsonWatcher.Filter = "*.json";
                     }
                     else
                     {
-                        DataTable = dataTableJoin.Join(DataSet!);
+                        var file = new FileInfo(JsonConnection.ConnectionString);
+                        _jsonWatcher.Path = file.DirectoryName!;
+                        _jsonWatcher.Filter = file.Name;
+                    }
+                    _jsonWatcher.EnableRaisingEvents = true;
+                }
+                if (JsonConnection.PathType == PathType.Directory)
+                {
+                    DataSet ??= new DataSet();
+                    var newTables = GetTables();
+                    ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
+                    DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
+                    CheckIfSelect();
+                }
+                else
+                {
+                    if (DataSet == null)
+                    {
+                        ReadFromFile();
+                        CheckIfSelect();
+                    }
+                    DataTable = DataSet!.Tables[JsonQueryParser!.Table]!;
+                }
 
+                if (_shouldUpdate)
+                {
+                    if (JsonConnection.PathType == PathType.File)
+                    {
+                        UpdateFromFile();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < tables.Count; i++)
+                        {
+                            UpdateFromFolder(tables[i]);
+                        }
+                    }
+                    tables.Clear();
+                    _shouldUpdate = false;
+                    CheckIfSelect();
+                    DataTable = DataSet.Tables[JsonQueryParser.Table]!;
+                }
+
+                void CheckIfSelect()
+                {
+                    if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
+                    {
+                        var dataTableJoin = jsonSelectQuery.GetJsonJoin();
+                        if (dataTableJoin == null)
+                        {
+                            DataTable = DataSet!.Tables[JsonQueryParser.Table]!;
+                        }
+                        else
+                        {
+                            DataTable = dataTableJoin.Join(DataSet!);
+
+                        }
                     }
                 }
+
+            }
+            finally
+            {
+                JsonWriter._rwLock.ExitReadLock();
+
             }
         }
 
@@ -174,35 +183,45 @@ namespace Data.Json.New
              $"{JsonConnection.ConnectionString}/{tableName}.json";
         private void ReadFromFolder(IEnumerable<string> tables)
         {
+         
             foreach (var name in tables)
             {
                 var path = GetTablePath(name);
-                var element = Read(path).RootElement;
+                var doc = Read(path);
+                var element = doc.RootElement;
                 ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
                 var dataTable = CreateNewDataTable(element);
                 dataTable.TableName = name;
                 Fill(dataTable, element);
                 DataSet!.Tables.Add(dataTable);
+                doc.Dispose();
             }
+
         }
         private void UpdateFromFolder(string tableName)
         {
             var path = GetTablePath(tableName);
-            var element = Read(path).RootElement;
+            var doc = Read(path);
+            var element = doc.RootElement;
             ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
             var dataTable = DataSet!.Tables[tableName];
+            if (dataTable==null)
+            {
+                dataTable = CreateNewDataTable(element);
+                dataTable.TableName = tableName;
+                DataSet!.Tables.Add(dataTable);
+            }
             dataTable!.Clear();
             Fill(dataTable, element);
+            doc.Dispose();
+
         }
 
         #region File Read Update
         private void ReadFromFile()
         {
-            while (JsonWriter._rwLock.WaitingWriteCount>0)
-            {
-
-            }
-            var element = Read(JsonConnection.Database).RootElement;
+            var doc= Read(JsonConnection.Database);
+            var element= doc.RootElement;
             ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
             var dataBaseEnumerator = element.EnumerateObject();
             DataSet = new DataSet();
@@ -213,17 +232,23 @@ namespace Data.Json.New
                 Fill(dataTable, item.Value);
                 DataSet.Tables.Add(dataTable);
             }
+            doc.Dispose();
+
         }
         private void UpdateFromFile()
         {
             DataSet!.Clear();
-            var element = Read(JsonConnection.Database).RootElement;
+
+            var doc = Read(JsonConnection.Database);
+            var element = doc.RootElement;
             ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
             foreach (DataTable item in DataSet.Tables)
             {
                 var jsonElement = element.GetProperty(item.TableName);
                 Fill(item,jsonElement);
             }
+            doc.Dispose();
+
         }
         #endregion
 
@@ -269,6 +294,7 @@ namespace Data.Json.New
                 }
                 dataTable.Rows.Add(newRow);
             }
+            
         }
 
         public void Dispose()

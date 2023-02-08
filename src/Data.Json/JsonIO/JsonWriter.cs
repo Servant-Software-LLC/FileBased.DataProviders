@@ -24,12 +24,7 @@ namespace Data.Json.JsonIO
 
         private static bool SaveData(JsonConnection jsonConnection)
         {
-            try
-            {
-                //as we have modified the json file so we don't need to update the tables
-                jsonConnection.JsonReader.StopWatching();
-                _rwLock.EnterWriteLock();
-
+        
                 var path = jsonConnection.ConnectionString;
                 if (jsonConnection.PathType == Enum.PathType.Directory)
                 {
@@ -39,14 +34,7 @@ namespace Data.Json.JsonIO
                 {
                     SaveToFile(jsonConnection);
                 }
-            }
-
-            finally
-            {
-                _rwLock.ExitWriteLock();
-                jsonConnection.JsonReader.StartWatching();
-            }
-
+           
             return true;
         }
 

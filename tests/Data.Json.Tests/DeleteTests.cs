@@ -55,17 +55,17 @@ namespace Data.Json.Tests
             command.Connection = connection;
             connection.Open();
             // Insert data in both tables
-            command.CommandText = "INSERT INTO employees (name,email,salary,married) values ('Malizba','johndoe@email.com',50000,'true')";
+            command.CommandText = "INSERT INTO employees (name,email,salary,married) values ('Malizba File','johndoe@email.com',50000,'true')";
             command.ExecuteNonQuery();
 
-            command.CommandText = "INSERT INTO locations (id,city,state,zip) values (1250,'New York','NY',10001)";
+            command.CommandText = "INSERT INTO locations (id,city,state,zip) values (12250,'New York','NY',10001)";
             command.ExecuteNonQuery();
 
             // Act
-            command.CommandText = "DELETE FROM employees where name='Malizba'";
+            command.CommandText = "DELETE FROM employees where name='Malizba File'";
             int employeesDeleted = command.ExecuteNonQuery();
 
-            command.CommandText = "DELETE FROM locations where id=1250";
+            command.CommandText = "DELETE FROM locations where id=12250";
             int locationsDeleted = command.ExecuteNonQuery();
 
             // Assert

@@ -16,16 +16,32 @@ namespace Data.Json.JsonIO.Delete
 
         public override int Execute()
         {
-            JsonReader.ReadJson();
-            DataTable datatable =JsonReader.DataTable;
-            datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
-            var rowsAffected = datatable.DefaultView.Count;
-            foreach (DataRowView dataRow in datatable.DefaultView)
+            try
             {
-                datatable.Rows.Remove(dataRow.Row);
+                JsonReader.ReadJson();
+                //as we have modified the json file so we don't need to update the tables
+                jsonConnection.JsonReader.StopWatching();
+                _rwLock.EnterWriteLock();
+                DataTable datatable = JsonReader.DataTable;
+                datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
+                var rowsAffected = datatable.DefaultView.Count;
+                foreach (DataRowView dataRow in datatable.DefaultView)
+                {
+                    datatable.Rows.Remove(dataRow.Row);
+                }
+                Save();
+                if (rowsAffected==0)
+                {
+
+                }
+                return rowsAffected;
             }
-            Save();
-            return rowsAffected;
+            finally
+            {
+                _rwLock.ExitWriteLock();
+                jsonConnection.JsonReader.StartWatching();
+            }
         }
     }
 }
+

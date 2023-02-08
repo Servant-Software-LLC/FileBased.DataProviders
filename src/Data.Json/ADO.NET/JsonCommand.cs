@@ -116,13 +116,14 @@ namespace System.Data.JsonClient
             var reader = _connection.JsonReader;
             _connection.JsonReader.JsonQueryParser = QueryParser;
             reader.ReadJson();
+        
             if (QueryParser.Filter!=null)
-            reader.DataSet!.Tables[selectQuery.Table].DefaultView.RowFilter = QueryParser.Filter.Evaluate();
+            reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.RowFilter = QueryParser.Filter.Evaluate();
 
             object? result = null;
             if (selectQuery.IsCountQuery)
             {
-                result = reader.DataSet!.Tables[selectQuery.Table].DefaultView.Count;
+                result = reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.Count;
             }
 
             return result;

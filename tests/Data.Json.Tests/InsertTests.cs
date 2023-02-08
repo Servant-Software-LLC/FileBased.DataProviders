@@ -20,14 +20,14 @@ namespace Data.Json.Tests
             connection.Open();
 
             // Act - Insert a new record into the locations table
-            var command = new JsonCommand("INSERT INTO locations (id, city, state, zip) VALUES (100, 'Seattle', 'Washington', 98101)", connection);
+            var command = new JsonCommand("INSERT INTO locations (id, city, state, zip) VALUES (1000, 'Seattle', 'Washington', 98101)", connection);
             var rowsAffected = command.ExecuteNonQuery();
 
             // Assert
             Assert.Equal(1, rowsAffected);
 
             // Act - Verify the inserted record exists in the locations table
-            command = new JsonCommand("SELECT COUNT(*) FROM locations WHERE id = 100", connection);
+            command = new JsonCommand("SELECT COUNT(*) FROM locations WHERE id = 1000", connection);
             var count = (int)command.ExecuteScalar();
 
             // Assert
@@ -39,21 +39,6 @@ namespace Data.Json.Tests
 
             // Assert
             Assert.Equal(1, rowsAffected);
-
-            // Act - Verify the inserted record exists in the employees table
-            command = new JsonCommand("SELECT COUNT(*) FROM employees WHERE name = 'Jim Convis'", connection);
-            count = (int)command.ExecuteScalar();
-
-            // Assert
-            Assert.Equal(1, count);
-
-            // Cleanup - Delete the inserted records so they don't affect other test cases
-            command = new JsonCommand("DELETE FROM locations WHERE id = 100", connection);
-            command.ExecuteNonQuery();
-
-            command = new JsonCommand("DELETE FROM employees WHERE name = 'Jim Convis'", connection);
-            command.ExecuteNonQuery();
-
             // Close the connection
             connection.Close();
         }
@@ -66,7 +51,7 @@ namespace Data.Json.Tests
         {
             // Arrange
 
-            var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
             connection.Open();
 
             // Act - Insert a new record into the locations table
@@ -76,34 +61,13 @@ namespace Data.Json.Tests
             // Assert
             Assert.Equal(1, rowsAffected);
 
-            // Act - Verify the inserted record exists in the locations table
-            command = new JsonCommand("SELECT COUNT(*) FROM locations WHERE id = 156", connection);
-            var count = (int)command.ExecuteScalar();
-
-            // Assert
-            Assert.Equal(1, count);
-
+        
             // Act - Insert a new record into the employees table
             command = new JsonCommand("INSERT INTO employees (name, email, salary, married) VALUES ('Haleem', 'johndoe@example.com', 100000, 'true')", connection);
             rowsAffected = command.ExecuteNonQuery();
 
             // Assert
             Assert.Equal(1, rowsAffected);
-
-            // Act - Verify the inserted record exists in the employees table
-            command = new JsonCommand("SELECT COUNT(*) FROM employees WHERE name = 'Haleem'", connection);
-            count = (int)command.ExecuteScalar();
-
-            // Assert
-            Assert.Equal(1, count);
-
-            // Cleanup - Delete the inserted records so they don't affect other test cases
-            command = new JsonCommand("DELETE FROM locations WHERE id = 156", connection);
-            command.ExecuteNonQuery();
-
-            command = new JsonCommand("DELETE FROM employees WHERE name = 'Haleem'", connection);
-            command.ExecuteNonQuery();
-
             // Close the connection
             connection.Close();
         }

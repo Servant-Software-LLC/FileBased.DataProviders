@@ -13,21 +13,33 @@ namespace Data.Json.JsonIO.Write
 
         public override int Execute()
         {
-            JsonReader.ReadJson();
-            var queryParser = ((JsonUpdateQuery)command.QueryParser);
-            var values = queryParser.GetValues();
-            DataTable datatable = JsonReader.DataSet!.Tables[queryParser.Table]!;
-            datatable.DefaultView.RowFilter = queryParser.Filter.Evaluate() ;
-            var rowsAffected = datatable.DefaultView.Count;
-            foreach (DataRowView dataRow in datatable.DefaultView)
+            try
             {
-                foreach (var val in values)
+                JsonReader.ReadJson();
+                //as we have modified the json file so we don't need to update the tables
+                jsonConnection.JsonReader.StopWatching();
+                _rwLock.EnterWriteLock();
+                var queryParser = ((JsonUpdateQuery)command.QueryParser);
+                var values = queryParser.GetValues();
+                DataTable datatable = JsonReader.DataSet!.Tables[queryParser.Table]!;
+                datatable.DefaultView.RowFilter = queryParser.Filter?.Evaluate();
+                var rowsAffected = datatable.DefaultView.Count;
+                foreach (DataRowView dataRow in datatable.DefaultView)
                 {
-                    dataRow[val.Key] = val.Value;
+                    foreach (var val in values)
+                    {
+                        dataRow[val.Key] = val.Value;
+                    }
                 }
+                Save();
+                return rowsAffected;
             }
-            Save();
-            return rowsAffected;
+            finally
+            {
+                _rwLock.ExitWriteLock();
+                jsonConnection.JsonReader.StartWatching();
+            }
+
         }
     }
 }
