@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data.JsonClient;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -65,9 +66,15 @@ namespace Data.Json.New
         }
         private JsonDocument Read(string path)
         {
+            JsonDocument dc = null;
+            JsonWriter._rwLock.EnterReadLock();
             //ThrowHelper.ThrowIfInvalidPath(path);
-            using var stream = new FileStream(path,FileMode.Open,FileAccess.Read);
-            return JsonDocument.Parse(stream);
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+            {
+                dc = JsonDocument.Parse(stream);
+            }
+            JsonWriter._rwLock.ExitReadLock();
+            return dc;
         }
 
         public void ReadJson()

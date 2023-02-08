@@ -24,12 +24,13 @@
   ],
   "locations": [
     {
+      "id":  1,
       "city": "Houston",
       "state": "Texas",
       "zip": 77846
     },
     {
-      "id": 3,
+      "id": 2,
       "city": "New Braunfels",
       "state": "Texas",
       "zip": 78132
