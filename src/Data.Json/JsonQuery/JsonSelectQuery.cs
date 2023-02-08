@@ -73,6 +73,10 @@ namespace Data.Json.JsonQuery
         {
             var mainTable = GetNameWithAlias(GetTable());
             var joinNode = node.ChildNodes[4].ChildNodes[2];
+            if (joinNode.ChildNodes.Count==0)
+            {
+                return null;
+            }
             var list = new List<JsonJoin.Join>();
             AddJoin(list, joinNode);
             //remove aliases;

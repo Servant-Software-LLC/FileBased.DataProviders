@@ -7,7 +7,7 @@
       "married": true
     },
     {
-      "name": "Bo3b",
+      "name": "Bob",
       "email": "bob32@gmail.com",
       "salary": 95000
     },
@@ -29,6 +29,7 @@
       "zip": 77846
     },
     {
+      "id": 3,
       "city": "New Braunfels",
       "state": "Texas",
       "zip": 78132

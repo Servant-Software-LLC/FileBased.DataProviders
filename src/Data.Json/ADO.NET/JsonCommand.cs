@@ -23,7 +23,7 @@ namespace System.Data.JsonClient
         JsonQueryParser _queryParser;
         internal JsonQueryParser QueryParser
         {
-            get { return _queryParser ??= JsonQueryParser.Create(this.CommandText); }
+            get { return _queryParser; }
         }
         public JsonCommand()
         {
@@ -73,6 +73,7 @@ namespace System.Data.JsonClient
         }
         public int ExecuteNonQuery()
         {
+            _queryParser = JsonQueryParser.Create(this.CommandText);
             if (_connection.State != ConnectionState.Open)
             {
                 throw new InvalidOperationException("Connection should be opened before executing a command.");
@@ -93,6 +94,8 @@ namespace System.Data.JsonClient
         }
         public IDataReader ExecuteReader(CommandBehavior behavior)
         {
+            _queryParser = JsonQueryParser.Create(this.CommandText);
+
             if (_connection.State != ConnectionState.Open)
             {
                 throw new InvalidOperationException("Connection should be opened before executing a command.");
@@ -107,18 +110,19 @@ namespace System.Data.JsonClient
 
         public object? ExecuteScalar()
         {
+            _queryParser = JsonQueryParser.Create(this.CommandText);
             var selectQuery = (JsonSelectQuery)QueryParser;
-            selectQuery.GetColumns();
+            var col = selectQuery.GetColumns();
             var reader = _connection.JsonReader;
             _connection.JsonReader.JsonQueryParser = QueryParser;
             reader.ReadJson();
             if (QueryParser.Filter!=null)
-            reader.DataSet!.Tables[0].DefaultView.RowFilter = QueryParser.Filter.Evaluate();
+            reader.DataSet!.Tables[selectQuery.Table].DefaultView.RowFilter = QueryParser.Filter.Evaluate();
 
             object? result = null;
             if (selectQuery.IsCountQuery)
             {
-                result = reader.DataSet!.Tables[0].DefaultView.Count;
+                result = reader.DataSet!.Tables[selectQuery.Table].DefaultView.Count;
             }
 
             return result;

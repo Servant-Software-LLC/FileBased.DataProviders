@@ -105,6 +105,7 @@ namespace Data.Json.New
                     ReadFromFile();
                     CheckIfSelect();
                 }
+                DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
             }
 
             if (_shouldUpdate)
@@ -149,12 +150,14 @@ namespace Data.Json.New
                 {
                     JsonQueryParser!.Table
                 };
-            if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
+            if (JsonQueryParser is JsonSelectQuery jsonSelectQuery&&jsonSelectQuery.GetJsonJoin()!=null && JsonConnection.PathType==PathType.Directory)
             {
-                //foreach (var item in jsonSelectQuery.join.Tables)
-                //{
-                //    tables.Add(item);
-                //}
+                string[] jsonFiles = Directory.GetFiles(JsonConnection.ConnectionString, "*.json");
+
+                foreach (string jsonFile in jsonFiles.Select(x=> Path.GetFileNameWithoutExtension(x)).Where(x=>x!=JsonQueryParser.Table))
+                {
+                    tables.Add(jsonFile);
+                }
             }
 
             return tables;
@@ -188,7 +191,7 @@ namespace Data.Json.New
         #region File Read Update
         private void ReadFromFile()
         {
-            while (JsonConnection.LockSlim.WaitingWriteCount>0)
+            while (JsonWriter._rwLock.WaitingWriteCount>0)
             {
 
             }

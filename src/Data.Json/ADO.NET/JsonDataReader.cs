@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Analysers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Intrinsics.Arm;
 
 namespace System.Data.JsonClient
 {
@@ -8,7 +9,7 @@ namespace System.Data.JsonClient
     {
         private readonly JsonReader _reader;
         private readonly JsonConnection jsonConnection;
-        private object?[]? _currentObjectEnumerator;
+        private object?[] _currentDataRow;
 
         public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
         {
@@ -115,7 +116,7 @@ namespace System.Data.JsonClient
 
             foreach (string cl in _reader.Columns)
             {
-                DataColumn dc = table.Columns[cl];
+                DataColumn dc = table.Columns[cl]!;
                 DataRow dr = tempSchemaTable.NewRow();
 
                 dr[ColumnName] = dc.ColumnName;
@@ -168,7 +169,7 @@ namespace System.Data.JsonClient
         {
             if (_reader.MoveNext())
             {
-                _currentObjectEnumerator = _reader.Current;
+                _currentDataRow = _reader.Current;
                 return true;
             }
 
@@ -187,9 +188,40 @@ namespace System.Data.JsonClient
             return GetValueAsType<byte>(i);
         }
 
-        public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
+        public long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
         {
-            return GetValueAsType<long>(i);
+            byte[] tempBuffer;
+            tempBuffer = (byte[])_currentDataRow![ordinal]!;
+            if (buffer == null)
+            {
+                return tempBuffer.Length;
+            }
+
+            int srcIndex = (int)dataIndex;
+            int byteCount = Math.Min(tempBuffer.Length - srcIndex, length);
+            if (srcIndex < 0)
+            {
+                throw new Exception("Invalid buffer index");
+            }
+            else if ((bufferIndex < 0) || (bufferIndex > 0 && bufferIndex >= buffer.Length))
+            {
+                throw new Exception("Invalid destination buffer index");
+
+            }
+
+            if (0 < byteCount)
+            {
+                Array.Copy(tempBuffer, dataIndex, buffer, bufferIndex, byteCount);
+            }
+            else if (length < 0)
+            {
+                throw new Exception("Invalid data length");
+            }
+            else
+            {
+                byteCount = 0;
+            }
+            return byteCount;
 
         }
 
@@ -198,15 +230,48 @@ namespace System.Data.JsonClient
             return GetValueAsType<char>(i);
         }
 
-        public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
+        public long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
         {
-            return GetValueAsType<long>(i)!;
+            char[] tempBuffer;
+                tempBuffer = (char[])_currentDataRow![ordinal]!;
+          
+            if (buffer == null)
+            {
+                return tempBuffer.Length;
+            }
+            int srcIndex = (int)dataIndex;
+            int charCount = Math.Min(tempBuffer.Length - srcIndex, length);
+            if (srcIndex < 0)
+            {
+                throw new Exception("Invalid buffer index");
 
+            }
+            else if ((bufferIndex < 0) || (bufferIndex > 0 && bufferIndex >= buffer.Length))
+            {
+                throw new Exception("Invalid destination buffer index");
+
+            }
+
+            if (0 < charCount)
+            {
+                Array.Copy(tempBuffer, dataIndex, buffer, bufferIndex, charCount);
+            }
+            else if (length < 0)
+            {
+                throw new Exception("Invalid data length");
+
+            }
+            else
+            {
+                charCount = 0;
+            }
+            return charCount;
         }
+
 
         public IDataReader GetData(int i)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetDataTypeName(int i)
@@ -274,26 +339,20 @@ namespace System.Data.JsonClient
         }
         public object GetValue(int i)
         {
-            return _currentObjectEnumerator[i]!;
+            return _currentDataRow[i]!;
         }
         public int GetValues(object[] values)
         {
-            int count = Math.Min(values.Length, FieldCount);
-
-            for (int i = 0; i < count; i++)
-            {
-                values[i] = GetValue(i);
-            }
-
-            return count;
+            Array.Copy(_currentDataRow, values, _currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
+            return (_currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
         }
         public bool IsDBNull(int i)
         {
-            return _currentObjectEnumerator[i]!=null;
+            return _currentDataRow[i]!=null;
         }
         public void Dispose()
         {
-            _currentObjectEnumerator = null;
+            _currentDataRow = null;
         }
         public object this[string name]
         {
@@ -305,7 +364,7 @@ namespace System.Data.JsonClient
         }
         public T GetValueAsType<T>(int index)
         {
-            return (T)Convert.ChangeType(_currentObjectEnumerator![index], typeof(T))!;
+            return (T)Convert.ChangeType(_currentDataRow![index], typeof(T))!;
         }
 
 

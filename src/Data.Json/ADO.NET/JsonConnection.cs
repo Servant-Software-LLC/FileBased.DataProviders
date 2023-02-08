@@ -67,7 +67,6 @@ namespace System.Data.JsonClient
                 return new JsonCommand(this);
           
         }
-       internal static ReaderWriterLockSlim  LockSlim = new ReaderWriterLockSlim();
        internal PathType PathType { get; private set; }
         public void Open()
         {

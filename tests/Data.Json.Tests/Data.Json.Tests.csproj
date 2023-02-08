@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <None Update="Sources\database.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Sources\ecommerce.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

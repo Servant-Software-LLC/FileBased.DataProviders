@@ -40,7 +40,7 @@ namespace Data.Json.JsonIO.Read
         {
             get
             {
-              return  columns.Count;
+              return  Columns.Count;
             }
         }
 
@@ -90,11 +90,11 @@ namespace Data.Json.JsonIO.Read
         }
        internal string GetName(int i)
         {
-           return columns[i];
+           return Columns[i];
         }
         internal int GetOrdinal(string name)
         {
-            return columns.IndexOf(name);
+            return Columns.IndexOf(name);
         }
         internal Type GetType(int i)
         {
