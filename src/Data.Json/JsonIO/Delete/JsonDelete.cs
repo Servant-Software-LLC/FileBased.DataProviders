@@ -28,10 +28,11 @@ internal class JsonDelete : JsonWriter
             DataTable dataTable = JsonReader.DataTable;
             DataView dataView = dataTable.DefaultView;
             dataView.RowFilter = jsonDeleteQuery.Filter?.ToString();
-            var rowsAffected = dataView.Count;
+            var rowsAffected = 0;
             foreach (DataRowView dataRow in dataView)
             {
                 dataTable.Rows.Remove(dataRow.Row);
+                rowsAffected++;
             }
             Save();
 

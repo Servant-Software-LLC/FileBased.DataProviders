@@ -26,13 +26,15 @@ internal class JsonUpdate : JsonWriter
             DataView dataView = datatable.DefaultView;
 
             dataView.RowFilter = queryParser.Filter?.Evaluate();
-            var rowsAffected = dataView.Count;
+            var rowsAffected = 0;
             foreach (DataRowView dataRow in dataView)
             {
                 foreach (var val in values)
                 {
                     dataRow[val.Key] = val.Value;
                 }
+
+                rowsAffected++;
             }
             Save();
             return rowsAffected;
