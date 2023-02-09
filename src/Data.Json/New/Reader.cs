@@ -181,72 +181,75 @@ namespace Data.Json.New
 
         public string GetTablePath(string tableName) => Path.Combine(JsonConnection.ConnectionString, $"{tableName}.json");
         private void ReadFromFolder(IEnumerable<string> tables)
-        {
-         
+        {         
             foreach (var name in tables)
             {
                 var path = GetTablePath(name);
-                var doc = Read(path);
-                var element = doc.RootElement;
-                ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
-                var dataTable = CreateNewDataTable(element);
-                dataTable.TableName = name;
-                Fill(dataTable, element);
-                DataSet!.Tables.Add(dataTable);
-                doc.Dispose();
+                
+                using (var doc = Read(path))
+                {
+                    var element = doc.RootElement;
+                    ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+                    var dataTable = CreateNewDataTable(element);
+                    dataTable.TableName = name;
+                    Fill(dataTable, element);
+                    DataSet!.Tables.Add(dataTable);
+                };
             }
 
         }
         private void UpdateFromFolder(string tableName)
         {
             var path = GetTablePath(tableName);
-            var doc = Read(path);
-            var element = doc.RootElement;
-            ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
-            var dataTable = DataSet!.Tables[tableName];
-            if (dataTable==null)
+            using (var doc = Read(path))
             {
-                dataTable = CreateNewDataTable(element);
-                dataTable.TableName = tableName;
-                DataSet!.Tables.Add(dataTable);
+                var element = doc.RootElement;
+                ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+                var dataTable = DataSet!.Tables[tableName];
+                if (dataTable == null)
+                {
+                    dataTable = CreateNewDataTable(element);
+                    dataTable.TableName = tableName;
+                    DataSet!.Tables.Add(dataTable);
+                }
+                dataTable!.Clear();
+                Fill(dataTable, element);
             }
-            dataTable!.Clear();
-            Fill(dataTable, element);
-            doc.Dispose();
-
         }
 
         #region File Read Update
         private void ReadFromFile()
         {
-            var doc= Read(JsonConnection.Database);
-            var element= doc.RootElement;
-            ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
-            var dataBaseEnumerator = element.EnumerateObject();
-            DataSet = new DataSet();
-            foreach (var item in dataBaseEnumerator)
+            using (var doc = Read(JsonConnection.Database))
             {
-                var dataTable = CreateNewDataTable(item.Value);
-                dataTable.TableName = item.Name;
-                Fill(dataTable, item.Value);
-                DataSet.Tables.Add(dataTable);
+                var element = doc.RootElement;
+                ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+                var dataBaseEnumerator = element.EnumerateObject();
+                DataSet = new DataSet();
+                foreach (var item in dataBaseEnumerator)
+                {
+                    var dataTable = CreateNewDataTable(item.Value);
+                    dataTable.TableName = item.Name;
+                    Fill(dataTable, item.Value);
+                    DataSet.Tables.Add(dataTable);
+                }
             }
-            doc.Dispose();
-
         }
+
         private void UpdateFromFile()
         {
             DataSet!.Clear();
 
-            var doc = Read(JsonConnection.Database);
-            var element = doc.RootElement;
-            ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
-            foreach (DataTable item in DataSet.Tables)
+            using (var doc = Read(JsonConnection.Database))
             {
-                var jsonElement = element.GetProperty(item.TableName);
-                Fill(item,jsonElement);
-            }
-            doc.Dispose();
+                var element = doc.RootElement;
+                ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+                foreach (DataTable item in DataSet.Tables)
+                {
+                    var jsonElement = element.GetProperty(item.TableName);
+                    Fill(item, jsonElement);
+                }
+            };
 
         }
         #endregion

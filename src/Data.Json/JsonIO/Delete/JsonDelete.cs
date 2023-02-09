@@ -1,46 +1,46 @@
 ﻿using Data.Json.JsonQuery;
 
-namespace Data.Json.JsonIO.Delete
+namespace Data.Json.JsonIO.Delete;
+
+internal class JsonDelete : JsonWriter
 {
-    internal class JsonDelete : JsonWriter
+    private readonly JsonDeleteQuery jsonDeleteQuery;
+
+    public JsonDelete(JsonCommand command,
+        JsonConnection jsonConnection)
+        : base(command,
+              jsonConnection)
     {
-        private readonly JsonDeleteQuery jsonDeleteQuery;
+        jsonDeleteQuery = (JsonDeleteQuery)command.QueryParser;
+    }
 
-        public JsonDelete(JsonCommand command,
-            JsonConnection jsonConnection)
-            : base(command,
-                  jsonConnection)
+    public override int Execute()
+    {
+        JsonReader.ReadJson();
+        //as we have modified the json file so we don't need to update the tables
+        jsonConnection.JsonReader.StopWatching();
+
+        _rwLock.EnterWriteLock();
+
+        //Entry try block only after taking a write lock.
+        try
         {
-            this.jsonDeleteQuery = (JsonDeleteQuery)command.QueryParser;
+            DataTable dataTable = JsonReader.DataTable;
+            DataView dataView = dataTable.DefaultView;
+            dataView.RowFilter = jsonDeleteQuery.Filter?.ToString();
+            var rowsAffected = dataView.Count;
+            foreach (DataRowView dataRow in dataView)
+            {
+                dataTable.Rows.Remove(dataRow.Row);
+            }
+            Save();
+
+            return rowsAffected;
         }
-
-        public override int Execute()
+        finally
         {
-            try
-            {
-                JsonReader.ReadJson();
-                //as we have modified the json file so we don't need to update the tables
-                jsonConnection.JsonReader.StopWatching();
-                _rwLock.EnterWriteLock();
-                DataTable datatable = JsonReader.DataTable;
-                datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
-                var rowsAffected = datatable.DefaultView.Count;
-                foreach (DataRowView dataRow in datatable.DefaultView)
-                {
-                    datatable.Rows.Remove(dataRow.Row);
-                }
-                Save();
-                if (rowsAffected==0)
-                {
-
-                }
-                return rowsAffected;
-            }
-            finally
-            {
-                _rwLock.ExitWriteLock();
-                jsonConnection.JsonReader.StartWatching();
-            }
+            _rwLock.ExitWriteLock();
+            jsonConnection.JsonReader.StartWatching();
         }
     }
 }
