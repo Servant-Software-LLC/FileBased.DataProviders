@@ -179,8 +179,7 @@ namespace Data.Json.New
             return tables;
         }
 
-        public string GetTablePath(string tableName)=>
-             $"{JsonConnection.ConnectionString}/{tableName}.json";
+        public string GetTablePath(string tableName) => Path.Combine(JsonConnection.ConnectionString, $"{tableName}.json");
         private void ReadFromFolder(IEnumerable<string> tables)
         {
          

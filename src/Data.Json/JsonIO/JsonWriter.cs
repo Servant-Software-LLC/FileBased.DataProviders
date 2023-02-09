@@ -93,8 +93,7 @@ namespace Data.Json.JsonIO
         {
             foreach (DataTable table in jsonConnection.JsonReader.DataSet!.Tables)
             {
-                var path = jsonConnection.ConnectionString;
-                path += $"/{table.TableName}.json";
+                var path = Path.Combine(jsonConnection.ConnectionString, $"{table.TableName}.json");
                 using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
                 using (var jsonWriter = new Utf8JsonWriter(fileStream))
                 {
