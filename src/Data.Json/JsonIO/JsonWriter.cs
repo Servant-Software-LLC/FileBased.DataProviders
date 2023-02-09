@@ -2,7 +2,6 @@
 
 namespace Data.Json.JsonIO;
 
-
 internal abstract class JsonWriter
 {
     protected readonly JsonCommand command;

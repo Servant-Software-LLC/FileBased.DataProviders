@@ -1,4 +1,5 @@
 ﻿namespace Data.Json.Grammer;
+
 /// <summary>
 /// A static class containing all the SQL keywords used in the grammar.
 /// </summary>
