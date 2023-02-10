@@ -1,45 +1,43 @@
 ﻿using Data.Json.JsonQuery;
-using Utilities;
 
-namespace Data.Json.JsonIO.Write
+namespace Data.Json.JsonIO.Write;
+
+internal class JsonUpdate : JsonWriter
 {
-    internal class JsonUpdate : JsonWriter
+    public JsonUpdate(JsonCommand command,
+                      JsonConnection jsonConnection) 
+        : base(command, jsonConnection)
     {
-        public JsonUpdate(JsonCommand command,
-                          JsonConnection jsonConnection) 
-            : base(command, jsonConnection)
-        {
-        }
+    }
 
-        public override int Execute()
+    public override int Execute()
+    {
+        try
         {
-            try
+            //as we have modified the json file so we don't need to update the tables
+            jsonConnection.JsonReader.StopWatching();
+            _rwLock.EnterWriteLock();
+            JsonReader.ReadJson();
+            var queryParser = ((JsonUpdateQuery)command.QueryParser);
+            var values = queryParser.GetValues();
+            DataTable datatable = JsonReader.DataSet!.Tables[queryParser.Table]!;
+            datatable.DefaultView.RowFilter = queryParser.Filter?.Evaluate();
+            var rowsAffected = datatable.DefaultView.Count;
+            foreach (DataRowView dataRow in datatable.DefaultView)
             {
-                //as we have modified the json file so we don't need to update the tables
-                jsonConnection.JsonReader.StopWatching();
-                _rwLock.EnterWriteLock();
-                JsonReader.ReadJson();
-                var queryParser = ((JsonUpdateQuery)command.QueryParser);
-                var values = queryParser.GetValues();
-                DataTable datatable = JsonReader.DataSet!.Tables[queryParser.Table]!;
-                datatable.DefaultView.RowFilter = queryParser.Filter?.Evaluate();
-                var rowsAffected = datatable.DefaultView.Count;
-                foreach (DataRowView dataRow in datatable.DefaultView)
+                foreach (var val in values)
                 {
-                    foreach (var val in values)
-                    {
-                        dataRow[val.Key] = val.Value;
-                    }
+                    dataRow[val.Key] = val.Value;
                 }
-                Save();
-                return rowsAffected;
             }
-            finally
-            {
-                _rwLock.ExitWriteLock();
-                jsonConnection.JsonReader.StartWatching();
-            }
-
+            Save();
+            return rowsAffected;
         }
+        finally
+        {
+            _rwLock.ExitWriteLock();
+            jsonConnection.JsonReader.StartWatching();
+        }
+
     }
 }
