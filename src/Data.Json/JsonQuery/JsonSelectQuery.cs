@@ -1,184 +1,182 @@
 ﻿using Data.Json.JsonJoin;
 using Irony.Parsing;
-using System;
 
-namespace Data.Json.JsonQuery
+namespace Data.Json.JsonQuery;
+
+internal class JsonSelectQuery : JsonQueryParser
 {
-    internal class JsonSelectQuery : JsonQueryParser
+
+    public JsonSelectQuery(ParseTreeNode tree) : base(tree)
     {
+    }
 
-        public JsonSelectQuery(ParseTreeNode tree) : base(tree)
+    public override IEnumerable<string> GetColumns()
+    {
+        var colListNode = node
+        .ChildNodes
+        .First(item => item.Term.Name == "selList" && item.ChildNodes.Count > 0)
+        .ChildNodes[0];
+        var col = colListNode.Token?.ValueString;
+        if (col == "*")
         {
-        }
-
-        public override IEnumerable<string> GetColumns()
-        {
-            var colListNode = node
-            .ChildNodes
-            .First(item => item.Term.Name == "selList" && item.ChildNodes.Count > 0)
-            .ChildNodes[0];
-            var col = colListNode.Token?.ValueString;
-            if (col == "*")
+            return new List<string>()
             {
-                return new List<string>()
+                col
+            };
+        }
+        var cols = colListNode
+            .ChildNodes.Select(x =>
+            {
+                string col = string.Empty;
+               var colNode= x.ChildNodes[0]
+                .ChildNodes[0];
+                //Check If it is an aggregate query 
+                if (colNode.ChildNodes.Count>1 && colNode.ChildNodes[0].Term.Name!= "id_simple")
                 {
-                    col
-                };
-            }
-            var cols = colListNode
-                .ChildNodes.Select(x =>
+
+                    var aggregateName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+                    ThrowHelper.ThrowIfNotSupportedAggregateFunctionException(aggregateName);
+                    col = colNode.ChildNodes[1].ChildNodes[0].Token.ValueString;
+                    ThrowHelper.ThrowIfNotAsterik(col);
+                    IsCountQuery = true;
+                }
+
+
+                else
                 {
-                    string col = string.Empty;
-                   var colNode= x.ChildNodes[0]
-                    .ChildNodes[0];
-                    //Check If it is an aggregate query 
-                    if (colNode.ChildNodes.Count>1 && colNode.ChildNodes[0].Term.Name!= "id_simple")
-                    {
+                    var index = colNode.ChildNodes.Count == 2 ? 1 : 0;
+                    col = colNode.ChildNodes[index].Token.ValueString;
+                }
+                return col;
 
-                        var aggregateName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
-                        ThrowHelper.ThrowIfNotSupportedAggregateFunctionException(aggregateName);
-                        col = colNode.ChildNodes[1].ChildNodes[0].Token.ValueString;
-                        ThrowHelper.ThrowIfNotAsterik(col);
-                        IsCountQuery = true;
-                    }
+            }).ToList();
+        return cols;
+    }
+    public bool IsCountQuery { get; set; }
+    public override string GetTable()
+    {
+        var fromClauseOpt = node
+          .ChildNodes
+          .First(item => item.Term.Name == SqlKeywords.FromClauseOpt);
+        var table= fromClauseOpt
+        .ChildNodes[1]
+        .ChildNodes[0]
+        .ChildNodes[0]
+        .Token
+        .ValueString;
 
-
-                    else
-                    {
-                        var index = colNode.ChildNodes.Count == 2 ? 1 : 0;
-                        col = colNode.ChildNodes[index].Token.ValueString;
-                    }
-                    return col;
-
-                }).ToList();
-            return cols;
-        }
-        public bool IsCountQuery { get; set; }
-        public override string GetTable()
+        return GetNameWithAlias(table).tableName;
+        
+    }
+    public JsonJoin.DataTableJoin? GetJsonJoin()
+    {
+        var mainTable = GetNameWithAlias(GetTable());
+        var joinNode = node.ChildNodes[4].ChildNodes[2];
+        if (joinNode.ChildNodes.Count==0)
         {
-            var fromClauseOpt = node
-              .ChildNodes
-              .First(item => item.Term.Name == SqlKeywords.FromClauseOpt);
-            var table= fromClauseOpt
-            .ChildNodes[1]
-            .ChildNodes[0]
-            .ChildNodes[0]
-            .Token
-            .ValueString;
-
-            return GetNameWithAlias(table).tableName;
-            
+            return null;
         }
-        public JsonJoin.DataTableJoin? GetJsonJoin()
+        var list = new List<JsonJoin.Join>();
+        AddJoin(list, joinNode);
+        //remove aliases;
+        foreach (var item in list)
         {
-            var mainTable = GetNameWithAlias(GetTable());
-            var joinNode = node.ChildNodes[4].ChildNodes[2];
-            if (joinNode.ChildNodes.Count==0)
-            {
-                return null;
-            }
-            var list = new List<JsonJoin.Join>();
-            AddJoin(list, joinNode);
-            //remove aliases;
-            foreach (var item in list)
-            {
+        RemoveAlias(item);
+
+        }
+        return new DataTableJoin(list, mainTable.tableName);
+    }
+
+    private void RemoveAlias(Join join)
+    {
+        join.TableName = GetNameWithAlias(join.TableName).tableName;
+        join.SourceColumn = GetNameWithAlias(join.SourceColumn).tableName;
+        join.JoinColumn = GetNameWithAlias(join.JoinColumn).tableName;
+        foreach (var item in join.InnerJoin)
+        {
             RemoveAlias(item);
-
-            }
-            return new DataTableJoin(list, mainTable.tableName);
         }
+    }
 
-        private void RemoveAlias(Join join)
+    private void AddJoin(List<Join> list, ParseTreeNode joinNode)
+    {
+        var subNode = joinNode.ChildNodes[1];
+        var table = subNode.ChildNodes[1].ChildNodes[0].ChildNodes[0].Token.ValueString;
+        var tableAlias=GetNameWithAlias(table).alias;
+
+        string sourceColumn = GetColumnWIthAlias(subNode.ChildNodes[3]);
+        string joinColumn = GetColumnWIthAlias(subNode.ChildNodes[5]);
+        if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
         {
-            join.TableName = GetNameWithAlias(join.TableName).tableName;
-            join.SourceColumn = GetNameWithAlias(join.SourceColumn).tableName;
-            join.JoinColumn = GetNameWithAlias(join.JoinColumn).tableName;
-            foreach (var item in join.InnerJoin)
-            {
-                RemoveAlias(item);
-            }
+            ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join");
         }
-
-        private void AddJoin(List<Join> list, ParseTreeNode joinNode)
+        if (!joinColumn.StartsWith(tableAlias))
         {
-            var subNode = joinNode.ChildNodes[1];
-            var table = subNode.ChildNodes[1].ChildNodes[0].ChildNodes[0].Token.ValueString;
-            var tableAlias=GetNameWithAlias(table).alias;
-
-            string sourceColumn = GetColumnWIthAlias(subNode.ChildNodes[3]);
-            string joinColumn = GetColumnWIthAlias(subNode.ChildNodes[5]);
-            if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
-            {
-                ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join");
-            }
-            if (!joinColumn.StartsWith(tableAlias))
-            {
-                var join = joinColumn;
-                joinColumn = sourceColumn;
-                sourceColumn = join;
-            }
-            var jsonJoin = new JsonJoin.Join(table, joinColumn, sourceColumn);
-            
-            var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(jsonJoin.SourceColumn).alias);
-            if (hasAlreayJoin!=null)
-            {
-                hasAlreayJoin.InnerJoin.Add(jsonJoin);
-            }
-            else
-            list.Add(jsonJoin);
-            if (joinNode.ChildNodes[2].ChildNodes.Count>0)
-            {
-                AddJoin(list,joinNode.ChildNodes[2]);
-            }
+            var join = joinColumn;
+            joinColumn = sourceColumn;
+            sourceColumn = join;
         }
-        Join? FindJoin(List<Join> joins, Func<Join, bool> func)
+        var jsonJoin = new JsonJoin.Join(table, joinColumn, sourceColumn);
+        
+        var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(jsonJoin.SourceColumn).alias);
+        if (hasAlreayJoin!=null)
         {
-            foreach (var item in joins)
-            {
-                var join2 = FindJoinRecursive(item, func);
-                if (join2 != null)
-                {
-                    return join2;
-                }
-            }
-            return null;
+            hasAlreayJoin.InnerJoin.Add(jsonJoin);
         }
-        Join? FindJoinRecursive(Join join,Func<Join, bool> func)
+        else
+        list.Add(jsonJoin);
+        if (joinNode.ChildNodes[2].ChildNodes.Count>0)
         {
-            if (func(join))
-            {
-                return join;
-            }
-            foreach (var item in join.InnerJoin)
-            {
-                var join2 = FindJoinRecursive(item,func);
-                if (join2!=null)
-                {
-                    return join2;
-                }
-            }
-            return null;
+            AddJoin(list,joinNode.ChildNodes[2]);
         }
-        private static string GetColumnWIthAlias(ParseTreeNode sourceColumnNode)
+    }
+    Join? FindJoin(List<Join> joins, Func<Join, bool> func)
+    {
+        foreach (var item in joins)
         {
-            return $"{sourceColumnNode.ChildNodes[0].Token.ValueString}.{sourceColumnNode.ChildNodes[1].Token.ValueString}";
-        }
-
-        public (string tableName,string alias) GetNameWithAlias(string name)
-        {
-            if (name.Contains('.')||name.Contains(' '))
+            var join2 = FindJoinRecursive(item, func);
+            if (join2 != null)
             {
-                var data = name.Split(' ');
-
-                if (data.Count() == 1)
-                {
-                    data = name.Split('.');
-                    return (data[1], data[0]);
-
-                }
-                return (data[0], data[1]);
+                return join2;
             }
-            return (name,"");
         }
+        return null;
+    }
+    Join? FindJoinRecursive(Join join,Func<Join, bool> func)
+    {
+        if (func(join))
+        {
+            return join;
+        }
+        foreach (var item in join.InnerJoin)
+        {
+            var join2 = FindJoinRecursive(item,func);
+            if (join2!=null)
+            {
+                return join2;
+            }
+        }
+        return null;
+    }
+    private static string GetColumnWIthAlias(ParseTreeNode sourceColumnNode)
+    {
+        return $"{sourceColumnNode.ChildNodes[0].Token.ValueString}.{sourceColumnNode.ChildNodes[1].Token.ValueString}";
+    }
+
+    public (string tableName,string alias) GetNameWithAlias(string name)
+    {
+        if (name.Contains('.')||name.Contains(' '))
+        {
+            var data = name.Split(' ');
+
+            if (data.Count() == 1)
+            {
+                data = name.Split('.');
+                return (data[1], data[0]);
+
+            }
+            return (data[0], data[1]);
+        }
+        return (name,"");
     }
 }

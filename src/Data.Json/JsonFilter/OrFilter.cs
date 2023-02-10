@@ -1,5 +1,4 @@
-﻿
-namespace Data.Json.JsonFilter;
+﻿namespace Data.Json.JsonFilter;
 
 public class OrFilter : Filter
 {

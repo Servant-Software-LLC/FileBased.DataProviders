@@ -1,22 +1,22 @@
 ﻿using System.Data.JsonClient;
 using Xunit;
 
-namespace Data.Json.Tests
-{
-    public class ReadTests
-    {
-        
-        string connectionString = "Data Source=Sources/database.json;";
-        [Fact]
-        public void Read_ShouldReturnData()
-        {
-            // Arrange
-            var connection = new JsonConnection(connectionString);
-            var command = new JsonCommand("SELECT * FROM [employees]", connection);
-            // Act
-            connection.Open();
-            var reader = command.ExecuteReader();
+namespace Data.Json.Tests;
 
+public class ReadTests
+{
+    
+    string connectionString = "Data Source=Sources/database.json;";
+    [Fact]
+    public void Read_ShouldReturnData()
+    {
+        // Arrange
+        var connection = new JsonConnection(connectionString);
+        var command = new JsonCommand("SELECT * FROM [employees]", connection);
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
             // Assert
             Assert.NotNull(reader);
             Assert.Equal(4, reader.FieldCount);
@@ -42,15 +42,14 @@ namespace Data.Json.Tests
             Assert.Equal(DBNull.Value, reader["married"]);
             //this will be dbnull not bool?
             Assert.IsType<DBNull>(reader["married"]);
-
-            reader.Dispose();
-            connection.Close();
         }
 
-
-  
-
-   
-  
+        connection.Close();
     }
+
+
+
+
+
+
 }

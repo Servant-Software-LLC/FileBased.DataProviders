@@ -1,10 +1,8 @@
-﻿namespace Data.Json.JsonException
-{
-    public class QueryNotSupportedException : Exception
-    {
-        public QueryNotSupportedException(string message): base(message)
-        {
-        }
-    }
+﻿namespace Data.Json.JsonException;
 
+public class QueryNotSupportedException : Exception
+{
+    public QueryNotSupportedException(string message): base(message)
+    {
+    }
 }
