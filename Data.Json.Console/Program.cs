@@ -1,7 +1,13 @@
 ﻿using Dapper;
 using System.Data.JsonClient;
+using System.Reflection;
 
-string connectionString = @"Data Source=C:\Users\GAC\source\repos\ADO.NET.FileBased.DataProviders\tests\Data.Json.Tests\Sources\ecommerce.json;";
+var rootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+for (int i = 0; i < 4; i++)
+    rootFolder = Directory.GetParent(rootFolder).FullName;
+var jsonFile = Path.Combine(rootFolder, "tests", "Data.Json.Tests", "Sources", "ecommerce.json");
+
+string connectionString = $"Data Source={jsonFile};";
 
 var connection = new JsonConnection(connectionString);
 connection.Open();
