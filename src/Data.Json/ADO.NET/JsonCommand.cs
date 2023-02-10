@@ -85,7 +85,12 @@ namespace System.Data.JsonClient
                 :
                 new JsonDelete(this, (JsonConnection)Connection);
 
-            return jsonWriter.Execute();
+            var result= jsonWriter.Execute();
+            if (result==0)
+            {
+
+            }
+            return result;
         }
 
         public IDataReader ExecuteReader()
@@ -115,7 +120,7 @@ namespace System.Data.JsonClient
             var col = selectQuery.GetColumns();
             var reader = _connection.JsonReader;
             _connection.JsonReader.JsonQueryParser = QueryParser;
-            reader.ReadJson();
+            reader.ReadJson(true);
         
             if (QueryParser.Filter!=null)
             reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.RowFilter = QueryParser.Filter.Evaluate();

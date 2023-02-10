@@ -22,9 +22,16 @@ namespace Data.Json.Tests
             command.CommandText = "INSERT INTO locations (id,city,state,zip) values (44020,'New York','NY',10001)";
             command.ExecuteNonQuery();
 
+
+            connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            connection.Open();
+
             // Act
             command.CommandText = "UPDATE employees SET salary=60000 where name='Majid'";
             int employeesUpdated = command.ExecuteNonQuery();
+
+            connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            connection.Open();
 
             command.CommandText = "UPDATE locations SET city='Los Angeles' where id=44020";
             int locationsUpdated = command.ExecuteNonQuery();
@@ -56,10 +63,14 @@ namespace Data.Json.Tests
             command.CommandText = "INSERT INTO locations (id,city,state,zip) values (12310,'New York','NY',10001)";
             command.ExecuteNonQuery();
 
+            connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+            connection.Open();
+
             // Act
             command.CommandText = "UPDATE employees SET salary=60000 where name='KHAN'";
             int employeesUpdated = command.ExecuteNonQuery();
-
+            connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+            connection.Open();
             command.CommandText = "UPDATE locations SET city='Los Angeles' where id=12310";
             int locationsUpdated = command.ExecuteNonQuery();
 

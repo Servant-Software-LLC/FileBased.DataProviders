@@ -18,11 +18,11 @@ namespace Data.Json.JsonIO.Delete
         {
             try
             {
-                JsonReader.ReadJson();
                 //as we have modified the json file so we don't need to update the tables
                 jsonConnection.JsonReader.StopWatching();
                 _rwLock.EnterWriteLock();
-                DataTable datatable = JsonReader.DataTable;
+                JsonReader.ReadJson();
+                DataTable datatable = JsonReader.DataSet!.Tables[jsonDeleteQuery.Table]!;
                 datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
                 var rowsAffected = datatable.DefaultView.Count;
                 foreach (DataRowView dataRow in datatable.DefaultView)
@@ -30,10 +30,7 @@ namespace Data.Json.JsonIO.Delete
                     datatable.Rows.Remove(dataRow.Row);
                 }
                 Save();
-                if (rowsAffected==0)
-                {
-
-                }
+              
                 return rowsAffected;
             }
             finally

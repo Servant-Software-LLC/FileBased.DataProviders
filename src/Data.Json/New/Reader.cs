@@ -33,19 +33,24 @@ namespace Data.Json.New
         }
         
         public void StartWatching()
-        { 
-            _jsonWatcher.Changed -= JsonWatcher_Changed;
+        {
+            if (_jsonWatcher != null)
+            {
+
+                _jsonWatcher.Changed -= JsonWatcher_Changed;
             _jsonWatcher.Changed += JsonWatcher_Changed;
+            }
         }
         public void StopWatching()
         {
+            if(_jsonWatcher!=null)
             _jsonWatcher.Changed -= JsonWatcher_Changed;
         }
         public int FieldCount
         {
             get
             {
-                ReadJson();
+                ReadJson(true);
                 return DataTable.Columns.Count;
             }
         }
@@ -76,8 +81,9 @@ namespace Data.Json.New
             
         }
 
-        public void ReadJson()
+        public void ReadJson(bool shouldLock=false)
         {
+            if(shouldLock)
             JsonWriter._rwLock.EnterReadLock();
             try
             {
@@ -113,7 +119,6 @@ namespace Data.Json.New
                         ReadFromFile();
                         CheckIfSelect();
                     }
-                    DataTable = DataSet!.Tables[JsonQueryParser!.Table]!;
                 }
 
                 if (_shouldUpdate)
@@ -132,7 +137,7 @@ namespace Data.Json.New
                     tables.Clear();
                     _shouldUpdate = false;
                     CheckIfSelect();
-                    DataTable = DataSet.Tables[JsonQueryParser.Table]!;
+          
                 }
 
                 void CheckIfSelect()
@@ -150,12 +155,17 @@ namespace Data.Json.New
 
                         }
                     }
+                    else { 
+                    DataTable = DataSet!.Tables[JsonQueryParser!.Table]!;
+
+                    }
                 }
 
             }
             finally
             {
-                JsonWriter._rwLock.ExitReadLock();
+                if (shouldLock)
+                    JsonWriter._rwLock.ExitReadLock();
 
             }
         }

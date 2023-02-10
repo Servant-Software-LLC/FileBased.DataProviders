@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Data.JsonClient;
 using System.Linq;
@@ -153,20 +154,18 @@ namespace Data.Json.Tests
         public void Reader_ShouldReadDataWithInnerJoinFromFile()
         {
             // Arrange
-            var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            var connection = new JsonConnection(ConnectionStrings.eComDBConnectionString);
             connection.Open();
 
-            // Act
-            var command = new JsonCommand("SELECT [l].[id], [l].[city], [l].[state], [l].[zip], [e].[name], [e].[email], [e].[salary], [e].[married] FROM [locations l] INNER JOIN [employees e] ON [l].[id] = [e].[salary];", connection);
+            // Act - Query two columns from the locations table
+            var command = new JsonCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]", connection);
             var reader = command.ExecuteReader();
 
             // Assert
-            Assert.False(reader.Read());
+            Assert.True(reader.Read());
             var fieldCount = reader.FieldCount;
-            Assert.Equal(8, fieldCount);
+            Assert.Equal(4, fieldCount);
 
-            // Close the connection
-            connection.Close();
         }
         [Fact]
         public void Reader_ShouldReadDataWithSelectedColumnsFromFile()

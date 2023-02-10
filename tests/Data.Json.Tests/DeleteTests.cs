@@ -9,6 +9,8 @@ namespace Data.Json.Tests
             "Data Source=Sources\\Folder";
         public static string FileAsDBConnectionString =
           "Data Source=Sources/database.json";
+        public static string eComDBConnectionString =
+            "Data Source=C:\\Users\\GAC\\source\\repos\\ADO.NET.FileBased.DataProviders\\tests\\Data.Json.Tests\\Sources\\ecommerce.json;";
     }
     public class DeleteTests
     {
@@ -27,11 +29,14 @@ namespace Data.Json.Tests
 
             command.CommandText = "INSERT INTO locations (id,city,state,zip) values (1350,'New York','NY',10001)";
             command.ExecuteNonQuery();
-
+            connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            connection.Open();
             // Act
             command.CommandText = "DELETE FROM employees where name='Malizba'";
             int employeesDeleted = command.ExecuteNonQuery();
-
+            
+            connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
+            connection.Open();
             command.CommandText = "DELETE FROM locations where id=1350";
             int locationsDeleted = command.ExecuteNonQuery();
 
@@ -56,9 +61,16 @@ namespace Data.Json.Tests
             command.CommandText = "INSERT INTO locations (id,city,state,zip) values (12250,'New York','NY',10001)";
             command.ExecuteNonQuery();
 
+            connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+            connection.Open();
+
             // Act
             command.CommandText = "DELETE FROM employees where name='Malizba File'";
             int employeesDeleted = command.ExecuteNonQuery();
+
+
+            connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+            connection.Open();
 
             command.CommandText = "DELETE FROM locations where id=12250";
             int locationsDeleted = command.ExecuteNonQuery();

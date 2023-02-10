@@ -5,12 +5,12 @@ namespace Data.Json.JsonIO.Read
 {
     internal class JsonReader : IEnumerator<object?[]>
     {
-        object?[] _currentRow;
+        object?[] _currentRow=new object[0];
         public JsonReader(JsonCommand jsonCommand,JsonConnection jsonConnection)
         {
             this.jsonConnection = jsonConnection;
             jsonConnection.JsonReader.JsonQueryParser = jsonCommand.QueryParser;
-            jsonConnection.JsonReader.ReadJson();
+            jsonConnection.JsonReader.ReadJson(true);
             var filter = jsonCommand.QueryParser.Filter;
             if (filter!=null)
             {
