@@ -162,9 +162,21 @@ namespace Data.Json.Tests
             var reader = command.ExecuteReader();
 
             // Assert
-            Assert.True(reader.Read());
-            var fieldCount = reader.FieldCount;
-            Assert.Equal(4, fieldCount);
+            int count = 0;
+            while (reader.Read())
+            {
+                count++;
+
+                var fieldCount = reader.FieldCount;
+                Assert.Equal(4, fieldCount);
+
+                Assert.NotNull(reader[0]);
+                Assert.NotNull(reader[1]);
+                Assert.NotNull(reader[2]);
+                Assert.NotNull(reader[3]);
+            }
+
+            Assert.True(count > 0, "No records where returned in the INNER JOINs");  
 
         }
         [Fact]
