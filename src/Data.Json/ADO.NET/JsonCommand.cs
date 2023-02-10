@@ -107,6 +107,7 @@ public class JsonCommand : IDbCommand
 
         QueryParser = JsonQueryParser.Create(CommandText!);
         var selectQuery = (JsonSelectQuery)QueryParser;
+        _ = selectQuery.GetColumns(); 
         var reader = Connection!.JsonReader;
         Connection.JsonReader.JsonQueryParser = QueryParser;
         reader.ReadJson(true);
