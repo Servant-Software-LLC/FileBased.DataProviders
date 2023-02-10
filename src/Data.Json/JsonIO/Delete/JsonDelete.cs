@@ -1,11 +1,9 @@
 ﻿using Data.Json.JsonQuery;
 
 namespace Data.Json.JsonIO.Delete
-{
     internal class JsonDelete : JsonWriter
     {
         private readonly JsonDeleteQuery jsonDeleteQuery;
-
         public JsonDelete(JsonCommand command,
             JsonConnection jsonConnection)
             : base(command,
@@ -13,7 +11,6 @@ namespace Data.Json.JsonIO.Delete
         {
             this.jsonDeleteQuery = (JsonDeleteQuery)command.QueryParser;
         }
-
         public override int Execute()
         {
             try

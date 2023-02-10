@@ -1,5 +1,4 @@
 ﻿using Data.Json.Enum;
-using Data.Json.New;
 
 namespace System.Data.JsonClient;
 
@@ -34,7 +33,7 @@ public class JsonConnection : IDbConnection
         ArgumentNullException.ThrowIfNull(nameof(connectionString));
         _connectionString = connectionString.Split('=')[1].TrimEnd(';');
         _state = ConnectionState.Closed;
-        JsonReader = new Reader(this);
+        JsonReader = new JsonReader(this);
     }
     public IDbTransaction BeginTransaction()
     {
@@ -57,7 +56,7 @@ public class JsonConnection : IDbConnection
         _state = ConnectionState.Closed;
     }
 
-    internal Reader JsonReader { get; private set; }
+    internal JsonReader JsonReader { get; private set; }
     public IDbCommand CreateCommand()
     {
       

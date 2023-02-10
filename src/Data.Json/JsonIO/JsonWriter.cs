@@ -1,13 +1,11 @@
-﻿using Data.Json.New;
-
-namespace Data.Json.JsonIO;
+﻿namespace Data.Json.JsonIO;
 
 internal abstract class JsonWriter
 {
     protected readonly JsonCommand command;
     protected readonly JsonConnection jsonConnection;
 
-    public Reader JsonReader { get; }
+    public JsonReader JsonReader { get; }
 
     public JsonWriter(JsonCommand command, JsonConnection jsonConnection)
     {
