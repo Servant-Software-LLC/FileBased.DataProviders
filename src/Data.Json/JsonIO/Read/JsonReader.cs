@@ -16,7 +16,7 @@ using System.Xml.Linq;
 
 namespace Data.Json.JsonIO.Read
 {
-    internal class Reader : IDisposable
+    internal class JsonReader : IDisposable
     {
         JsonConnection JsonConnection { get; }
         public JsonQueryParser? JsonQueryParser { get; internal set; }
@@ -24,7 +24,7 @@ namespace Data.Json.JsonIO.Read
         private FileSystemWatcher _jsonWatcher;
         public DataSet? DataSet { get; set; }
         public DataTable DataTable { get; set; }
-        public Reader(JsonConnection jsonConnection)
+        public JsonReader(JsonConnection jsonConnection)
         {
             JsonConnection = jsonConnection;
 

@@ -112,7 +112,7 @@ public class JsonCommand : IDbCommand
         var col = selectQuery.GetColumns();
         var reader = _connection.JsonReader;
         _connection.JsonReader.JsonQueryParser = QueryParser;
-        reader.ReadJson();
+        reader.ReadJson(true);
     
         if (QueryParser.Filter!=null)
         reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.RowFilter = QueryParser.Filter.Evaluate();

@@ -59,9 +59,7 @@ public class JsonConnection : IDbConnection
     internal JsonReader JsonReader { get; private set; }
     public IDbCommand CreateCommand()
     {
-      
             return new JsonCommand(this);
-      
     }
    internal PathType PathType { get; private set; }
     public void Open()
@@ -70,7 +68,7 @@ public class JsonConnection : IDbConnection
         ThrowHelper.ThrowIfInvalidPath(PathType);
         _state = ConnectionState.Open;
     }
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         _state = ConnectionState.Closed;
         _database?.Dispose();

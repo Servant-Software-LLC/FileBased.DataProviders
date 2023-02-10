@@ -3,15 +3,7 @@ using Xunit;
 
 namespace Data.Json.Tests
 {
-    public static class ConnectionStrings
-    {
-        public static string FolderAsDBConnectionString =
-            "Data Source=Sources\\Folder";
-        public static string FileAsDBConnectionString =
-          "Data Source=Sources/database.json";
-        public static string eComDBConnectionString =
-            "Data Source=C:\\Users\\GAC\\source\\repos\\ADO.NET.FileBased.DataProviders\\tests\\Data.Json.Tests\\Sources\\ecommerce.json;";
-    }
+ 
     public class DeleteTests
     {
         #region Folder as database

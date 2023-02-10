@@ -3,10 +3,10 @@ using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Read
 {
-    internal class JsonReader : IEnumerator<object?[]>
+    internal class JsonEnumerator : IEnumerator<object?[]>
     {
         object?[] _currentRow=new object[0];
-        public JsonReader(JsonCommand jsonCommand,JsonConnection jsonConnection)
+        public JsonEnumerator(JsonCommand jsonCommand,JsonConnection jsonConnection)
         {
             this.jsonConnection = jsonConnection;
             jsonConnection.JsonReader.JsonQueryParser = jsonCommand.QueryParser;

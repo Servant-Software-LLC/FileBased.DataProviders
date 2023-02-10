@@ -1,6 +1,7 @@
 ﻿using Data.Json.JsonQuery;
 
 namespace Data.Json.JsonIO.Delete
+{
     internal class JsonDelete : JsonWriter
     {
         private readonly JsonDeleteQuery jsonDeleteQuery;
