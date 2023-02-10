@@ -31,6 +31,7 @@ internal abstract class JsonQueryParser
         }
         return default;
     }
+
     internal JsonQueryParser(ParseTreeNode node)
     {
         this.node = node;

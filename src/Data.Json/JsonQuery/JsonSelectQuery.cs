@@ -52,7 +52,9 @@ internal class JsonSelectQuery : JsonQueryParser
             }).ToList();
         return cols;
     }
-    public bool IsCountQuery { get; set; }
+
+    public bool IsCountQuery { get; private set; }
+    
     public override string GetTable()
     {
         var fromClauseOpt = node

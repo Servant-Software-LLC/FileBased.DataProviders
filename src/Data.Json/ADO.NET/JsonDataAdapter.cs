@@ -2,8 +2,8 @@
 
 public class JsonDataAdapter : DbDataAdapter, IDataAdapter
 {
-    public JsonCommand SelectCommand { get; set; }
-    public JsonCommand UpdateCommand { get; set; }
+    public new JsonCommand? SelectCommand { get; set; }
+    public new JsonCommand? UpdateCommand { get; set; }
 
     public MissingMappingAction MissingMappingAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public MissingSchemaAction MissingSchemaAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

@@ -2,8 +2,9 @@
 
 internal class JsonEnumerator : IEnumerator<object?[]>
 {
-    object?[] _currentRow=new object[0];
-    public JsonEnumerator(JsonCommand jsonCommand,JsonConnection jsonConnection)
+    private object?[] _currentRow=new object[0];
+
+    public JsonEnumerator(JsonCommand jsonCommand, JsonConnection jsonConnection)
     {
         this.jsonConnection = jsonConnection;
         jsonConnection.JsonReader.JsonQueryParser = jsonCommand.QueryParser;
