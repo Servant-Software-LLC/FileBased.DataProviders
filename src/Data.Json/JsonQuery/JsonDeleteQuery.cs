@@ -5,12 +5,13 @@ internal class JsonDeleteQuery : JsonQueryParser
 {
     public JsonDeleteQuery(ParseTreeNode tree) : base(tree)
     {
-        Table = GetTable();
     }
+
     public override IEnumerable<string> GetColumns()
     {
         throw new NotImplementedException();
     }
+
     public override string GetTable()
     {
         return node

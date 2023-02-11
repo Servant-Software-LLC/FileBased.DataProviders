@@ -3,8 +3,9 @@ namespace Data.Json.JsonQuery;
 
 internal abstract class JsonQueryParser
 {
-    public string Table { get; set; }
-    public Filter? Filter { get; set; }
+    public string Table { get; }
+    public Filter? Filter { get; }
+
     protected readonly ParseTreeNode node;
     public static JsonQueryParser Create(string query)
     {
