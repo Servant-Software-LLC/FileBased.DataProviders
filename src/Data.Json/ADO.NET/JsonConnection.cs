@@ -4,21 +4,24 @@ namespace System.Data.JsonClient;
 
 public class JsonConnection : IDbConnection
 {
-    private string _connectionString;
-    private ConnectionState _state;
-    private JsonDocument? _database;
-    public string ConnectionString { get => _connectionString; set => _connectionString = value; }
+    private string connectionString;
+    private ConnectionState state;
+    private JsonDocument? database;
+    public string ConnectionString { get => connectionString; set => connectionString = value; }
     public int ConnectionTimeout { get; }
-    public string Database => _connectionString;
-    public ConnectionState State => _state;
+    public string Database => connectionString;
+    public ConnectionState State => state;
  
     public JsonConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(nameof(connectionString));
-        _connectionString = connectionString.Split('=')[1].TrimEnd(';');
-        _state = ConnectionState.Closed;
+        this.connectionString = connectionString.Split('=')[1].TrimEnd(';');
+        state = ConnectionState.Closed;
         JsonReader = new JsonReader(this);
     }
+
+    internal JsonReader JsonReader { get; private set; }
+    public PathType PathType { get; private set; }
 
     public IDbTransaction BeginTransaction()
     {
@@ -36,33 +39,32 @@ public class JsonConnection : IDbConnection
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
         ThrowHelper.ThrowIfInvalidPath(PathType);
         using var file = File.OpenRead(databaseName);
-        _database = JsonDocument.Parse(file);
+        database = JsonDocument.Parse(file);
     }
 
     public void Close()
     {
-        _state = ConnectionState.Closed;
+        state = ConnectionState.Closed;
     }
 
-    internal JsonReader JsonReader { get; private set; }
+
     public IDbCommand CreateCommand()
     {
             return new JsonCommand(this);
     }
     
-    internal PathType PathType { get; private set; }
     
     public void Open()
     {
         PathType = this.GetPathType();
         ThrowHelper.ThrowIfInvalidPath(PathType);
-        _state = ConnectionState.Open;
+        state = ConnectionState.Open;
     }
 
     public void Dispose()
     {
-        _state = ConnectionState.Closed;
-        _database?.Dispose();
+        state = ConnectionState.Closed;
+        database?.Dispose();
         JsonReader.Dispose();
         
     }

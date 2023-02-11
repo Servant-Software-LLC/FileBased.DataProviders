@@ -3,17 +3,18 @@ using Data.Json.JsonQuery;
 
 namespace Data.Json.JsonIO.Read;
 
-internal class JsonReader : IDisposable
+public class JsonReader : IDisposable
 {
-    JsonConnection JsonConnection { get; }
-    public JsonQueryParser? JsonQueryParser { get; internal set; }
+    private FileSystemWatcher? jsonWatcher;
+    private readonly JsonConnection jsonConnection;
+    private readonly HashSet<string> tablesToUpdate = new();
 
-    private FileSystemWatcher _jsonWatcher;
+
     public DataSet? DataSet { get; private set; }
-    public DataTable DataTable { get; private set; }
+
     public JsonReader(JsonConnection jsonConnection)
     {
-        JsonConnection = jsonConnection;
+        this.jsonConnection = jsonConnection ?? throw new ArgumentNullException(nameof(jsonConnection));
 
         DataSet = null;
 
@@ -21,30 +22,19 @@ internal class JsonReader : IDisposable
 
     public void StartWatching()
     {
-        if (_jsonWatcher != null)
+        if (jsonWatcher != null)
         {
 
-            _jsonWatcher.Changed -= JsonWatcher_Changed;
-            _jsonWatcher.Changed += JsonWatcher_Changed;
+            jsonWatcher.Changed -= JsonWatcher_Changed;
+            jsonWatcher.Changed += JsonWatcher_Changed;
         }
     }
     public void StopWatching()
     {
-        if (_jsonWatcher != null)
-            _jsonWatcher.Changed -= JsonWatcher_Changed;
-    }
-    public int FieldCount
-    {
-        get
-        {
-            ReadJson(true);
-            return DataTable.Columns.Count;
-        }
+        if (jsonWatcher != null)
+            jsonWatcher.Changed -= JsonWatcher_Changed;
     }
 
-    bool _shouldUpdate = false;
-    List<string> tables =
-        new List<string>();
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         //we dont need to update anything if dataset is null
@@ -52,142 +42,155 @@ internal class JsonReader : IDisposable
         {
             return;
         }
-        _shouldUpdate = true;
-        tables.Add(Path.GetFileNameWithoutExtension(e.FullPath));
 
+        tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
+
     private JsonDocument Read(string path)
     {
-
         //ThrowHelper.ThrowIfInvalidPath(path);
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
         {
             return JsonDocument.Parse(stream);
         }
-
-
     }
 
-    public void ReadJson(bool shouldLock = false)
+
+    public DataTable? ReadJson(JsonQueryParser jsonQueryParser, bool shouldLock = false)
     {
         if (shouldLock)
             JsonWriter._rwLock.EnterReadLock();
+
         try
         {
-            if (_jsonWatcher == null)
-            {
-                _jsonWatcher = new FileSystemWatcher();
-                _jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                if (JsonConnection.PathType == PathType.Directory)
-                {
-                    _jsonWatcher.Path = JsonConnection.ConnectionString;
-                    _jsonWatcher.Filter = "*.json";
-                }
-                else
-                {
-                    var file = new FileInfo(JsonConnection.ConnectionString);
-                    _jsonWatcher.Path = file.DirectoryName!;
-                    _jsonWatcher.Filter = file.Name;
-                }
-                _jsonWatcher.EnableRaisingEvents = true;
-            }
-            if (JsonConnection.PathType == PathType.Directory)
+            EnsureFileSystemWatcher();
+
+            //NOTE: Shouldn't there be no opportunity for returnValue to be null??? 
+            DataTable? returnValue = null;
+            if (jsonConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
-                var newTables = GetTableNames();
+                var newTables = GetTableNames(jsonQueryParser);
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
-                DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
-                CheckIfSelect();
+                returnValue = CheckIfSelect(jsonQueryParser);
             }
             else
             {
+                //Load json database file from disk for the first time?
                 if (DataSet == null)
                 {
                     ReadFromFile();
-                    CheckIfSelect();
                 }
+
+                returnValue = CheckIfSelect(jsonQueryParser);
             }
 
-            if (_shouldUpdate)
-            {
-                if (JsonConnection.PathType == PathType.File)
-                {
-                    UpdateFromFile();
-                }
-                else
-                {
-                    for (int i = 0; i < tables.Count; i++)
-                    {
-                        UpdateFromFolder(tables[i]);
-                    }
-                }
-                tables.Clear();
-                _shouldUpdate = false;
-                CheckIfSelect();
+            //Reload any of the tables from disk?
+            returnValue = CheckForTableReload(jsonQueryParser, returnValue);
 
-            }
-
-            void CheckIfSelect()
-            {
-                if (JsonQueryParser is JsonSelectQuery jsonSelectQuery)
-                {
-                    var dataTableJoin = jsonSelectQuery.GetJsonJoin();
-                    if (dataTableJoin == null)
-                    {
-                        DataTable = DataSet!.Tables[JsonQueryParser.Table]!;
-                    }
-                    else
-                    {
-                        DataTable = dataTableJoin.Join(DataSet!);
-
-                    }
-                }
-                else
-                {
-                    DataTable = DataSet!.Tables[JsonQueryParser!.Table]!;
-
-                }
-            }
-
+            return returnValue;
         }
         finally
         {
             if (shouldLock)
                 JsonWriter._rwLock.ExitReadLock();
-
         }
     }
 
-    private List<string> GetTableNames()
+    private DataTable? CheckForTableReload(JsonQueryParser jsonQueryParser, DataTable? returnValue)
     {
-        var tables = new List<string>
-            {
-                JsonQueryParser!.Table
-            };
-        if (JsonQueryParser is JsonSelectQuery jsonSelectQuery && jsonSelectQuery.GetJsonJoin() != null && JsonConnection.PathType == PathType.Directory)
+        if (tablesToUpdate.Count > 0)
         {
-            string[] jsonFiles = Directory.GetFiles(JsonConnection.ConnectionString, "*.json");
-
-            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != JsonQueryParser.Table))
+            if (jsonConnection.PathType == PathType.File)
             {
-                tables.Add(jsonFile);
+                UpdateFromFile();
+            }
+            else
+            {
+                foreach (var tableName in tablesToUpdate)
+                {
+                    UpdateFromFolder(tableName);
+                }
+            }
+
+            tablesToUpdate.Clear();
+
+            returnValue = CheckIfSelect(jsonQueryParser);
+        }
+
+        return returnValue;
+    }
+
+    private DataTable CheckIfSelect(JsonQueryParser jsonQueryParser)
+    {
+        if (jsonQueryParser is JsonSelectQuery jsonSelectQuery)
+        {
+            var dataTableJoin = jsonSelectQuery.GetJsonJoin();
+            if (dataTableJoin == null)
+            {
+                return DataSet!.Tables[jsonQueryParser.Table]!;
+            }
+
+            //No table join.
+            return dataTableJoin.Join(DataSet!);
+        }
+
+        //Parser is not a JsonSelectQuery
+        return DataSet!.Tables[jsonQueryParser!.Table]!;
+    }
+
+    private void EnsureFileSystemWatcher()
+    {
+        if (jsonWatcher == null)
+        {
+            jsonWatcher = new FileSystemWatcher();
+            jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            if (jsonConnection.PathType == PathType.Directory)
+            {
+                jsonWatcher.Path = jsonConnection.ConnectionString;
+                jsonWatcher.Filter = "*.json";
+            }
+            else
+            {
+                var file = new FileInfo(jsonConnection.ConnectionString);
+                jsonWatcher.Path = file.DirectoryName!;
+                jsonWatcher.Filter = file.Name;
+            }
+            jsonWatcher.EnableRaisingEvents = true;
+        }
+    }
+
+
+    private HashSet<string> GetTableNames(JsonQueryParser jsonQueryParser)
+    {
+        //Start with the name of the first table in the JOIN
+        var tableNames = new HashSet<string> { jsonQueryParser!.Table };
+
+        //If this is a SELECT with JOINs and is directory-based storage 
+        if (jsonQueryParser is JsonSelectQuery jsonSelectQuery && jsonSelectQuery.GetJsonJoin() != null && jsonConnection.PathType == PathType.Directory)
+        {
+            string[] jsonFiles = Directory.GetFiles(jsonConnection.ConnectionString, "*.json");
+
+            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != jsonQueryParser.Table))
+            {
+                tableNames.Add(jsonFile);
             }
         }
 
-        return tables;
+        return tableNames;
     }
 
     public string GetTablePath(string tableName) =>
-         $"{JsonConnection.ConnectionString}/{tableName}.json";
-    private void ReadFromFolder(IEnumerable<string> tables)
+         $"{jsonConnection.ConnectionString}/{tableName}.json";
+    private void ReadFromFolder(IEnumerable<string> tableNames)
     {
 
-        foreach (var name in tables)
+        foreach (var name in tableNames)
         {
             var path = GetTablePath(name);
             var doc = Read(path);
             var element = doc.RootElement;
-            ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+            ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);
             var dataTable = CreateNewDataTable(element);
             dataTable.TableName = name;
             Fill(dataTable, element);
@@ -201,7 +204,7 @@ internal class JsonReader : IDisposable
         var path = GetTablePath(tableName);
         var doc = Read(path);
         var element = doc.RootElement;
-        ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+        ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);
         var dataTable = DataSet!.Tables[tableName];
         if (dataTable == null)
         {
@@ -218,9 +221,9 @@ internal class JsonReader : IDisposable
     #region File Read Update
     private void ReadFromFile()
     {
-        var doc = Read(JsonConnection.Database);
+        var doc = Read(jsonConnection.Database);
         var element = doc.RootElement;
-        ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+        ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);
         var dataBaseEnumerator = element.EnumerateObject();
         DataSet = new DataSet();
         foreach (var item in dataBaseEnumerator)
@@ -237,9 +240,9 @@ internal class JsonReader : IDisposable
     {
         DataSet!.Clear();
 
-        var doc = Read(JsonConnection.Database);
+        var doc = Read(jsonConnection.Database);
         var element = doc.RootElement;
-        ThrowHelper.ThrowIfInvalidJson(element, JsonConnection);
+        ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);
         foreach (DataTable item in DataSet.Tables)
         {
             var jsonElement = element.GetProperty(item.TableName);

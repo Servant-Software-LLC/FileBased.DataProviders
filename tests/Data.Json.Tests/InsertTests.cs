@@ -7,15 +7,26 @@ public class InsertTests
 {
     #region Folder as database
     [Fact]
-    public void Insert_ShouldInsertData()
+    public void Insert_ShouldInsertData_Call1000Times()
     {
-        // Arrange
+        for (int i = 1000; i < 1020; i++)
+        {
+            Insert_ShouldInsertData(i);
+        }
+    }
 
+    //[Fact]
+    //public void Insert_ShouldInsertData()
+    private void Insert_ShouldInsertData(int id)
+    {
+        //const int id = 1000;
+
+        // Arrange
         var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
         connection.Open();
 
         // Act - Insert a new record into the locations table
-        var command = new JsonCommand("INSERT INTO locations (id, city, state, zip) VALUES (1000, 'Seattle', 'Washington', 98101)", connection);
+        var command = new JsonCommand($"INSERT INTO locations (id, city, state, zip) VALUES ({id}, 'Seattle', 'Washington', 98101)", connection);
         var rowsAffected = command.ExecuteNonQuery();
 
         // Assert
@@ -24,22 +35,25 @@ public class InsertTests
         connection.Dispose();
         connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
         connection.Open();
+
         // Act - Verify the inserted record exists in the locations table
-        command = new JsonCommand("SELECT COUNT(*) FROM locations WHERE id = 1000", connection);
+        command = new JsonCommand($"SELECT COUNT(*) FROM locations WHERE id = {id}", connection);
         var count = (int)command.ExecuteScalar()!;
 
         // Assert
-        Assert.Equal(1, count);
+        Assert.True(1 == count, $"SELECTing COUNT(*) for id = {id} didn't yield 1 row.  Rows = {count}");
         connection.Close();
         connection.Dispose();
         connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
         connection.Open();
+
         // Act - Insert a new record into the employees table
         command = new JsonCommand("INSERT INTO employees (name, email, salary, married) VALUES ('Jim Convis', 'johndoe@example.com', 100000, 'true')", connection);
         rowsAffected = command.ExecuteNonQuery();
 
         // Assert
-        Assert.Equal(1, rowsAffected);
+        Assert.True(1 == rowsAffected, $"{nameof(command.ExecuteNonQuery)} indicated its rows affected wasn't 1.  RowsAffected = {rowsAffected}");
+
         // Close the connection
         connection.Close();
     }

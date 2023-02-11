@@ -56,20 +56,20 @@ public class DataTableJoin
         var dataTableToJoin = database.Tables[dataTableInnerJoin.TableName];
 
         var filter = new SimpleFilter(dataTableInnerJoin.JoinColumn, dataTableInnerJoin.Operation, sourceColumnVal);
-        dataTableToJoin!.DefaultView.RowFilter = filter.Evaluate();
+        var dataView = new DataView(dataTableToJoin!);
+        dataView.RowFilter = filter.Evaluate();
 
-
-        foreach (DataRowView row in dataTableToJoin.DefaultView)
+        foreach (DataRowView row in dataView)
         {
             var resultRow = resultTable.NewRow();
             if (dataTableInnerJoin.InnerJoin.Count > 0)
             {
-                foreach (var innerjion in dataTableInnerJoin.InnerJoin)
+                foreach (var innerJoin in dataTableInnerJoin.InnerJoin)
                 {
                     var rows = new List<DataRow>();
                     var otherRows = JoinRows(row.Row,
                         resultTable,
-                        innerjion,
+                        innerJoin,
                         database,
                         rows);
                     foreach (var item in otherRows)

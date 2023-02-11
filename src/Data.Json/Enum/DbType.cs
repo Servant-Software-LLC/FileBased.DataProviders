@@ -1,6 +1,6 @@
 ﻿namespace Data.Json.Enum;
 
-internal enum PathType
+public enum PathType
 { 
     File, 
     Directory, 

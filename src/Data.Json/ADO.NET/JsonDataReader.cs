@@ -1,21 +1,31 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Data.Json.JsonQuery;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data.JsonClient;
 
 public class JsonDataReader : IDataReader
 {
-    private readonly JsonEnumerator _reader;
-    private readonly JsonConnection jsonConnection;
-    private object?[]? _currentDataRow = null;
+    private readonly JsonEnumerator jsonEnumerator;
+    private readonly DataTable workingResultSet;
+    private object?[]? currentDataRow = null;
 
-    public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
+    public JsonDataReader(JsonQueryParser queryParser, JsonReader jsonReader)
     {
-        this.jsonConnection = (JsonConnection)jsonConnection;
-        _reader = new JsonEnumerator(command, this.jsonConnection);
+        if (queryParser == null)
+            throw new ArgumentNullException(nameof(queryParser));
+        if (jsonReader == null)
+            throw new ArgumentNullException(nameof(jsonReader));
+
+        //Create the DataTable which is our working resultset
+        workingResultSet = jsonReader.ReadJson(queryParser, true) ?? throw new ArgumentNullException(nameof(workingResultSet));
+            
+        var filter = queryParser!.Filter;
+
+        jsonEnumerator = new JsonEnumerator(queryParser.GetColumnNames(), workingResultSet, filter);
     }
 
     public int Depth => 0;
-    public bool IsClosed => _reader == null;
+    public bool IsClosed => jsonEnumerator == null;
     public int RecordsAffected => -1;
 
     public void Close()
@@ -25,8 +35,6 @@ public class JsonDataReader : IDataReader
 
     public DataTable GetSchemaTable()
     {
-        DataTable table = jsonConnection.JsonReader.DataTable;
-
         DataTable tempSchemaTable = new DataTable("SchemaTable");
         tempSchemaTable.Locale = System.Globalization.CultureInfo.InvariantCulture;
 
@@ -65,13 +73,13 @@ public class JsonDataReader : IDataReader
 
         ColumnSize.DefaultValue = -1;
 
-        if (table.DataSet != null)
+        if (workingResultSet.DataSet != null)
         {
-            BaseCatalogName.DefaultValue = table.DataSet.DataSetName;
+            BaseCatalogName.DefaultValue = workingResultSet.DataSet.DataSetName;
         }
 
-        BaseTableName.DefaultValue = table.TableName;
-        BaseTableNamespace.DefaultValue = table.Namespace;
+        BaseTableName.DefaultValue = workingResultSet.TableName;
+        BaseTableNamespace.DefaultValue = workingResultSet.Namespace;
         IsRowVersion.DefaultValue = false;
         IsLong.DefaultValue = false;
         IsReadOnly.DefaultValue = false;
@@ -108,9 +116,9 @@ public class JsonDataReader : IDataReader
         tempSchemaTable.Columns.Add(BaseTableNamespace);
         tempSchemaTable.Columns.Add(BaseColumnNamespace);
 
-        foreach (string cl in _reader.Columns)
+        foreach (string cl in jsonEnumerator.Columns)
         {
-            DataColumn dc = table.Columns[cl]!;
+            DataColumn dc = workingResultSet.Columns[cl]!;
             DataRow dr = tempSchemaTable.NewRow();
 
             dr[ColumnName] = dc.ColumnName;
@@ -144,7 +152,7 @@ public class JsonDataReader : IDataReader
             tempSchemaTable.Rows.Add(dr);
         }
 
-        foreach (DataColumn key in table.PrimaryKey)
+        foreach (DataColumn key in workingResultSet.PrimaryKey)
         {
             tempSchemaTable.Rows[key.Ordinal][IsKeyColumn] = true;
         }
@@ -158,16 +166,16 @@ public class JsonDataReader : IDataReader
 
     public bool Read()
     {
-        if (_reader.MoveNext())
+        if (jsonEnumerator.MoveNext())
         {
-            _currentDataRow = _reader.Current;
+            currentDataRow = jsonEnumerator.Current;
             return true;
         }
 
         return false;
     }
 
-    public int FieldCount => _reader.FieldCount;
+    public int FieldCount => jsonEnumerator.FieldCount;
 
     public bool GetBoolean(int i)
     {
@@ -182,7 +190,7 @@ public class JsonDataReader : IDataReader
     public long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
     {
         byte[] tempBuffer;
-        tempBuffer = (byte[])_currentDataRow![ordinal]!;
+        tempBuffer = (byte[])currentDataRow![ordinal]!;
         if (buffer == null)
         {
             return tempBuffer.Length;
@@ -224,7 +232,7 @@ public class JsonDataReader : IDataReader
     public long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
     {
         char[] tempBuffer;
-            tempBuffer = (char[])_currentDataRow![ordinal]!;
+            tempBuffer = (char[])currentDataRow![ordinal]!;
       
         if (buffer == null)
         {
@@ -269,32 +277,32 @@ public class JsonDataReader : IDataReader
     public DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
     public decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
     public double GetDouble(int i) => GetValueAsType<double>(i);
-    public Type GetFieldType(int i) => _reader.GetType(i);
+    public Type GetFieldType(int i) => jsonEnumerator.GetType(i);
     public float GetFloat(int i) => GetValueAsType<float>(i);
     public Guid GetGuid(int i) => GetValueAsType<Guid>(i);
     public short GetInt16(int i) => GetValueAsType<short>(i);
     public int GetInt32(int i) => GetValueAsType<int>(i);
     public long GetInt64(int i) => GetValueAsType<long>(i);
-    public string GetName(int i) => _reader.GetName(i);
-    public int GetOrdinal(string name) => _reader.GetOrdinal(name);
+    public string GetName(int i) => jsonEnumerator.GetName(i);
+    public int GetOrdinal(string name) => jsonEnumerator.GetOrdinal(name);
     public string GetString(int i) => GetValueAsType<string>(i);
 
-    public object GetValue(int i) => _currentDataRow != null ? _currentDataRow[i]!
-                                        : throw new ArgumentNullException(nameof(_currentDataRow));
+    public object GetValue(int i) => currentDataRow != null ? currentDataRow[i]!
+                                        : throw new ArgumentNullException(nameof(currentDataRow));
 
     public int GetValues(object[] values)
     {
-        if (_currentDataRow == null)
+        if (currentDataRow == null)
             return 0;
 
-        Array.Copy(_currentDataRow, values, _currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
-        return (_currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
+        Array.Copy(currentDataRow, values, currentDataRow.Length > values.Length ? values.Length : currentDataRow.Length);
+        return (currentDataRow.Length > values.Length ? values.Length : currentDataRow.Length);
     }
 
-    public bool IsDBNull(int i) => _currentDataRow is not null ? _currentDataRow[i] == null
-                                        : throw new ArgumentNullException(nameof(_currentDataRow));
+    public bool IsDBNull(int i) => currentDataRow is not null ? currentDataRow[i] == null
+                                        : throw new ArgumentNullException(nameof(currentDataRow));
 
-    public void Dispose() => _currentDataRow = null;
+    public void Dispose() => currentDataRow = null;
 
     public object this[string name]
     {
@@ -304,7 +312,7 @@ public class JsonDataReader : IDataReader
             return GetValue(ordinal);
         }
     }
-    public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(_currentDataRow![index], typeof(T))!;
+    public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(currentDataRow![index], typeof(T))!;
 
 
     public object this[int i] => GetValue(i);

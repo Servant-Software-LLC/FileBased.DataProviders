@@ -1,20 +1,17 @@
 ﻿namespace Data.Json.JsonIO;
 
-internal abstract class JsonWriter
+public abstract class JsonWriter
 {
-    protected readonly JsonCommand command;
-    protected readonly JsonConnection jsonConnection;
+    private readonly JsonConnection jsonConnection;
+    protected readonly JsonReader jsonReader;
 
-    public JsonReader JsonReader { get; }
-
-    public JsonWriter(JsonCommand command, JsonConnection jsonConnection)
+    public JsonWriter(JsonConnection jsonConnection)
     {
-        this.command = command;
         this.jsonConnection = jsonConnection;
-        JsonReader = jsonConnection.JsonReader;
-        jsonConnection.JsonReader.JsonQueryParser = command.QueryParser;
+        jsonReader = jsonConnection.JsonReader;
     }
-    public abstract int Execute();
+
+    public abstract int Execute();    
     internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
     private static bool SaveData(JsonConnection jsonConnection)

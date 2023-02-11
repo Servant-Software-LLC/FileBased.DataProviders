@@ -10,7 +10,7 @@ internal class JsonInsertQuery : JsonQueryParser
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
-        var cols = GetColumns();
+        var cols = GetColumnNames();
         var values = node
             .ChildNodes[4]
             .ChildNodes[1]
@@ -25,7 +25,7 @@ internal class JsonInsertQuery : JsonQueryParser
         return result;
     }
 
-    public override IEnumerable<string> GetColumns()
+    public override IEnumerable<string> GetColumnNames()
     {
         var cols = node
        .ChildNodes[3].ChildNodes[0].ChildNodes
