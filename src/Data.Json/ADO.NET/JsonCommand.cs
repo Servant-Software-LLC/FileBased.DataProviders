@@ -107,18 +107,33 @@ public class JsonCommand : IDbCommand
 
         QueryParser = JsonQueryParser.Create(CommandText!);
         var selectQuery = (JsonSelectQuery)QueryParser;
-        _ = selectQuery.GetColumns(); 
+        var columns = selectQuery.GetColumns(); 
         var reader = Connection!.JsonReader;
         Connection.JsonReader.JsonQueryParser = QueryParser;
         reader.ReadJson(true);
-    
+
+        var table = reader.DataSet!.Tables[selectQuery.Table!]!;
+        var defaultView = table.DefaultView;
         if (QueryParser.Filter!=null)
-        reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.RowFilter = QueryParser.Filter.Evaluate();
+            defaultView.RowFilter = QueryParser.Filter.Evaluate();
 
         object? result = null;
         if (selectQuery.IsCountQuery)
         {
-            result = reader.DataSet!.Tables[selectQuery.Table!]!.DefaultView.Count;
+            result = defaultView.Count;
+        }
+        else
+        {
+            if (defaultView.Count > 0)
+            {
+                var rowValues = defaultView[0].Row.ItemArray;
+                var firstColumn = columns.FirstOrDefault();
+                if (firstColumn != null)
+                {
+                    var columnIndex = table.Columns.IndexOf(firstColumn);
+                    result = rowValues[columnIndex];
+                }                    
+            }
         }
 
         return result;
