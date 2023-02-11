@@ -10,8 +10,10 @@ internal class JsonDelete : JsonWriter
         : base(command,
               jsonConnection)
     {
-        this.jsonDeleteQuery = (JsonDeleteQuery)command.QueryParser;
+        var queryParser = command.QueryParser ?? throw new ArgumentNullException(nameof(command.QueryParser));
+        jsonDeleteQuery = (JsonDeleteQuery)queryParser;
     }
+
     public override int Execute()
     {
         try

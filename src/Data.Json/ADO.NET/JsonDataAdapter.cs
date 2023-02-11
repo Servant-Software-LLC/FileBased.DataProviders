@@ -2,8 +2,8 @@
 
 public class JsonDataAdapter : DbDataAdapter, IDataAdapter
 {
-    public JsonCommand SelectCommand { get; set; }
-    public JsonCommand UpdateCommand { get; set; }
+    public new JsonCommand? SelectCommand { get; set; }
+    public new JsonCommand? UpdateCommand { get; set; }
 
     public MissingMappingAction MissingMappingAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public MissingSchemaAction MissingSchemaAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -13,9 +13,13 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
     public int Fill(DataSet dataSet)
     {
         if (SelectCommand == null)
-        {
-            throw new InvalidOperationException("SelectCommand is not set.");
-        }
+            throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
+
+        if (SelectCommand.Connection == null)
+            throw new InvalidOperationException($"{nameof(SelectCommand.Connection)} property on {nameof(SelectCommand)} is not set.");
+
+        if (string.IsNullOrEmpty(SelectCommand.CommandText))
+            throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
         var jsonDoc = JsonDocument.Parse(SelectCommand.Connection.Database);
         var jsonData = jsonDoc.RootElement;
@@ -64,12 +68,17 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
         return 1;
     }
 
-    public DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
+    public override DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
     {
         if (SelectCommand == null)
-        {
-            throw new InvalidOperationException("SelectCommand is not set.");
-        }
+            throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
+
+        if (SelectCommand.Connection == null)
+            throw new InvalidOperationException($"{nameof(SelectCommand.Connection)} property on {nameof(SelectCommand)} is not set.");
+
+        if (string.IsNullOrEmpty(SelectCommand.CommandText))
+            throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
+
         var jsonDoc = JsonDocument.Parse(SelectCommand.Connection.Database);
         var jsonData = jsonDoc.RootElement;
         var filter = SelectCommand.CommandText.Split(" ")[1];
@@ -104,14 +113,23 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
         return new DataTable[] { dataTable };
     }
 
-    public IDataParameter[] GetFillParameters()
+    public override IDataParameter[] GetFillParameters()
     {
         throw new NotImplementedException();
     }
 
 
-    public int Update(DataSet dataSet)
+    public override int Update(DataSet dataSet)
     {
+        if (UpdateCommand == null)
+            throw new InvalidOperationException($"{nameof(UpdateCommand)} is not set.");
+
+        if (UpdateCommand.Connection == null)
+            throw new InvalidOperationException($"{nameof(UpdateCommand.Connection)} property on {nameof(UpdateCommand)} is not set.");
+
+        if (string.IsNullOrEmpty(UpdateCommand.CommandText))
+            throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
+
         var dataTable = dataSet.Tables[0];
         var filePath = UpdateCommand.Connection.ConnectionString;
         // Read json file into JsonDocument
@@ -122,12 +140,14 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
             var jsonDoc = JsonDocument.Parse(jsonText);
             var jsonData = jsonDoc.RootElement;
             var jsonNode = jsonData.GetProperty(UpdateCommand.CommandText);
+
             // Modify properties of the specific node based on the data from DataTable
             foreach (var column in dataTable.Columns)
             {
                 var property = dataTable.Rows[0][column.ToString()];
                 //jsonNode.WriteTo(property);
             }
+
             // Serialize the object back to json
             var json = jsonDoc.ToString();
             // Write json to the file

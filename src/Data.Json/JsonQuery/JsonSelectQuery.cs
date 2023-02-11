@@ -13,9 +13,10 @@ internal class JsonSelectQuery : JsonQueryParser
     public override IEnumerable<string> GetColumns()
     {
         var colListNode = node
-        .ChildNodes
-        .First(item => item.Term.Name == "selList" && item.ChildNodes.Count > 0)
-        .ChildNodes[0];
+            .ChildNodes
+            .First(item => item.Term.Name == "selList" && item.ChildNodes.Count > 0)
+            .ChildNodes[0];
+
         var col = colListNode.Token?.ValueString;
         if (col == "*")
         {
@@ -28,8 +29,8 @@ internal class JsonSelectQuery : JsonQueryParser
             .ChildNodes.Select(x =>
             {
                 string col = string.Empty;
-               var colNode= x.ChildNodes[0]
-                .ChildNodes[0];
+                var colNode= x.ChildNodes[0].ChildNodes[0];
+
                 //Check If it is an aggregate query 
                 if (colNode.ChildNodes.Count>1 && colNode.ChildNodes[0].Term.Name!= "id_simple")
                 {
@@ -40,19 +41,20 @@ internal class JsonSelectQuery : JsonQueryParser
                     ThrowHelper.ThrowIfNotAsterik(col);
                     IsCountQuery = true;
                 }
-
-
                 else
                 {
                     var index = colNode.ChildNodes.Count == 2 ? 1 : 0;
                     col = colNode.ChildNodes[index].Token.ValueString;
                 }
+
                 return col;
 
             }).ToList();
         return cols;
     }
-    public bool IsCountQuery { get; set; }
+
+    public bool IsCountQuery { get; private set; }
+    
     public override string GetTable()
     {
         var fromClauseOpt = node
@@ -65,10 +67,10 @@ internal class JsonSelectQuery : JsonQueryParser
         .Token
         .ValueString;
 
-        return GetNameWithAlias(table).tableName;
-        
+        return GetNameWithAlias(table).tableName;        
     }
-    public JsonJoin.DataTableJoin? GetJsonJoin()
+
+    public DataTableJoin? GetJsonJoin()
     {
         var mainTable = GetNameWithAlias(GetTable());
         var joinNode = node.ChildNodes[4].ChildNodes[2];

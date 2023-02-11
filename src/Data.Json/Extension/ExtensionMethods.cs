@@ -4,14 +4,10 @@ namespace Data.Json.Extension;
 
 internal static class ExtensionMethods
 {
-    internal static TTarget Convert<TTarget>(this object source)
-    {
-        return (TTarget)source;
-    }
-    internal static TTarget Convert<TTarget>(this string source)
-    {
-      return (TTarget)System.Convert.ChangeType(source, typeof(TTarget));
-    }
+    internal static TTarget Convert<TTarget>(this object source) => (TTarget)source;
+
+    internal static TTarget Convert<TTarget>(this string source) => (TTarget)System.Convert.ChangeType(source, typeof(TTarget));
+
     internal static Type GetClrFieldType(this JsonValueKind kind) => kind switch
     {
         JsonValueKind.String => typeof(string),
@@ -40,6 +36,7 @@ internal static class ExtensionMethods
         var jsonElement = row.EnumerateObject().First(x => x.Name == propName).Value;
         return GetValue(jsonElement);
     }
+
     internal static object? GetValue(this JsonElement jsonElement)
     {
         var kind = jsonElement.ValueKind;
@@ -58,11 +55,7 @@ internal static class ExtensionMethods
 
     }
 
-    internal static DataTable ToDataTable(this JsonDocument dataTable)
-    {
-        return null;
-    }
-   internal static PathType GetPathType(this JsonConnection jsonConnection)
+    internal static PathType GetPathType(this JsonConnection jsonConnection)
     {
         if (File.Exists(jsonConnection.ConnectionString))
         {
@@ -72,6 +65,7 @@ internal static class ExtensionMethods
         {
             return PathType.Directory;
         }
-            return PathType.None;
+            
+        return PathType.None;
     }
 }

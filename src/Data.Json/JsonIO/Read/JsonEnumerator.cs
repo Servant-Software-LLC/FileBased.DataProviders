@@ -2,13 +2,17 @@
 
 internal class JsonEnumerator : IEnumerator<object?[]>
 {
-    object?[] _currentRow=new object[0];
-    public JsonEnumerator(JsonCommand jsonCommand,JsonConnection jsonConnection)
+    private object?[] _currentRow=new object[0];
+
+    public JsonEnumerator(JsonCommand jsonCommand, JsonConnection jsonConnection)
     {
-        this.jsonConnection = jsonConnection;
+        if (jsonCommand == null)
+            throw new ArgumentNullException(nameof(jsonCommand));
+
+        this.jsonConnection = jsonConnection ?? throw new ArgumentNullException(nameof(jsonConnection));
         jsonConnection.JsonReader.JsonQueryParser = jsonCommand.QueryParser;
         jsonConnection.JsonReader.ReadJson(true);
-        var filter = jsonCommand.QueryParser.Filter;
+        var filter = jsonCommand.QueryParser!.Filter;
         if (filter!=null)
         {
             jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.RowFilter = filter.Evaluate();

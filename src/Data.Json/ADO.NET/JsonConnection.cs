@@ -14,35 +14,22 @@ public class JsonConnection : IDbConnection
  
     public JsonConnection(string connectionString)
     {
-        //var query = "SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[ProductName] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [Order_Items oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [c].[ProductID] where id>8;";
-        //var fg= query.Substring(96, (query.Length - 96));
-        //var parser = new Parser(new JsonGrammar());
-        //var parseTree = parser.Parse(query);
-        //if (parseTree.HasErrors())
-        //{
-        //    ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
-        //}
-        //var mainNode = parseTree.Root.ChildNodes[0];
-
-        //var selectQuery = new JsonSelectQuery(mainNode);
-        ////// Act
-        //var table = selectQuery.GetTable();
-        //var col = selectQuery.GetColumns();
-        //var f = selectQuery.GetFilter();
-
         ArgumentNullException.ThrowIfNull(nameof(connectionString));
         _connectionString = connectionString.Split('=')[1].TrimEnd(';');
         _state = ConnectionState.Closed;
         JsonReader = new JsonReader(this);
     }
+
     public IDbTransaction BeginTransaction()
     {
         throw new NotImplementedException();
     }
+
     public IDbTransaction BeginTransaction(IsolationLevel il)
     {
         throw new NotImplementedException();
     }
+
     public void ChangeDatabase(string databaseName)
     {
         PathType = this.GetPathType();
@@ -51,6 +38,7 @@ public class JsonConnection : IDbConnection
         using var file = File.OpenRead(databaseName);
         _database = JsonDocument.Parse(file);
     }
+
     public void Close()
     {
         _state = ConnectionState.Closed;
@@ -61,13 +49,16 @@ public class JsonConnection : IDbConnection
     {
             return new JsonCommand(this);
     }
-   internal PathType PathType { get; private set; }
+    
+    internal PathType PathType { get; private set; }
+    
     public void Open()
     {
         PathType = this.GetPathType();
         ThrowHelper.ThrowIfInvalidPath(PathType);
         _state = ConnectionState.Open;
     }
+
     public void Dispose()
     {
         _state = ConnectionState.Closed;

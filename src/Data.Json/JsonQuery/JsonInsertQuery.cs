@@ -7,6 +7,7 @@ internal class JsonInsertQuery : JsonQueryParser
     public JsonInsertQuery(ParseTreeNode node) : base(node)
     {
     }
+
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
         var cols = GetColumns();
@@ -23,6 +24,7 @@ internal class JsonInsertQuery : JsonQueryParser
 
         return result;
     }
+
     public override IEnumerable<string> GetColumns()
     {
         var cols = node

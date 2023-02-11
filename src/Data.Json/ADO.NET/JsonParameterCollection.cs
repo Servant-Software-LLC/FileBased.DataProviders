@@ -33,16 +33,23 @@ public class JsonParameterCollection : ArrayList, IDataParameterCollection
 
     public void RemoveAt(string parameterName) => RemoveAt(IndexOf(parameterName));
 
-    public override int Add(object value) => Add((JsonParameter)value);
+    public override int Add(object? value)
+    {
+        if (value is null)
+            throw new ArgumentNullException(nameof(value));
+
+        if (value is not JsonParameter jsonParameter)
+            throw new ArgumentException($"{value.GetType().Name} is not a {nameof(JsonParameter)}", nameof(value));
+
+        return Add(jsonParameter);
+    }
 
     public int Add(JsonParameter value)
     {
-        if (value.ParameterName != null)
-        {
-            return base.Add(value);
-        }
-        else
-            throw new ArgumentException("parameter must be named");
+        if (string.IsNullOrEmpty(value.ParameterName))
+            throw new ArgumentException($"{nameof(value.ParameterName)} property of the {nameof(JsonParameter)} must be named");
+
+        return base.Add(value);
     }
 
     public int Add(string parameterName, DbType type) => Add(new JsonParameter(parameterName, type));

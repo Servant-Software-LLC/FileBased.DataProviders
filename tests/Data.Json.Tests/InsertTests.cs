@@ -26,7 +26,7 @@ public class InsertTests
         connection.Open();
         // Act - Verify the inserted record exists in the locations table
         command = new JsonCommand("SELECT COUNT(*) FROM locations WHERE id = 1000", connection);
-        var count = (int)command.ExecuteScalar();
+        var count = (int)command.ExecuteScalar()!;
 
         // Assert
         Assert.Equal(1, count);
