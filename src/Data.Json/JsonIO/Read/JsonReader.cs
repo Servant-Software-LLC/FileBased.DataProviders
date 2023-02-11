@@ -9,8 +9,8 @@ internal class JsonReader : IDisposable
     public JsonQueryParser? JsonQueryParser { get; internal set; }
 
     private FileSystemWatcher _jsonWatcher;
-    public DataSet? DataSet { get; set; }
-    public DataTable DataTable { get; set; }
+    public DataSet? DataSet { get; private set; }
+    public DataTable DataTable { get; private set; }
     public JsonReader(JsonConnection jsonConnection)
     {
         JsonConnection = jsonConnection;
