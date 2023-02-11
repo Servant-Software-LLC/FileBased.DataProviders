@@ -19,7 +19,7 @@ internal class JsonEnumerator : IEnumerator<object?[]>
             jsonConnection.JsonReader.DataSet!.Tables[tableName]!.DefaultView.RowFilter = filter.Evaluate();
         }
         Columns = new List<string>(jsonCommand.QueryParser.GetColumns());
-        if (Columns.FirstOrDefault()?.Trim() == "*"&& Columns != null)
+        if (Columns.FirstOrDefault()?.Trim() == "*" && Columns != null)
         {
             Columns.Clear();
             foreach (DataColumn column in jsonConnection.JsonReader.DataTable.Columns)

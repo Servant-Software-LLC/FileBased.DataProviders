@@ -94,7 +94,7 @@ internal class JsonReader : IDisposable
             if (JsonConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
-                var newTables = GetTables();
+                var newTables = GetTableNames();
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
                 DataTable = DataSet.Tables[JsonQueryParser!.Table]!;
                 CheckIfSelect();
@@ -158,7 +158,7 @@ internal class JsonReader : IDisposable
         }
     }
 
-    private List<string> GetTables()
+    private List<string> GetTableNames()
     {
         var tables = new List<string>
             {

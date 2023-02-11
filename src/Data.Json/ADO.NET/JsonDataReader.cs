@@ -11,7 +11,7 @@ public class JsonDataReader : IDataReader
     public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
     {
         this.jsonConnection = (JsonConnection)jsonConnection;
-        _reader = new JsonEnumerator(command,this.jsonConnection);
+        _reader = new JsonEnumerator(command, this.jsonConnection);
     }
 
     public int Depth => 0;
