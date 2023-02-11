@@ -8,6 +8,19 @@
   {
     "name": "Bob",
     "email": "bob32@gmail.com",
-    "salary": 95000
+    "salary": 95000,
+    "married": null
+  },
+  {
+    "name": "Jim",
+    "email": "Jim@gmail.com",
+    "salary": 1090,
+    "married": null
+  },
+  {
+    "name": "Mike",
+    "email": "Mike@gmail.com",
+    "salary": 60000,
+    "married": null
   }
 ]

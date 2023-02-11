@@ -3,9 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Json", "src\Data.Json\Data.Json.csproj", "{1127FF71-E1F8-4930-8837-27B6CB1BE7C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json", "src\Data.Json\Data.Json.csproj", "{1127FF71-E1F8-4930-8837-27B6CB1BE7C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json.Tests", "tests\Data.Json.Tests\Data.Json.Tests.csproj", "{E27BA108-46EF-459E-8CBC-C017783F3F1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json.Tests", "tests\Data.Json.Tests\Data.Json.Tests.csproj", "{C75BE3E5-72BE-4D39-A1B1-B7B8722D605C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4D05F87-43FB-4A72-8660-E58B789E8253}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		..\..\..\..\Downloads\archive (1)\News_Category_Dataset_v3.json = ..\..\..\..\Downloads\archive (1)\News_Category_Dataset_v3.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Json.Console", "Data.Json.Console\Data.Json.Console.csproj", "{AAEBF037-0AEA-4108-86C1-3D72FBF27D04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +25,14 @@ Global
 		{1127FF71-E1F8-4930-8837-27B6CB1BE7C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1127FF71-E1F8-4930-8837-27B6CB1BE7C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1127FF71-E1F8-4930-8837-27B6CB1BE7C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E27BA108-46EF-459E-8CBC-C017783F3F1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E27BA108-46EF-459E-8CBC-C017783F3F1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E27BA108-46EF-459E-8CBC-C017783F3F1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E27BA108-46EF-459E-8CBC-C017783F3F1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C75BE3E5-72BE-4D39-A1B1-B7B8722D605C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C75BE3E5-72BE-4D39-A1B1-B7B8722D605C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C75BE3E5-72BE-4D39-A1B1-B7B8722D605C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C75BE3E5-72BE-4D39-A1B1-B7B8722D605C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAEBF037-0AEA-4108-86C1-3D72FBF27D04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAEBF037-0AEA-4108-86C1-3D72FBF27D04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAEBF037-0AEA-4108-86C1-3D72FBF27D04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAEBF037-0AEA-4108-86C1-3D72FBF27D04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

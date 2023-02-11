@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <LangVersion>11.0</LangVersion>
+
+	  <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -28,6 +30,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data.Json\Data.Json.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Sources\database.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\ecommerce.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\Folder\employees.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\Folder\locations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
