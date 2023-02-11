@@ -95,14 +95,14 @@ public class ReaderTests
 
         // Act - Count the records in the locations table
         var command = new JsonCommand("SELECT COUNT(*) FROM locations where id=1 or id=2", connection);
-        var count = (int)command.ExecuteScalar();
+        var count = (int)command.ExecuteScalar()!;
 
         // Assert
         Assert.Equal(2, count);
 
         // Act - Count the records in the employees table
         command = new JsonCommand("SELECT COUNT(*) FROM employees where name='Joe' OR name='Bob' OR name='Jim' OR name='Mike'", connection);
-        count = (int)command.ExecuteScalar();
+        count = (int)command.ExecuteScalar()!;
 
         // Assert
         Assert.Equal(4, count);
@@ -211,14 +211,14 @@ public class ReaderTests
         // Act - Count the records in the locations table
         var command = new JsonCommand("SELECT COUNT(*) FROM locations where id=1 or id=2", connection);
 
-        var count = (int)command.ExecuteScalar();
+        var count = (int)command.ExecuteScalar()!;
 
         // Assert
         Assert.Equal(2, count);
 
         // Act - Count the records in the employees table
         command = new JsonCommand("SELECT COUNT(*) FROM employees where name='Joe' OR name='Bob' OR name='Jim' OR name='Mike'", connection);
-        count = (int)command.ExecuteScalar();
+        count = (int)command.ExecuteScalar()!;
 
         // Assert
         Assert.Equal(4, count);

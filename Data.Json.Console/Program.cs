@@ -4,8 +4,8 @@ using System.Reflection;
 
 var rootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 for (int i = 0; i < 4; i++)
-    rootFolder = Directory.GetParent(rootFolder).FullName;
-var jsonFile = Path.Combine(rootFolder, "tests", "Data.Json.Tests", "Sources", "ecommerce.json");
+    rootFolder = Directory.GetParent(rootFolder!)!.FullName;
+var jsonFile = Path.Combine(rootFolder!, "tests", "Data.Json.Tests", "Sources", "ecommerce.json");
 
 string connectionString = $"Data Source={jsonFile};";
 
@@ -31,8 +31,8 @@ Console.WriteLine();
 
 public class Records
 {
-    public string CustomerName { get; set; }
+    public string? CustomerName { get; set; }
     public DateTime OrderDate { get; set; }
-    public string Quantity { get; set; }
-    public string Name { get; set; }
+    public string? Quantity { get; set; }
+    public string? Name { get; set; }
 }

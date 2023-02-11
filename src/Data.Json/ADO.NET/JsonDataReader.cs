@@ -6,7 +6,7 @@ public class JsonDataReader : IDataReader
 {
     private readonly JsonEnumerator _reader;
     private readonly JsonConnection jsonConnection;
-    private object?[] _currentDataRow;
+    private object?[]? _currentDataRow = null;
 
     public JsonDataReader(JsonCommand command, IDbConnection jsonConnection)
     {
@@ -25,11 +25,8 @@ public class JsonDataReader : IDataReader
 
     public DataTable GetSchemaTable()
     {
-        return GetSchemaTableFromDataTable(jsonConnection.JsonReader.DataTable);
-    }
-    internal DataTable GetSchemaTableFromDataTable(DataTable table)
-    {
-     
+        DataTable table = jsonConnection.JsonReader.DataTable;
+
         DataTable tempSchemaTable = new DataTable("SchemaTable");
         tempSchemaTable.Locale = System.Globalization.CultureInfo.InvariantCulture;
 
@@ -157,10 +154,7 @@ public class JsonDataReader : IDataReader
         return tempSchemaTable;
     }
 
-    public bool NextResult()
-    {
-        return false;
-    }
+    public bool NextResult() => false;
 
     public bool Read()
     {
@@ -271,86 +265,37 @@ public class JsonDataReader : IDataReader
         throw new NotSupportedException();
     }
 
-    public string GetDataTypeName(int i)
-    {
-        return GetValueAsType<string>(i).GetType().Name;
-    }
+    public string GetDataTypeName(int i) => GetValueAsType<string>(i).GetType().Name;
+    public DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
+    public decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
+    public double GetDouble(int i) => GetValueAsType<double>(i);
+    public Type GetFieldType(int i) => _reader.GetType(i);
+    public float GetFloat(int i) => GetValueAsType<float>(i);
+    public Guid GetGuid(int i) => GetValueAsType<Guid>(i);
+    public short GetInt16(int i) => GetValueAsType<short>(i);
+    public int GetInt32(int i) => GetValueAsType<int>(i);
+    public long GetInt64(int i) => GetValueAsType<long>(i);
+    public string GetName(int i) => _reader.GetName(i);
+    public int GetOrdinal(string name) => _reader.GetOrdinal(name);
+    public string GetString(int i) => GetValueAsType<string>(i);
 
-    public DateTime GetDateTime(int i)
-    {
-        return GetValueAsType<DateTime>(i);
-    }
+    public object GetValue(int i) => _currentDataRow != null ? _currentDataRow[i]!
+                                        : throw new ArgumentNullException(nameof(_currentDataRow));
 
-    public decimal GetDecimal(int i)
-    {
-        return GetValueAsType<decimal>(i);
-    }
-
-    public double GetDouble(int i)
-    {
-        return GetValueAsType<double>(i);
-    }
-
-    public Type GetFieldType(int i)
-    {
-        return _reader.GetType(i);
-    }
-
-    public float GetFloat(int i)
-    {
-        return GetValueAsType<float>(i);
-    }
-
-    public Guid GetGuid(int i)
-    {
-        return GetValueAsType<Guid>(i);
-    }
-
-    public short GetInt16(int i)
-    {
-        return GetValueAsType<short>(i);
-    }
-
-    public int GetInt32(int i)
-    {
-        return GetValueAsType<int>(i);
-    }
-
-    public long GetInt64(int i)
-    {
-        return GetValueAsType<long>(i);
-    }
-
-    public string GetName(int i)
-    {
-        return _reader.GetName(i);
-    }
-
-    public int GetOrdinal(string name)
-    {
-        return _reader.GetOrdinal(name);
-    }
-    public string GetString(int i)
-    {
-        return GetValueAsType<string>(i);
-    }
-    public object GetValue(int i)
-    {
-        return _currentDataRow[i]!;
-    }
     public int GetValues(object[] values)
     {
+        if (_currentDataRow == null)
+            return 0;
+
         Array.Copy(_currentDataRow, values, _currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
         return (_currentDataRow.Length > values.Length ? values.Length : _currentDataRow.Length);
     }
-    public bool IsDBNull(int i)
-    {
-        return _currentDataRow[i]!=null;
-    }
-    public void Dispose()
-    {
-        _currentDataRow = null;
-    }
+
+    public bool IsDBNull(int i) => _currentDataRow is not null ? _currentDataRow[i] == null
+                                        : throw new ArgumentNullException(nameof(_currentDataRow));
+
+    public void Dispose() => _currentDataRow = null;
+
     public object this[string name]
     {
         get
@@ -359,17 +304,8 @@ public class JsonDataReader : IDataReader
             return GetValue(ordinal);
         }
     }
-    public T GetValueAsType<T>(int index)
-    {
-        return (T)Convert.ChangeType(_currentDataRow![index], typeof(T))!;
-    }
+    public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(_currentDataRow![index], typeof(T))!;
 
 
-    public object this[int i]
-    {
-        get
-        {
-            return GetValue(i);
-        }
-    }
+    public object this[int i] => GetValue(i);
 }

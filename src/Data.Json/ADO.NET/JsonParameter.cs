@@ -2,83 +2,54 @@
 
 public class JsonParameter : IDbDataParameter
 {
-    DbType m_dbType = DbType.Object;
-    ParameterDirection m_direction = ParameterDirection.Input;
-    bool m_fNullable = false;
-    string m_sParamName;
-    string m_sSourceColumn;
-    DataRowVersion m_sourceVersion = DataRowVersion.Current;
-    object m_value;
+    object? m_value;
 
     public JsonParameter()
+        :this(string.Empty, DbType.Object)
     {
     }
 
     public JsonParameter(string parameterName, DbType type)
     {
-        m_sParamName = parameterName;
-        m_dbType = type;
+        ParameterName = parameterName;
+        DbType = type;
     }
 
     public JsonParameter(string parameterName, object value)
     {
-        m_sParamName = parameterName;
-        Value = value;
-        // Setting the value also infers the type.
+        ParameterName = parameterName;
+        Value = value;   // Setting the value also infers the type.
     }
 
     public JsonParameter(string parameterName, DbType dbType, string sourceColumn)
     {
-        m_sParamName = parameterName;
-        m_dbType = dbType;
-        m_sSourceColumn = sourceColumn;
+        ParameterName = parameterName;
+        DbType = dbType;
+        SourceColumn = sourceColumn;
     }
 
-    public DbType DbType
-    {
-        get { return m_dbType; }
-        set { m_dbType = value; }
-    }
+    public DbType DbType { get; set; } = DbType.Object;
 
-    public ParameterDirection Direction
-    {
-        get { return m_direction; }
-        set { m_direction = value; }
-    }
+    public ParameterDirection Direction { get; set; } = ParameterDirection.Input;
 
-    public bool IsNullable
-    {
-        get { return m_fNullable; }
-    }
+    public bool IsNullable => false;
 
-    public string ParameterName
-    {
-        get { return m_sParamName; }
-        set { m_sParamName = value; }
-    }
+    public string ParameterName { get; set; }
 
-    public string SourceColumn
-    {
-        get { return m_sSourceColumn; }
-        set { m_sSourceColumn = value; }
-    }
+    public string SourceColumn { get; set; } = string.Empty;
 
-    public DataRowVersion SourceVersion
-    {
-        get { return m_sourceVersion; }
-        set { m_sourceVersion = value; }
-    }
+    public DataRowVersion SourceVersion { get; set; } = DataRowVersion.Current;
 
     public object Value
     {
         get
         {
-            return m_value;
+            return m_value!;
         }
         set
         {
             m_value = value;
-            m_dbType = _inferType(value);
+            DbType = InferType(value);
         }
     }
 
@@ -86,7 +57,7 @@ public class JsonParameter : IDbDataParameter
     public byte Scale { get ; set; }
     public int Size { get ; set; }
 
-    private DbType _inferType(object value)
+    private DbType InferType(object value)
     {
         switch (Type.GetTypeCode(value.GetType()))
         {
