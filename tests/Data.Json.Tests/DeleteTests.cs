@@ -37,6 +37,7 @@ public class DeleteTests
         Assert.Equal(1, locationsDeleted);
     }
     #endregion
+
     #region File as database
     [Fact]
     public void Delete_ShouldDeleteDataFromFile()

@@ -77,8 +77,6 @@ public class UpdateTests
         // Assert
         Assert.Equal(1, employeesUpdated);
         Assert.Equal(1, locationsUpdated);
-
-   
     }
 
     #endregion

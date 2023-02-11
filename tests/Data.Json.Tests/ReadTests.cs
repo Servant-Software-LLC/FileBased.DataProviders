@@ -6,12 +6,11 @@ namespace Data.Json.Tests;
 public class ReadTests
 {
     
-    string connectionString = "Data Source=Sources/database.json;";
     [Fact]
     public void Read_ShouldReturnData()
     {
         // Arrange
-        var connection = new JsonConnection(connectionString);
+        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
         var command = new JsonCommand("SELECT * FROM [employees]", connection);
         // Act
         connection.Open();
