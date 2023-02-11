@@ -4,33 +4,37 @@ namespace Data.Json.JsonIO.Write;
 
 internal class JsonInsert : JsonWriter
 {
-    public JsonInsert(JsonCommand command,JsonConnection jsonConnection)
-        : base(command, jsonConnection)
+    private readonly JsonInsertQuery queryParser;
+
+    public JsonInsert(JsonInsertQuery queryParser, JsonConnection jsonConnection)
+        : base(jsonConnection)
     {
-        Query = (JsonInsertQuery)command.QueryParser;
+        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
-    public JsonInsertQuery Query { get; }
+
     public override int Execute()
     {
         try
         {
             //as we have modified the json file so we don't need to update the tables
-            jsonConnection.JsonReader.StopWatching();
+            jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
-            JsonReader.ReadJson();
-            DataTable datatable = JsonReader.DataSet!.Tables[Query.Table]!;
-            var row = datatable.NewRow();
-            foreach (var val in Query.GetValues())
+            
+            var dataTable = jsonReader.ReadJson(queryParser);
+    
+            var row = dataTable!.NewRow();
+            foreach (var val in queryParser.GetValues())
             {
                 row[val.Key] = val.Value;
             }
-            datatable.Rows.Add(row);
+
+            dataTable.Rows.Add(row);
             Save();
         }
         finally
         {
             _rwLock.ExitWriteLock();
-            jsonConnection.JsonReader.StartWatching();
+            jsonReader.StartWatching();
         }
         return 1;
     }

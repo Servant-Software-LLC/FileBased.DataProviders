@@ -1,7 +1,7 @@
 ﻿using Irony.Parsing;
 namespace Data.Json.JsonQuery;
 
-internal abstract class JsonQueryParser
+public abstract class JsonQueryParser
 {
     public string Table { get; }
     public Filter? Filter { get; }
@@ -26,25 +26,30 @@ internal abstract class JsonQueryParser
                 return new JsonUpdateQuery(mainNode);
             case "selectStmt":
                 return new JsonSelectQuery(mainNode);
-            default:
-                ThrowHelper.ThrowQueryNotSupportedException();
-                break;
         }
-        return default;
+
+        throw ThrowHelper.GetQueryNotSupportedException();
     }
 
-    internal JsonQueryParser(ParseTreeNode node)
+    protected JsonQueryParser(ParseTreeNode node)
     {
         this.node = node;
         Filter = GetFilter();
         Table = GetTable();
     }
-    public bool IsSelectQuery => GetType() == typeof(JsonSelectQuery);
-    public bool IsInsertQuery => GetType() == typeof(JsonInsertQuery);
-    public bool IsDeleteQuery => GetType() == typeof(JsonDeleteQuery);
-    public bool IsUpdateQuery => GetType() == typeof(JsonUpdateQuery);
+
+    public JsonWriter GetJsonWriter(JsonConnection jsonConnection) => this switch
+    {
+        JsonInsertQuery insertQuery => new JsonInsert(insertQuery, jsonConnection),
+        JsonUpdateQuery updateQuery => new JsonUpdate(updateQuery, jsonConnection),
+        JsonDeleteQuery deleteQuery => new JsonDelete(deleteQuery, jsonConnection),
+
+        _ => throw new NotSupportedException($"Cannot create a {nameof(JsonWriter)} from a {this.GetType()}")
+    };
+
     public abstract string GetTable();
-    public abstract IEnumerable<string> GetColumns();
+    public abstract IEnumerable<string> GetColumnNames();
+
     public virtual Filter? GetFilter()
     {
         var whereClause = node
@@ -56,9 +61,10 @@ internal abstract class JsonQueryParser
         }
         return ExtractFilter(whereClause!.ChildNodes[1].ChildNodes!);
     }
-    protected Filter ExtractFilter(ParseTreeNodeList x)
+
+    protected Filter? ExtractFilter(ParseTreeNodeList x)
     {
-        Filter mainFilter = null;
+        Filter? mainFilter = null;
         foreach (var item in x)
         {
             if (item.Term.Name == "binExpr")
@@ -86,16 +92,16 @@ internal abstract class JsonQueryParser
                 if (op.ToLower() == "and")
                 {
                     if (next.Term.Name == "binExpr")
-                        mainFilter = Filter.And(mainFilter, filter2);
+                        mainFilter = Filter.And(mainFilter!, filter2!);
                     else
-                        mainFilter = Filter.AndAlso(mainFilter, filter2);
+                        mainFilter = Filter.AndAlso(mainFilter!, filter2!);
                 }
                 else
                 {
                     if (next.Term.Name == "binExpr")
-                        mainFilter = Filter.Or(mainFilter, filter2);
+                        mainFilter = Filter.Or(mainFilter!, filter2!);
                     else
-                        mainFilter = Filter.OrAlso(mainFilter, filter2);
+                        mainFilter = Filter.OrAlso(mainFilter!, filter2!);
                 }
                 break;
             }

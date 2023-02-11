@@ -4,39 +4,45 @@ namespace Data.Json.JsonIO.Write;
 
 internal class JsonUpdate : JsonWriter
 {
-    public JsonUpdate(JsonCommand command,
-                      JsonConnection jsonConnection) 
-        : base(command, jsonConnection)
+    private readonly JsonUpdateQuery queryParser;
+
+    public JsonUpdate(JsonUpdateQuery queryParser, JsonConnection jsonConnection) 
+        : base(jsonConnection)
     {
+        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
 
     public override int Execute()
     {
         try
         {
-            //as we have modified the json file so we don't need to update the tables
-            jsonConnection.JsonReader.StopWatching();
+            // As we have modified the json file so we don't need to update the tables
+            jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
-            JsonReader.ReadJson();
-            var queryParser = ((JsonUpdateQuery)command.QueryParser);
+
+            var dataTable = jsonReader.ReadJson(queryParser);
             var values = queryParser.GetValues();
-            DataTable datatable = JsonReader.DataSet!.Tables[queryParser.Table]!;
-            datatable.DefaultView.RowFilter = queryParser.Filter?.Evaluate();
-            var rowsAffected = datatable.DefaultView.Count;
-            foreach (DataRowView dataRow in datatable.DefaultView)
+
+            //Create a DataView to work with just for this operation
+            var dataView = new DataView(dataTable);
+            dataView.RowFilter = queryParser.Filter?.Evaluate();
+
+            var rowsAffected = dataView.Count;
+            foreach (DataRowView dataRow in dataView)
             {
                 foreach (var val in values)
                 {
                     dataRow[val.Key] = val.Value;
                 }
             }
+
             Save();
             return rowsAffected;
         }
         finally
         {
             _rwLock.ExitWriteLock();
-            jsonConnection.JsonReader.StartWatching();
+            jsonReader.StartWatching();
         }
 
     }

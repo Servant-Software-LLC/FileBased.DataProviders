@@ -42,10 +42,9 @@ internal static class ThrowHelper
             throw new InvalidJsonFileException(INVALID_JSON);
         }
     }
-    public static void ThrowQueryNotSupportedException()
-    {
-      throw new QueryNotSupportedException(QUERY_NOT_SUPPORTED);
-    }
+
+    public static QueryNotSupportedException GetQueryNotSupportedException() => new(QUERY_NOT_SUPPORTED);
+
     public static void ThrowSyntaxtErrorException(string error)
     {
         throw new QueryNotSupportedException($"{SYNTAX_ERROR} {error}");
@@ -69,8 +68,7 @@ internal static class ThrowHelper
     {
         if (aggregateName.ToLower()!="count")
         {
-        throw new NotImplementedException($"The aggregate function {aggregateName} is not yet implemented.");
-
+            throw new NotImplementedException($"The aggregate function {aggregateName} is not yet implemented.");
         }
     }
 

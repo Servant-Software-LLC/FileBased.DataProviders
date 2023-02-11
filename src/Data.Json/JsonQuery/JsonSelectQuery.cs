@@ -10,7 +10,7 @@ internal class JsonSelectQuery : JsonQueryParser
     {
     }
 
-    public override IEnumerable<string> GetColumns()
+    public override IEnumerable<string> GetColumnNames()
     {
         var colListNode = node
             .ChildNodes

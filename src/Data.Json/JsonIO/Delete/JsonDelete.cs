@@ -4,14 +4,12 @@ namespace Data.Json.JsonIO.Delete;
 
 internal class JsonDelete : JsonWriter
 {
-    private readonly JsonDeleteQuery jsonDeleteQuery;
-    public JsonDelete(JsonCommand command,
-        JsonConnection jsonConnection)
-        : base(command,
-              jsonConnection)
+    private readonly JsonDeleteQuery queryParser;
+
+    public JsonDelete(JsonDeleteQuery queryParser, JsonConnection jsonConnection)
+        : base(jsonConnection)
     {
-        var queryParser = command.QueryParser ?? throw new ArgumentNullException(nameof(command.QueryParser));
-        jsonDeleteQuery = (JsonDeleteQuery)queryParser;
+        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
 
     public override int Execute()
@@ -19,15 +17,19 @@ internal class JsonDelete : JsonWriter
         try
         {
             //as we have modified the json file so we don't need to update the tables
-            jsonConnection.JsonReader.StopWatching();
+            jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
-            JsonReader.ReadJson();
-            DataTable datatable = JsonReader.DataSet!.Tables[jsonDeleteQuery.Table]!;
-            datatable.DefaultView.RowFilter = jsonDeleteQuery.Filter?.ToString();
-            var rowsAffected = datatable.DefaultView.Count;
-            foreach (DataRowView dataRow in datatable.DefaultView)
+
+            var dataTable = jsonReader.ReadJson(queryParser);
+
+            //Create a DataView to work with just for this operation
+            var dataView = new DataView(dataTable);
+            dataView.RowFilter = queryParser.Filter?.ToString();
+
+            var rowsAffected = dataView.Count;
+            foreach (DataRowView dataRow in dataView)
             {
-                datatable.Rows.Remove(dataRow.Row);
+                dataTable!.Rows.Remove(dataRow.Row);
             }
             Save();
           
@@ -36,7 +38,7 @@ internal class JsonDelete : JsonWriter
         finally
         {
             _rwLock.ExitWriteLock();
-            jsonConnection.JsonReader.StartWatching();
+            jsonReader.StartWatching();
         }
     }
 }

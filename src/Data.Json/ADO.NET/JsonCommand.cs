@@ -5,7 +5,6 @@ namespace System.Data.JsonClient;
 public class JsonCommand : IDbCommand
 {
     private JsonParameterCollection parameters;
-    internal JsonQueryParser? QueryParser { get; private set; }
 
     public string? CommandText { get; set; } = string.Empty;
     public int CommandTimeout { get; set; }
@@ -70,15 +69,13 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        QueryParser = JsonQueryParser.Create(CommandText!);
+        var queryParser = JsonQueryParser.Create(CommandText!);
         if (Connection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        JsonWriter jsonWriter = QueryParser.IsInsertQuery ? new JsonInsert(this, Connection)
-                              : QueryParser.IsUpdateQuery ? new JsonUpdate(this, Connection)
-                              : new JsonDelete(this, Connection);
+        JsonWriter jsonWriter = queryParser.GetJsonWriter(Connection!);
 
         return jsonWriter.Execute();
     }
@@ -89,14 +86,14 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        QueryParser = JsonQueryParser.Create(CommandText!);
+        var queryParser = JsonQueryParser.Create(CommandText!);
 
         if (Connection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        return new JsonDataReader(this, Connection);
+        return new JsonDataReader(queryParser, Connection.JsonReader);
     }
 
     public void Prepare() => throw new NotImplementedException();
@@ -105,35 +102,38 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        QueryParser = JsonQueryParser.Create(CommandText!);
-        var selectQuery = (JsonSelectQuery)QueryParser;
-        var columns = selectQuery.GetColumns(); 
-        var reader = Connection!.JsonReader;
-        Connection.JsonReader.JsonQueryParser = QueryParser;
-        reader.ReadJson(true);
+        var queryParser = JsonQueryParser.Create(CommandText!);
+        if (queryParser is not JsonSelectQuery selectQuery)
+            throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
-        var table = reader.DataSet!.Tables[selectQuery.Table!]!;
-        var defaultView = table.DefaultView;
-        if (QueryParser.Filter!=null)
-            defaultView.RowFilter = QueryParser.Filter.Evaluate();
+        var columns = selectQuery.GetColumnNames(); 
+        var reader = Connection!.JsonReader;
+
+        var dataTable = reader.ReadJson(queryParser, true);
+        var dataView = new DataView(dataTable);
+
+        if (queryParser.Filter!=null)
+            dataView.RowFilter = queryParser.Filter.Evaluate();
 
         object? result = null;
+        
+        //If COUNT(*) query
         if (selectQuery.IsCountQuery)
+            return dataView.Count;
+
+
+        //SELECT query - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
+        //       "Executes the query, and returns the first column of the first row in the resultset returned
+        //       by the query. Extra columns or rows are ignored."
+        if (dataView.Count > 0)
         {
-            result = defaultView.Count;
-        }
-        else
-        {
-            if (defaultView.Count > 0)
+            var rowValues = dataView[0].Row.ItemArray;
+            var firstColumn = columns.FirstOrDefault();
+            if (firstColumn != null)
             {
-                var rowValues = defaultView[0].Row.ItemArray;
-                var firstColumn = columns.FirstOrDefault();
-                if (firstColumn != null)
-                {
-                    var columnIndex = table.Columns.IndexOf(firstColumn);
-                    result = rowValues[columnIndex];
-                }                    
-            }
+                var columnIndex = dataView.Table!.Columns.IndexOf(firstColumn);
+                result = rowValues[columnIndex];
+            }                    
         }
 
         return result;

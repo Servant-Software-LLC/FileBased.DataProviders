@@ -10,7 +10,7 @@ internal class JsonUpdateQuery : JsonQueryParser
 
     }
 
-    public override IEnumerable<string> GetColumns()
+    public override IEnumerable<string> GetColumnNames()
     {
         var cols = node
      .ChildNodes[3].ChildNodes
@@ -28,7 +28,7 @@ internal class JsonUpdateQuery : JsonQueryParser
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
-        var cols = GetColumns();
+        var cols = GetColumnNames();
         var values = node
      .ChildNodes[3].ChildNodes
      .Select(item => item.ChildNodes[2].Token.Value);

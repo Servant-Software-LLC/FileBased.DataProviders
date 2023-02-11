@@ -17,7 +17,7 @@ internal static class ExtensionMethods
         JsonValueKind.Null => typeof(string),
         JsonValueKind.Array => typeof(string),
         JsonValueKind.Object => typeof(string),
-        _ => throw new NotSupportedException("Unsupported JSON value kind: " + kind)
+        _ => throw new NotSupportedException($"Unsupported JSON value kind: {kind}")
     };
 
     internal static string GetClrDataTypeName(this JsonValueKind kind) => kind switch
@@ -29,8 +29,9 @@ internal static class ExtensionMethods
         JsonValueKind.Null => "null",
         JsonValueKind.Array => "string",
         JsonValueKind.Object => "string",
-        _ => throw new NotSupportedException("Unsupported JSON value kind: " + kind)
+        _ => throw new NotSupportedException($"Unsupported JSON value kind: {kind}")
     };
+
     internal static object? GetValue(this JsonElement row, string propName)
     {
         var jsonElement = row.EnumerateObject().First(x => x.Name == propName).Value;

@@ -7,7 +7,7 @@ internal class JsonDeleteQuery : JsonQueryParser
     {
     }
 
-    public override IEnumerable<string> GetColumns()
+    public override IEnumerable<string> GetColumnNames()
     {
         throw new NotImplementedException();
     }

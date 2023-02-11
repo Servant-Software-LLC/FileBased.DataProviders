@@ -2,71 +2,57 @@
 
 internal class JsonEnumerator : IEnumerator<object?[]>
 {
-    private object?[] _currentRow=new object[0];
+    private readonly DataView workingDataView;  // We cannot use the DefaultView of the DataTable, because workingResultset may be a pointer directly to
+                                                // one of the tables (i.e. not created from the columns/joins of the SELECT query) and many JsonDataReader/JsonEnumerator
+                                                // may be instantiated with different filters on them.
+    private object?[] currentRow=new object[0];
 
-    public JsonEnumerator(JsonCommand jsonCommand, JsonConnection jsonConnection)
+    public JsonEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter)
     {
-        if (jsonCommand == null)
-            throw new ArgumentNullException(nameof(jsonCommand));
+        if (workingResultset == null) 
+            throw new ArgumentNullException(nameof(workingResultset));
 
-        this.jsonConnection = jsonConnection ?? throw new ArgumentNullException(nameof(jsonConnection));
-        jsonConnection.JsonReader.JsonQueryParser = jsonCommand.QueryParser;
-        jsonConnection.JsonReader.ReadJson(true);
-        var filter = jsonCommand.QueryParser!.Filter;
-        if (filter!=null)
+        workingDataView = new DataView(workingResultset);
+        if (filter != null)
         {
-            var tableName = jsonCommand.QueryParser.Table;
-            jsonConnection.JsonReader.DataSet!.Tables[tableName]!.DefaultView.RowFilter = filter.Evaluate();
+            workingDataView.RowFilter = filter.Evaluate();
         }
-        Columns = new List<string>(jsonCommand.QueryParser.GetColumns());
+
+        Columns = new List<string>(resultSetColumnNames);
         if (Columns.FirstOrDefault()?.Trim() == "*" && Columns != null)
         {
             Columns.Clear();
-            foreach (DataColumn column in jsonConnection.JsonReader.DataTable.Columns)
+            foreach (DataColumn column in workingResultset.Columns)
             {
                 Columns.Add(column.ColumnName);
             }
         }
     }
-    public object?[] Current
-    {
-        get
-        {
-            return _currentRow;
-        }
-    }
+
+    public object?[] Current => currentRow;
     object IEnumerator.Current => Current;
+    public int CurrentIndex { get; private set; } = -1;
+    public List<string> Columns { get; }
+    public int FieldCount => Columns.Count;
 
-
-    public int FieldCount
-    {
-        get
-        {
-          return  Columns.Count;
-        }
-    }
-
-    public int currentIndex = -1;
-    private readonly JsonConnection jsonConnection;
-    internal readonly List<string> Columns = new List<string>();
 
     public bool MoveNext()
     {
-        currentIndex++;
-        if (jsonConnection.JsonReader.DataTable.DefaultView.Count > currentIndex)
+        CurrentIndex++;
+        if (workingDataView.Count > CurrentIndex)
         {
-            var row = jsonConnection.JsonReader.DataTable.DefaultView[currentIndex].Row;
+            var row = workingDataView[CurrentIndex].Row;
             if (Columns?.FirstOrDefault()?.Trim() != "*")
             {
-                _currentRow = new object?[Columns!.Count];
+                currentRow = new object?[Columns!.Count];
                 for (int i = 0; i < Columns?.Count; i++)
                 {
-                    _currentRow[i] = row[Columns[i]];
+                    currentRow[i] = row[Columns[i]];
                 }
             }
             else
             {
-                _currentRow = row.ItemArray;
+                currentRow = row.ItemArray;
             }
             return true;
         }
@@ -80,27 +66,22 @@ internal class JsonEnumerator : IEnumerator<object?[]>
     }
     public void Reset()
     {
-        currentIndex = -1;
+        CurrentIndex = -1;
         //TableEnumerator.Reset();
     }
 
     public void Dispose()
     {
-        jsonConnection.JsonReader.Dispose();
         //TableEnumerator?.Reset();
     }
-   internal string GetName(int i)
-    {
-       return Columns[i];
-    }
-    internal int GetOrdinal(string name)
-    {
-        return Columns.IndexOf(name);
-    }
-    internal Type GetType(int i)
+
+    public string GetName(int i) => Columns[i];
+    public int GetOrdinal(string name) => Columns.IndexOf(name);
+    
+    public Type GetType(int i)
     {
         var name = GetName(i);
-        return jsonConnection.JsonReader.DataTable.Columns[name]!.DataType;
+        return workingDataView.Table!.Columns[name]!.DataType;
     }
 
 }
