@@ -15,7 +15,8 @@ internal class JsonEnumerator : IEnumerator<object?[]>
         var filter = jsonCommand.QueryParser!.Filter;
         if (filter!=null)
         {
-            jsonConnection.JsonReader.DataSet!.Tables[0].DefaultView.RowFilter = filter.Evaluate();
+            var tableName = jsonCommand.QueryParser.Table;
+            jsonConnection.JsonReader.DataSet!.Tables[tableName]!.DefaultView.RowFilter = filter.Evaluate();
         }
         Columns = new List<string>(jsonCommand.QueryParser.GetColumns());
         if (Columns.FirstOrDefault()?.Trim() == "*"&& Columns != null)
@@ -47,8 +48,7 @@ internal class JsonEnumerator : IEnumerator<object?[]>
 
     public int currentIndex = -1;
     private readonly JsonConnection jsonConnection;
-    internal readonly List<string> Columns=
-        new List<string>();
+    internal readonly List<string> Columns = new List<string>();
 
     public bool MoveNext()
     {

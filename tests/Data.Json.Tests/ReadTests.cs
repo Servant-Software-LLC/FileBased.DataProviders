@@ -12,6 +12,7 @@ public class ReadTests
         // Arrange
         var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
         var command = new JsonCommand("SELECT * FROM [employees]", connection);
+
         // Act
         connection.Open();
         using (var reader = command.ExecuteReader())
@@ -19,6 +20,7 @@ public class ReadTests
             // Assert
             Assert.NotNull(reader);
             Assert.Equal(4, reader.FieldCount);
+
             //first Row
             Assert.True(reader.Read());
             Assert.Equal("Joe", reader["name"]);
@@ -46,6 +48,31 @@ public class ReadTests
         connection.Close();
     }
 
+    [Fact]
+    public void Read_ShouldReturnData_WithFilter()
+    {
+        // Arrange
+        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+        var command = new JsonCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(4, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.Equal("New Braunfels", reader["city"]);
+
+            //No second row
+            Assert.False(reader.Read());
+        }
+
+        connection.Close();
+    }
 
 
 
