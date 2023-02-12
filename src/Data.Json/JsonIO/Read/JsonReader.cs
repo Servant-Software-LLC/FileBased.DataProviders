@@ -127,7 +127,7 @@ public class JsonReader : IDisposable
             var dataTableJoin = jsonSelectQuery.GetJsonJoin();
             if (dataTableJoin == null)
             {
-                return DataSet!.Tables[jsonQueryParser.Table]!;
+                return DataSet!.Tables[jsonQueryParser.TableName]!;
             }
 
             //No table join.
@@ -135,7 +135,7 @@ public class JsonReader : IDisposable
         }
 
         //Parser is not a JsonSelectQuery
-        return DataSet!.Tables[jsonQueryParser!.Table]!;
+        return DataSet!.Tables[jsonQueryParser!.TableName]!;
     }
 
     private void EnsureFileSystemWatcher()
@@ -163,14 +163,14 @@ public class JsonReader : IDisposable
     private HashSet<string> GetTableNames(JsonQueryParser jsonQueryParser)
     {
         //Start with the name of the first table in the JOIN
-        var tableNames = new HashSet<string> { jsonQueryParser!.Table };
+        var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
         if (jsonQueryParser is JsonSelectQuery jsonSelectQuery && jsonSelectQuery.GetJsonJoin() != null && jsonConnection.PathType == PathType.Directory)
         {
             string[] jsonFiles = Directory.GetFiles(jsonConnection.ConnectionString, "*.json");
 
-            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != jsonQueryParser.Table))
+            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != jsonQueryParser.TableName))
             {
                 tableNames.Add(jsonFile);
             }

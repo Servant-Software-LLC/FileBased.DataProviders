@@ -35,7 +35,7 @@ internal class JsonInsert : JsonWriter
         finally
         {
             jsonReader.StartWatching();
-            Save();
+            Save(queryParser.TableName);
             _rwLock.ExitWriteLock();
         }
     }

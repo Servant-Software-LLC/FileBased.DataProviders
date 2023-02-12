@@ -3,7 +3,7 @@ namespace Data.Json.JsonQuery;
 
 public abstract class JsonQueryParser
 {
-    public string Table { get; }
+    public string TableName { get; }
     public Filter? Filter { get; }
 
     protected readonly ParseTreeNode node;
@@ -35,7 +35,7 @@ public abstract class JsonQueryParser
     {
         this.node = node;
         Filter = GetFilter();
-        Table = GetTable();
+        TableName = GetTable();
     }
 
     public JsonWriter GetJsonWriter(JsonConnection jsonConnection) => this switch

@@ -14,12 +14,14 @@ public abstract class JsonWriter
     public abstract int Execute();    
     internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
-    private static bool SaveData(JsonConnection jsonConnection)
+    public bool Save(string? tableName) => SaveData(jsonConnection, tableName);
+
+    private static bool SaveData(JsonConnection jsonConnection, string? tableName)
     {        
         var path = jsonConnection.ConnectionString;
         if (jsonConnection.PathType == Enum.PathType.Directory)
         {
-            SaveFolderAsDB(jsonConnection);
+            SaveFolderAsDB(jsonConnection, tableName);
         }
         else
         {
@@ -28,8 +30,6 @@ public abstract class JsonWriter
        
         return true;
     }
-
-    public bool Save() => SaveData(jsonConnection);
 
     private static void SaveToFile(JsonConnection jsonConnection)
     {
@@ -45,9 +45,13 @@ public abstract class JsonWriter
         }
     }
 
-    private static void SaveFolderAsDB(JsonConnection jsonConnection)
+    private static void SaveFolderAsDB(JsonConnection jsonConnection, string? tableName)
     {
-        foreach (DataTable table in jsonConnection.JsonReader.DataSet!.Tables)
+        var tablesToWrite = jsonConnection.JsonReader.DataSet!.Tables.Cast<DataTable>();
+        if (!string.IsNullOrEmpty(tableName))
+            tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
+
+        foreach (DataTable table in tablesToWrite)
         {
             var path = Path.Combine(jsonConnection.ConnectionString, $"{table.TableName}.json");
             using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
