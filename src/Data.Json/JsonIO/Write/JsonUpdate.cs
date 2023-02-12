@@ -36,13 +36,13 @@ internal class JsonUpdate : JsonWriter
                 }
             }
 
-            Save();
             return rowsAffected;
         }
         finally
         {
-            _rwLock.ExitWriteLock();
             jsonReader.StartWatching();
+            Save();
+            _rwLock.ExitWriteLock();
         }
 
     }
