@@ -29,13 +29,14 @@ internal class JsonInsert : JsonWriter
             }
 
             dataTable.Rows.Add(row);
-            Save();
+
+            return 1;
         }
         finally
         {
-            _rwLock.ExitWriteLock();
             jsonReader.StartWatching();
+            Save(queryParser.TableName);
+            _rwLock.ExitWriteLock();
         }
-        return 1;
     }
 }

@@ -31,14 +31,14 @@ internal class JsonDelete : JsonWriter
             {
                 dataTable!.Rows.Remove(dataRow.Row);
             }
-            Save();
           
             return rowsAffected;
         }
         finally
         {
-            _rwLock.ExitWriteLock();
             jsonReader.StartWatching();
+            Save(queryParser.TableName);
+            _rwLock.ExitWriteLock();
         }
     }
 }

@@ -75,17 +75,17 @@ internal class JsonSelectQuery : JsonQueryParser
         var mainTable = GetNameWithAlias(GetTable());
         var joinNode = node.ChildNodes[4].ChildNodes[2];
         if (joinNode.ChildNodes.Count==0)
-        {
             return null;
-        }
+
         var list = new List<JsonJoin.Join>();
         AddJoin(list, joinNode);
+
         //remove aliases;
         foreach (var item in list)
         {
-        RemoveAlias(item);
-
+            RemoveAlias(item);
         }
+
         return new DataTableJoin(list, mainTable.tableName);
     }
 
@@ -118,7 +118,7 @@ internal class JsonSelectQuery : JsonQueryParser
             joinColumn = sourceColumn;
             sourceColumn = join;
         }
-        var jsonJoin = new JsonJoin.Join(table, joinColumn, sourceColumn);
+        var jsonJoin = new Join(table, joinColumn, sourceColumn);
         
         var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(jsonJoin.SourceColumn).alias);
         if (hasAlreayJoin!=null)

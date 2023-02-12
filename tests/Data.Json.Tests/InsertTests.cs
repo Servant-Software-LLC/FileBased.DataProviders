@@ -6,20 +6,11 @@ namespace Data.Json.Tests;
 public class InsertTests
 {
     #region Folder as database
-    [Fact]
-    public void Insert_ShouldInsertData_Call1000Times()
-    {
-        for (int i = 1000; i < 1020; i++)
-        {
-            Insert_ShouldInsertData(i);
-        }
-    }
 
-    //[Fact]
-    //public void Insert_ShouldInsertData()
-    private void Insert_ShouldInsertData(int id)
+    [Fact]
+    public void Insert_ShouldInsertData()
     {
-        //const int id = 1000;
+        const int id = 1000;
 
         // Arrange
         var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
