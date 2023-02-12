@@ -56,7 +56,7 @@ public class JsonReader : IDisposable
     }
 
 
-    public DataTable? ReadJson(JsonQueryParser jsonQueryParser, bool shouldLock = false)
+    public DataTable ReadJson(JsonQueryParser jsonQueryParser, bool shouldLock = false)
     {
         if (shouldLock)
             JsonWriter._rwLock.EnterReadLock();
@@ -65,8 +65,7 @@ public class JsonReader : IDisposable
         {
             EnsureFileSystemWatcher();
 
-            //NOTE: Shouldn't there be no opportunity for returnValue to be null??? 
-            DataTable? returnValue = null;
+            DataTable returnValue;
             if (jsonConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
@@ -97,7 +96,7 @@ public class JsonReader : IDisposable
         }
     }
 
-    private DataTable? CheckForTableReload(JsonQueryParser jsonQueryParser, DataTable? returnValue)
+    private DataTable CheckForTableReload(JsonQueryParser jsonQueryParser, DataTable returnValue)
     {
         if (tablesToUpdate.Count > 0)
         {
