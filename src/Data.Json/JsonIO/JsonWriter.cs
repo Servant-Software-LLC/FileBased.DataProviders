@@ -18,7 +18,7 @@ public abstract class JsonWriter
 
     private static bool SaveData(JsonConnection jsonConnection, string? tableName)
     {        
-        var path = jsonConnection.ConnectionString;
+        var path = jsonConnection.Database;
         if (jsonConnection.PathType == Enum.PathType.Directory)
         {
             SaveFolderAsDB(jsonConnection, tableName);
@@ -33,8 +33,8 @@ public abstract class JsonWriter
 
     private static void SaveToFile(JsonConnection jsonConnection)
     {
-        using (var fileStream = new FileStream(jsonConnection.ConnectionString, FileMode.Create, FileAccess.Write))
-        using (var jsonWriter = new Utf8JsonWriter(fileStream))
+        using (var fileStream = new FileStream(jsonConnection.Database, FileMode.Create, FileAccess.Write))
+        using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = jsonConnection.Formatted }))
         {
             jsonWriter.WriteStartObject();
             foreach (DataTable table in jsonConnection.JsonReader.DataSet!.Tables)
@@ -53,9 +53,9 @@ public abstract class JsonWriter
 
         foreach (DataTable table in tablesToWrite)
         {
-            var path = Path.Combine(jsonConnection.ConnectionString, $"{table.TableName}.json");
+            var path = jsonConnection.GetTablePath(table.TableName);
             using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
-            using (var jsonWriter = new Utf8JsonWriter(fileStream))
+            using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = jsonConnection.Formatted }))
             {
                 WriteTable(jsonWriter, table, false);
             }

@@ -1,4 +1,5 @@
-﻿using System.Data.JsonClient;
+﻿using Data.Json.Extension;
+using System.Data.JsonClient;
 using Xunit;
 
 namespace Data.Json.Tests;
@@ -48,6 +49,24 @@ public class InsertTests
         // Close the connection
         connection.Close();
     }
+
+    [Fact]
+    public void Insert_JsonShouldBeFormatted()
+    {
+        // Arrange
+        var connection = new JsonConnection(ConnectionStrings.AddFormatted(ConnectionStrings.FolderAsDBConnectionString, true));
+        connection.Open();
+
+        // Act - Insert a new record into the locations table
+        const string locationsTableName = "locations";
+        var command = new JsonCommand($"INSERT INTO {locationsTableName} (id, city, state, zip) VALUES (156, 'Seattle', 'Washington', 98101)", connection);
+        var rowsAffected = command.ExecuteNonQuery();
+
+        // Assert
+        var jsonFileContents = File.ReadAllText(connection.GetTablePath(locationsTableName));
+        Assert.Contains("\n", jsonFileContents);
+    }
+
     #endregion
 
     #region File as database
@@ -56,7 +75,6 @@ public class InsertTests
     public void Insert_ShouldInsertDataIntoFile()
     {
         // Arrange
-
         var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
         connection.Open();
 
@@ -79,5 +97,22 @@ public class InsertTests
         // Close the connection
         connection.Close();
     }
+
+    [Fact]
+    public void Insert_JsonShouldBeFormattedIntoFile()
+    {
+        // Arrange
+        var connection = new JsonConnection(ConnectionStrings.AddFormatted(ConnectionStrings.FileAsDBConnectionString, true));
+        connection.Open();
+
+        // Act - Insert a new record into the locations table
+        var command = new JsonCommand("INSERT INTO locations (id, city, state, zip) VALUES (156, 'Seattle', 'Washington', 98101)", connection);
+        var rowsAffected = command.ExecuteNonQuery();
+
+        // Assert
+        var jsonFileContents = File.ReadAllText(connection.Database);
+        Assert.Contains("\n", jsonFileContents);
+    }
+
     #endregion
 }

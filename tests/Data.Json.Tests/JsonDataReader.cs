@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Data.Json.Tests;
 
-public class ReaderTests
+public class JsonDataReader
 {
     #region Folder as database
     [Fact]

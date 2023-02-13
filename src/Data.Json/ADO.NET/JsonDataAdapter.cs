@@ -131,7 +131,7 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
             throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
 
         var dataTable = dataSet.Tables[0];
-        var filePath = UpdateCommand.Connection.ConnectionString;
+        var filePath = UpdateCommand.Connection.Database;
         // Read json file into JsonDocument
         using (FileStream fs = File.OpenRead(filePath))
         using (StreamReader sr = new StreamReader(fs))
