@@ -1,27 +1,37 @@
 ﻿using Data.Json.Enum;
+using Data.Json.Interfaces;
+using Data.Json.Utils.ConnectionString;
 
 namespace System.Data.JsonClient;
 
-public class JsonConnection : IDbConnection
+public class JsonConnection : IDbConnection, IConnectionStringProperties
 {
-    private string connectionString;
+    private readonly JsonConnectionString connectionString = new();
     private ConnectionState state;
     private JsonDocument? database;
-    public string ConnectionString { get => connectionString; set => connectionString = value; }
+
+    public string? ConnectionString { get => connectionString.ConnectionString; set => connectionString.Parse(value); }
+    public string? DataSource => connectionString.DataSource;
+    public bool Formatted => connectionString.Formatted;
+
     public int ConnectionTimeout { get; }
-    public string Database => connectionString;
+    public string Database => connectionString.DataSource ?? string.Empty;
     public ConnectionState State => state;
  
     public JsonConnection(string connectionString)
     {
-        ArgumentNullException.ThrowIfNull(nameof(connectionString));
-        this.connectionString = connectionString.Split('=')[1].TrimEnd(';');
+        ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
+        this.connectionString.Parse(connectionString);
+
+
         state = ConnectionState.Closed;
         JsonReader = new JsonReader(this);
     }
 
+
     internal JsonReader JsonReader { get; private set; }
     public PathType PathType { get; private set; }
+
 
     public IDbTransaction BeginTransaction()
     {

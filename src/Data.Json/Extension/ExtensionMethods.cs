@@ -2,7 +2,7 @@
 
 namespace Data.Json.Extension;
 
-internal static class ExtensionMethods
+public static class ExtensionMethods
 {
     internal static TTarget Convert<TTarget>(this object source) => (TTarget)source;
 
@@ -58,15 +58,24 @@ internal static class ExtensionMethods
 
     internal static PathType GetPathType(this JsonConnection jsonConnection)
     {
-        if (File.Exists(jsonConnection.ConnectionString))
+        if (File.Exists(jsonConnection.Database))
         {
             return PathType.File;
         }
-        else if (Directory.Exists(jsonConnection.ConnectionString))
+        else if (Directory.Exists(jsonConnection.Database))
         {
             return PathType.Directory;
         }
             
         return PathType.None;
+    }
+
+    public static string GetTablePath(this JsonConnection jsonConnection, string tableName)
+    {
+        var pathType = GetPathType(jsonConnection);
+        if (pathType != PathType.Directory)
+            throw new InvalidOperationException($"Can only call the {nameof(GetTablePath)} method on a data source of type {nameof(PathType.Directory)}. PathType={pathType}");
+
+        return Path.Combine(jsonConnection.Database, $"{tableName}.json");
     }
 }

@@ -10,4 +10,6 @@ public static class ConnectionStrings
     public static string FileAsDBConnectionString = $"Data Source={File}";
 
     public static string eComDBConnectionString = $"Data Source={eComDataBase}";
+
+    public static string AddFormatted(string connectionString, bool formatted) => connectionString += $"; Formatted={formatted}";
 }

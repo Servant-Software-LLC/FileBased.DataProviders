@@ -146,12 +146,12 @@ public class JsonReader : IDisposable
             jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
             if (jsonConnection.PathType == PathType.Directory)
             {
-                jsonWatcher.Path = jsonConnection.ConnectionString;
+                jsonWatcher.Path = jsonConnection.Database;
                 jsonWatcher.Filter = "*.json";
             }
             else
             {
-                var file = new FileInfo(jsonConnection.ConnectionString);
+                var file = new FileInfo(jsonConnection.Database);
                 jsonWatcher.Path = file.DirectoryName!;
                 jsonWatcher.Filter = file.Name;
             }
@@ -168,7 +168,7 @@ public class JsonReader : IDisposable
         //If this is a SELECT with JOINs and is directory-based storage 
         if (jsonQueryParser is JsonSelectQuery jsonSelectQuery && jsonSelectQuery.GetJsonJoin() != null && jsonConnection.PathType == PathType.Directory)
         {
-            string[] jsonFiles = Directory.GetFiles(jsonConnection.ConnectionString, "*.json");
+            string[] jsonFiles = Directory.GetFiles(jsonConnection.Database, "*.json");
 
             foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != jsonQueryParser.TableName))
             {
@@ -179,14 +179,12 @@ public class JsonReader : IDisposable
         return tableNames;
     }
 
-    public string GetTablePath(string tableName) =>
-         $"{jsonConnection.ConnectionString}/{tableName}.json";
     private void ReadFromFolder(IEnumerable<string> tableNames)
     {
 
         foreach (var name in tableNames)
         {
-            var path = GetTablePath(name);
+            var path = jsonConnection.GetTablePath(name);
             var doc = Read(path);
             var element = doc.RootElement;
             ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);
@@ -200,7 +198,7 @@ public class JsonReader : IDisposable
     }
     private void UpdateFromFolder(string tableName)
     {
-        var path = GetTablePath(tableName);
+        var path = jsonConnection.GetTablePath(tableName);
         var doc = Read(path);
         var element = doc.RootElement;
         ThrowHelper.ThrowIfInvalidJson(element, jsonConnection);

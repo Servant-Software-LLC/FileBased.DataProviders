@@ -11,19 +11,19 @@ public class JsonTransaction : IDbTransaction
         _connection = connection;
         _isolationLevel = isolationLevel;
         _tempFilePath = Path.GetTempFileName();
-        File.Copy(_connection.ConnectionString, _tempFilePath);
+        File.Copy(_connection.Database, _tempFilePath);
     }
 
     public void Commit()
     {
-        File.Delete(_connection.ConnectionString);
-        File.Move(_tempFilePath, _connection.ConnectionString);
+        File.Delete(_connection.Database);
+        File.Move(_tempFilePath, _connection.Database);
     }
 
     public void Rollback()
     {
-        File.Delete(_connection.ConnectionString);
-        File.Move(_tempFilePath, _connection.ConnectionString);
+        File.Delete(_connection.Database);
+        File.Move(_tempFilePath, _connection.Database);
     }
 
     public void Dispose()
