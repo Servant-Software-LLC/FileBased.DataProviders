@@ -1,6 +1,4 @@
 ﻿using Data.Json.Interfaces;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -90,7 +88,7 @@ public class JsonConnectionString : IConnectionStringProperties
         {
             return ((IConvertible)value).ToBoolean(CultureInfo.InvariantCulture);
         }
-        catch (InvalidCastException e)
+        catch (InvalidCastException)
         {
             return null;
         }
