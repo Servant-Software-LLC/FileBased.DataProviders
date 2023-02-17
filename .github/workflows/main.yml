@@ -32,6 +32,14 @@ jobs:
     - name: Test
       run: dotnet test DataProviders.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
+    - name: Test
+      run: dotnet pack DataProviders.sln
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: my-artifact
+        path: ${{github.workspace}}/src/**/*.nupkg
+
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
