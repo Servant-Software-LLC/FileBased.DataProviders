@@ -20,7 +20,7 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Set version number
-      run:  '& $env:GITHUB_ACTION_PATH/Build/UpdateVersion.ps1 ${{github.run_number}}'
+      run:  '& ${{github.workspace}}/Build/UpdateVersion.ps1 ${{github.run_number}}'
       shell: pwsh
 
     - name: Restore dependencies
