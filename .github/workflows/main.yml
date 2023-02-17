@@ -37,7 +37,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: my-artifact
+        name: Nuget Packages
         path: ${{github.workspace}}/src/**/*.nupkg
 
     - name: Code Coverage Report
