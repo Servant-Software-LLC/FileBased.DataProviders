@@ -14,4 +14,8 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Version>1.0.0.0</Version>
   </PropertyGroup>  
+	
+  <ItemGroup>
+	  <PackageReference Include="Irony" />
+  </ItemGroup>
 </Project>
