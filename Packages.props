@@ -14,9 +14,9 @@
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="6.0.10" />
 	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="6.0.10" />
 	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="6.0.10" />
-	<PackageReference Include="Irony" Version="1.1.0" />
-	  <PackageReference Include="Dapper" Version="2.0.123" />
-	  <PackageReference Include="Bogus" Version="34.0.2" />
-	  <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
+	<PackageReference Update="Irony" Version="1.1.0" />
+    <PackageReference Update="Dapper" Version="2.0.123" />
+    <PackageReference Update="Bogus" Version="34.0.2" />
+    <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
   </ItemGroup>
 </Project>

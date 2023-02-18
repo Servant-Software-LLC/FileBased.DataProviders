@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" />
+	  
     <ProjectReference Include="..\src\Data.Json\Data.Json.csproj" />
   </ItemGroup>
 
