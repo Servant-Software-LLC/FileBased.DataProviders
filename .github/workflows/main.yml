@@ -35,7 +35,7 @@ jobs:
       run: dotnet build --no-restore --configuration $BuildConfiguration
 
     - name: Test
-      run: dotnet test DataProviders.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
     - name: Create nuget packages
       run: dotnet pack DataProviders.sln --configuration $BuildConfiguration
