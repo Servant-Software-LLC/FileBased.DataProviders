@@ -7,6 +7,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  BuildConfiguration: Release
+  DataJsonPackageId: ServantSoftware.Data.Json
+  DataJsonPackageVersion: 1.0.0.${{github.run_number}}
+  
 jobs:
   build:
 
@@ -27,18 +32,25 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration $BuildConfiguration
 
     - name: Test
       run: dotnet test DataProviders.sln --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
-    - name: Test
-      run: dotnet pack DataProviders.sln
+    - name: Create nuget packages
+      run: dotnet pack DataProviders.sln --configuration $BuildConfiguration
 
     - uses: actions/upload-artifact@v3
       with:
         name: Nuget Packages
         path: ${{github.workspace}}/src/**/*.nupkg
+
+    - name: Push to nuget.org
+      run: dotnet nuget push ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$DataJsonPackageId.$DataJsonPackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org
+      run: dotnet nuget delete $DataJsonPackageId $DataJsonPackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
 
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0
