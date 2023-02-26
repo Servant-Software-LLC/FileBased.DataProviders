@@ -9,7 +9,7 @@ public class JsonDataReader : IDataReader
     private readonly DataTable workingResultSet;
     private object?[]? currentDataRow = null;
 
-    public JsonDataReader(JsonQueryParser queryParser, JsonReader jsonReader)
+    public JsonDataReader(JsonQuery queryParser, JsonReader jsonReader)
     {
         if (queryParser == null)
             throw new ArgumentNullException(nameof(queryParser));

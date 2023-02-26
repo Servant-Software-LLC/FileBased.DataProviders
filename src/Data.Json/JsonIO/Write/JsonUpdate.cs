@@ -6,8 +6,8 @@ internal class JsonUpdate : JsonWriter
 {
     private readonly JsonUpdateQuery queryParser;
 
-    public JsonUpdate(JsonUpdateQuery queryParser, JsonConnection jsonConnection) 
-        : base(jsonConnection)
+    public JsonUpdate(JsonUpdateQuery queryParser, JsonConnection jsonConnection, JsonCommand jsonCommand) 
+        : base(jsonConnection, jsonCommand, queryParser)
     {
         this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
@@ -41,7 +41,7 @@ internal class JsonUpdate : JsonWriter
         finally
         {
             jsonReader.StartWatching();
-            Save(queryParser.TableName);
+            Save();
             _rwLock.ExitWriteLock();
         }
 

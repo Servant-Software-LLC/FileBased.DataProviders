@@ -5,7 +5,8 @@ internal class JsonEnumerator : IEnumerator<object?[]>
     private readonly DataView workingDataView;  // We cannot use the DefaultView of the DataTable, because workingResultset may be a pointer directly to
                                                 // one of the tables (i.e. not created from the columns/joins of the SELECT query) and many JsonDataReader/JsonEnumerator
                                                 // may be instantiated with different filters on them.
-    private object?[] currentRow=new object[0];
+    private object?[] currentRow
+        =Array.Empty<object>();
 
     public JsonEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter)
     {
@@ -18,7 +19,7 @@ internal class JsonEnumerator : IEnumerator<object?[]>
             workingDataView.RowFilter = filter.Evaluate();
         }
 
-        Columns = new List<string>(resultSetColumnNames);
+        Columns.AddRange(resultSetColumnNames);
         if (Columns.FirstOrDefault()?.Trim() == "*" && Columns != null)
         {
             Columns.Clear();
@@ -33,6 +34,7 @@ internal class JsonEnumerator : IEnumerator<object?[]>
     object IEnumerator.Current => Current;
     public int CurrentIndex { get; private set; } = -1;
     public List<string> Columns { get; }
+    = new List<string>();
     public int FieldCount => Columns.Count;
 
 

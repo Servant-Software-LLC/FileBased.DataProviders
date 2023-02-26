@@ -4,12 +4,12 @@ namespace Data.Json.JsonIO.Delete;
 
 internal class JsonDelete : JsonWriter
 {
-    private readonly JsonDeleteQuery queryParser;
+    internal readonly JsonDeleteQuery Query;
 
-    public JsonDelete(JsonDeleteQuery queryParser, JsonConnection jsonConnection)
-        : base(jsonConnection)
+    public JsonDelete(JsonDeleteQuery queryParser, JsonConnection jsonConnection,JsonCommand jsonCommand)
+        : base(jsonConnection, jsonCommand, queryParser)
     {
-        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        this.Query = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
 
     public override int Execute()
@@ -20,11 +20,11 @@ internal class JsonDelete : JsonWriter
             jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
 
-            var dataTable = jsonReader.ReadJson(queryParser);
+            var dataTable = jsonReader.ReadJson(Query);
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = queryParser.Filter?.ToString();
+            dataView.RowFilter = Query.Filter?.ToString();
 
             var rowsAffected = dataView.Count;
             foreach (DataRowView dataRow in dataView)
@@ -37,7 +37,7 @@ internal class JsonDelete : JsonWriter
         finally
         {
             jsonReader.StartWatching();
-            Save(queryParser.TableName);
+            Save();
             _rwLock.ExitWriteLock();
         }
     }

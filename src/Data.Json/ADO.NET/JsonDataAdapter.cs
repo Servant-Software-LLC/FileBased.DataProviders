@@ -1,9 +1,11 @@
-﻿namespace System.Data.JsonClient;
+﻿using Data.Json.JsonQuery;
 
-public class JsonDataAdapter : DbDataAdapter, IDataAdapter
+namespace System.Data.JsonClient;
+
+public class JsonDataAdapter : IDataAdapter
 {
-    public new JsonCommand? SelectCommand { get; set; }
-    public new JsonCommand? UpdateCommand { get; set; }
+    public JsonCommand? SelectCommand { get; set; }
+    public JsonCommand? UpdateCommand { get; set; }
 
     public MissingMappingAction MissingMappingAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public MissingSchemaAction MissingSchemaAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -21,54 +23,96 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        var jsonDoc = JsonDocument.Parse(SelectCommand.Connection.Database);
-        var jsonData = jsonDoc.RootElement;
+        var selectQuery=JsonQuery.Create(SelectCommand);
+        var jsonReader = SelectCommand.Connection.JsonReader;
+        var dataTable = jsonReader.ReadJson(selectQuery, true);
+        dataTable = GetTable(dataTable,selectQuery);
+      
+        var cols = GetColumns(dataTable,selectQuery);
+        dataTable.Columns
+        .Cast<DataColumn>()
+        .Where(column => !cols.Contains(column.ColumnName))
+        .Select(column => column.ColumnName)
+        .ToList()
+        .ForEach(col =>dataTable.Columns.Remove(col));
 
-        var filter = SelectCommand.CommandText.Split(" ")[1];
 
-        if (jsonData.TryGetProperty(filter, out JsonElement value))
-            jsonData = value;
-        else
-            throw new InvalidOperationException("Invalid filter");
+        dataTable.RowChanged += DataTable_RowChanged;
 
-        if (jsonData.ValueKind == JsonValueKind.Array)
+        dataTable.TableName = "Table";
+        dataSet.Tables.Clear();
+        dataSet.Tables.Add(dataTable);
+        return dataTable.Rows.Count;
+    }
+    DataRow? lastDataRowChanged;
+    private JsonConnection con;
+
+    public JsonDataAdapter(string query, JsonConnection con)
+    {
+        if (string.IsNullOrEmpty(query))
         {
-            var dataTable = new DataTable();
-            var first = jsonData.EnumerateArray().First();
-            foreach (var property in first.EnumerateObject())
-            {
-                dataTable.Columns.Add(property.Name);
-            }
-            foreach (var element in jsonData.EnumerateArray())
-            {
-                var row = dataTable.NewRow();
-                foreach (var property in element.EnumerateObject())
-                {
-                    row[property.Name] = property.Value.GetRawText();
-                }
-                dataTable.Rows.Add(row);
-            }
-            dataSet.Tables.Add(dataTable);
+            throw new ArgumentException($"'{nameof(query)}' cannot be null or empty.", nameof(query));
         }
-        else
-        {
-            var dataTable = new DataTable();
-            foreach (var property in jsonData.EnumerateObject())
-            {
-                dataTable.Columns.Add(property.Name);
-            }
-            var row = dataTable.NewRow();
-            foreach (var property in jsonData.EnumerateObject())
-            {
-                row[property.Name] = property.Value.GetRawText();
-            }
-            dataTable.Rows.Add(row);
-            dataSet.Tables.Add(dataTable);
-        }
-        return 1;
+
+        this.con = con ?? throw new ArgumentNullException(nameof(con));
+        this.SelectCommand=(JsonCommand)con.CreateCommand();
+        this.SelectCommand.Connection = con;
+        this.SelectCommand.CommandText=query;
     }
 
-    public override DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
+
+
+
+    public JsonDataAdapter(JsonCommand selectCommand)
+    {
+        this.SelectCommand= selectCommand ?? throw new ArgumentNullException(nameof(selectCommand));
+        this.con = SelectCommand.Connection ?? throw new ArgumentNullException(nameof(con));
+        if (string.IsNullOrEmpty(SelectCommand.CommandText))
+        {
+            throw new ArgumentException($"'{nameof(JsonCommand.CommandText)}' cannot be null or empty.", nameof(SelectCommand.CommandText));
+        }
+    }
+
+    public JsonDataAdapter()
+    {
+    }
+
+    private void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
+    {
+        if (e.Action==DataRowAction.Change)
+        {
+            lastDataRowChanged = e.Row;
+        }
+    }
+
+    DataTable GetTable(DataTable dataTable,JsonQuery query)
+    {
+        var filters = query.GetFilters();
+        var view = new DataView(dataTable);
+        if (filters != null)
+        {
+            view.RowFilter = filters.Evaluate();
+        }
+        return view.ToTable();
+      
+    }
+    IEnumerable<string> GetColumns(DataTable dataTable,JsonQuery query)
+    {
+        var cols = query.GetColumnNames()
+            .ToList();
+      
+        if (cols.FirstOrDefault().Trim() == "*" && cols != null)
+        {
+            cols.Clear();
+            foreach (DataColumn column in dataTable.Columns)
+            {
+                cols.Add(column.ColumnName);
+            }
+        }
+        return cols;
+    }
+
+    public DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
     {
         if (SelectCommand == null)
             throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
@@ -79,82 +123,53 @@ public class JsonDataAdapter : DbDataAdapter, IDataAdapter
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        var jsonDoc = JsonDocument.Parse(SelectCommand.Connection.Database);
-        var jsonData = jsonDoc.RootElement;
-        var filter = SelectCommand.CommandText.Split(" ")[1];
-
-        if (jsonData.TryGetProperty(filter, out JsonElement value))
-            jsonData = value;
-        else
-            throw new InvalidOperationException("Invalid filter");
-
-        var dataTable = new DataTable();
-
-        if (jsonData.ValueKind == JsonValueKind.Array)
-        {
-            var first = jsonData.EnumerateArray().First();
-            foreach (var property in first.EnumerateObject())
-            {
-                dataTable.Columns.Add(property.Name);
-            }
-        }
-        else
-        {
-            foreach (var property in jsonData.EnumerateObject())
-            {
-                dataTable.Columns.Add(property.Name);
-            }
-        }
-
-        if (schemaType == SchemaType.Mapped)
-        {
-            dataSet.Tables.Add(dataTable);
-        }
-        return new DataTable[] { dataTable };
+   
+        return new DataTable[2];
     }
 
-    public override IDataParameter[] GetFillParameters()
+    public  IDataParameter[] GetFillParameters()
     {
         throw new NotImplementedException();
     }
 
 
-    public override int Update(DataSet dataSet)
+    public  int Update(DataSet dataSet)
     {
+       // dataSet.Tables.Clear();
+        if (dataSet==null)
+            throw new ArgumentNullException($"{nameof(dataSet)} cannot be null");
         if (UpdateCommand == null)
-            throw new InvalidOperationException($"{nameof(UpdateCommand)} is not set.");
+            throw new InvalidOperationException($"Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
 
         if (UpdateCommand.Connection == null)
-            throw new InvalidOperationException($"{nameof(UpdateCommand.Connection)} property on {nameof(UpdateCommand)} is not set.");
+            throw new InvalidOperationException($"Update requires the UpdateCommand to have a connection object. The Connection property of the UpdateCommand has not been initialized.");
 
         if (string.IsNullOrEmpty(UpdateCommand.CommandText))
             throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
 
-        var dataTable = dataSet.Tables[0];
-        var filePath = UpdateCommand.Connection.Database;
-        // Read json file into JsonDocument
-        using (FileStream fs = File.OpenRead(filePath))
-        using (StreamReader sr = new StreamReader(fs))
+        var query=JsonQuery.Create(UpdateCommand);
+        if (query is not JsonUpdateQuery updateQuery)
         {
-            string jsonText = sr.ReadToEnd();
-            var jsonDoc = JsonDocument.Parse(jsonText);
-            var jsonData = jsonDoc.RootElement;
-            var jsonNode = jsonData.GetProperty(UpdateCommand.CommandText);
-
-            // Modify properties of the specific node based on the data from DataTable
-            foreach (var column in dataTable.Columns)
-            {
-                var property = dataTable.Rows[0][column.ToString()];
-                //jsonNode.WriteTo(property);
-            }
-
-            // Serialize the object back to json
-            var json = jsonDoc.ToString();
-            // Write json to the file
-            File.WriteAllText(filePath, json);
+            throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
         }
-        return 1;
+
+        //check if source column is set and has parameters
+        if (UpdateCommand.Parameters.Count>0)
+        {
+            foreach (IDbDataParameter parameter in UpdateCommand.Parameters)
+            {
+                if (!string.IsNullOrEmpty(parameter.SourceColumn)
+                    &&
+                    lastDataRowChanged!=null
+                    &&
+                    lastDataRowChanged.Table.Columns.Contains(parameter.SourceColumn))
+                {
+                    parameter.Value = lastDataRowChanged[parameter.SourceColumn];
+                }
+            }
+        }
+
+        var updater = new JsonUpdate(updateQuery,UpdateCommand.Connection,UpdateCommand);
+        return updater.Execute();
     }
-
-
 }

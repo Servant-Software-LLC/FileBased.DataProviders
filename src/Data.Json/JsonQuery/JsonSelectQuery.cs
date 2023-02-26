@@ -3,10 +3,11 @@ using Irony.Parsing;
 
 namespace Data.Json.JsonQuery;
 
-internal class JsonSelectQuery : JsonQueryParser
+internal class JsonSelectQuery : JsonQuery
 {
 
-    public JsonSelectQuery(ParseTreeNode tree) : base(tree)
+    public JsonSelectQuery(ParseTreeNode tree, JsonCommand jsonCommand)
+        : base(tree, jsonCommand)
     {
     }
 
@@ -106,8 +107,8 @@ internal class JsonSelectQuery : JsonQueryParser
         var table = subNode.ChildNodes[1].ChildNodes[0].ChildNodes[0].Token.ValueString;
         var tableAlias=GetNameWithAlias(table).alias;
 
-        string sourceColumn = GetColumnWIthAlias(subNode.ChildNodes[3]);
-        string joinColumn = GetColumnWIthAlias(subNode.ChildNodes[5]);
+        string sourceColumn = GetColumnWithAlias(subNode.ChildNodes[3]);
+        string joinColumn = GetColumnWithAlias(subNode.ChildNodes[5]);
         if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
         {
             ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join");
@@ -160,7 +161,7 @@ internal class JsonSelectQuery : JsonQueryParser
         }
         return null;
     }
-    private static string GetColumnWIthAlias(ParseTreeNode sourceColumnNode)
+    private static string GetColumnWithAlias(ParseTreeNode sourceColumnNode)
     {
         return $"{sourceColumnNode.ChildNodes[0].Token.ValueString}.{sourceColumnNode.ChildNodes[1].Token.ValueString}";
     }

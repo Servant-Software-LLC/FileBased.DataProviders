@@ -3,49 +3,57 @@
 public abstract class JsonWriter
 {
     private readonly JsonConnection jsonConnection;
+    internal readonly JsonCommand jsonCommand;
+    protected readonly JsonQuery.JsonQuery jsonQuery;
     protected readonly JsonReader jsonReader;
+    private readonly JsonTransaction? jsonTransaction;
 
-    public JsonWriter(JsonConnection jsonConnection)
+    public JsonWriter(JsonConnection jsonConnection,
+        JsonCommand jsonCommand
+        ,JsonQuery.JsonQuery jsonQuery)
     {
         this.jsonConnection = jsonConnection;
-        jsonReader = jsonConnection.JsonReader;
+        this.jsonCommand = jsonCommand;
+        this.jsonQuery = jsonQuery;
+        this.jsonReader = jsonConnection.JsonReader;
+        this.jsonTransaction=jsonCommand.Transaction as JsonTransaction;
     }
 
     public abstract int Execute();    
     internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
-    public bool Save(string? tableName) => SaveData(jsonConnection, tableName);
-
-    private static bool SaveData(JsonConnection jsonConnection, string? tableName)
-    {        
-        var path = jsonConnection.Database;
+    public virtual bool Save()
+    {
+        if (jsonTransaction!=null&&jsonTransaction?.TransactionDone==false)
+        {
+            jsonTransaction.Writers.Add(this);
+            return true;
+        }
         if (jsonConnection.PathType == Enum.PathType.Directory)
         {
-            SaveFolderAsDB(jsonConnection, tableName);
+            SaveFolderAsDB(jsonQuery.TableName);
         }
         else
         {
-            SaveToFile(jsonConnection);
+            SaveToFile();
         }
-       
+
         return true;
     }
-
-    private static void SaveToFile(JsonConnection jsonConnection)
+    private void SaveToFile()
     {
         using (var fileStream = new FileStream(jsonConnection.Database, FileMode.Create, FileAccess.Write))
         using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = jsonConnection.Formatted }))
         {
             jsonWriter.WriteStartObject();
-            foreach (DataTable table in jsonConnection.JsonReader.DataSet!.Tables)
+            foreach (DataTable table in jsonReader.DataSet!.Tables)
             {
                 WriteTable(jsonWriter, table, true);
             }
             jsonWriter.WriteEndObject();
         }
     }
-
-    private static void SaveFolderAsDB(JsonConnection jsonConnection, string? tableName)
+    private  void SaveFolderAsDB(string? tableName)
     {
         var tablesToWrite = jsonConnection.JsonReader.DataSet!.Tables.Cast<DataTable>();
         if (!string.IsNullOrEmpty(tableName))
@@ -61,7 +69,6 @@ public abstract class JsonWriter
             }
         }
     }
-
     private static void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
     {
         if (writeTableName)
@@ -103,4 +110,7 @@ public abstract class JsonWriter
         }
         jsonWriter.WriteEndArray();
     }
+
+
+  
 }

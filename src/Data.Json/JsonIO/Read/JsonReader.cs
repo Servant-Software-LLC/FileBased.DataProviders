@@ -56,8 +56,10 @@ public class JsonReader : IDisposable
     }
 
 
-    public DataTable ReadJson(JsonQueryParser jsonQueryParser, bool shouldLock = false)
+    public DataTable ReadJson(JsonQuery.JsonQuery jsonQueryParser, bool shouldLock = false)
     {
+        DataTable returnValue;
+
         if (shouldLock)
             JsonWriter._rwLock.EnterReadLock();
 
@@ -65,7 +67,6 @@ public class JsonReader : IDisposable
         {
             EnsureFileSystemWatcher();
 
-            DataTable returnValue;
             if (jsonConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
@@ -87,16 +88,16 @@ public class JsonReader : IDisposable
             //Reload any of the tables from disk?
             returnValue = CheckForTableReload(jsonQueryParser, returnValue);
 
-            return returnValue;
         }
         finally
         {
             if (shouldLock)
                 JsonWriter._rwLock.ExitReadLock();
         }
+        return returnValue;
     }
 
-    private DataTable CheckForTableReload(JsonQueryParser jsonQueryParser, DataTable returnValue)
+    private DataTable CheckForTableReload(JsonQuery.JsonQuery jsonQueryParser, DataTable returnValue)
     {
         if (tablesToUpdate.Count > 0)
         {
@@ -120,7 +121,7 @@ public class JsonReader : IDisposable
         return returnValue;
     }
 
-    private DataTable CheckIfSelect(JsonQueryParser jsonQueryParser)
+    private DataTable CheckIfSelect(JsonQuery.JsonQuery jsonQueryParser)
     {
         if (jsonQueryParser is JsonSelectQuery jsonSelectQuery)
         {
@@ -160,7 +161,7 @@ public class JsonReader : IDisposable
     }
 
 
-    private HashSet<string> GetTableNames(JsonQueryParser jsonQueryParser)
+    private HashSet<string> GetTableNames(JsonQuery.JsonQuery jsonQueryParser)
     {
         //Start with the name of the first table in the JOIN
         var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
@@ -251,7 +252,7 @@ public class JsonReader : IDisposable
     #endregion
 
 
-    public DataTable CreateNewDataTable(JsonElement jsonElement)
+    DataTable CreateNewDataTable(JsonElement jsonElement)
     {
         DataTable dataTable = new DataTable();
         foreach (var col in GetFields(jsonElement))

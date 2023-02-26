@@ -1,34 +1,57 @@
-﻿namespace System.Data.JsonClient;
+﻿using Data.Json.JsonIO.Read;
+using Irony.Parsing.Construction;
+
+namespace System.Data.JsonClient;
 
 public class JsonTransaction : IDbTransaction
 {
     private JsonConnection _connection;
     private IsolationLevel _isolationLevel;
-    private string _tempFilePath;
+    internal bool TransactionDone = false;
+    internal readonly List<JsonWriter> Writers
+        =new List<JsonWriter>();
 
-    public JsonTransaction(JsonConnection connection, IsolationLevel isolationLevel)
+
+    internal JsonTransaction(JsonConnection connection, IsolationLevel isolationLevel = default)
     {
-        _connection = connection;
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _isolationLevel = isolationLevel;
-        _tempFilePath = Path.GetTempFileName();
-        File.Copy(_connection.Database, _tempFilePath);
     }
 
     public void Commit()
     {
-        File.Delete(_connection.Database);
-        File.Move(_tempFilePath, _connection.Database);
+        if (TransactionDone)
+        {
+            throw new InvalidOperationException("This JsonTransaction has completed; it is no longer usable");
+        }
+        TransactionDone = true;
+        try
+        {
+            //as we have modified the json file so we don't need to update the tables
+            _connection.JsonReader.StopWatching();
+            JsonWriter._rwLock.EnterWriteLock();
+            Writers.ForEach(writer => writer.Save());
+        }
+        finally
+        {
+            _connection.JsonReader.StartWatching();
+            JsonWriter._rwLock.ExitWriteLock();
+        }
     }
 
     public void Rollback()
     {
-        File.Delete(_connection.Database);
-        File.Move(_tempFilePath, _connection.Database);
+        //We don't need to do anything as we haven't saved the data to database
+        if (TransactionDone)
+        {
+            throw new InvalidOperationException("This JsonTransaction has completed; it is no longer usable");
+        }
+        TransactionDone = true;
     }
 
     public void Dispose()
     {
-        File.Delete(_tempFilePath);
+
     }
 
     public IDbConnection Connection => _connection;

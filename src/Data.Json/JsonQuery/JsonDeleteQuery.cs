@@ -1,9 +1,9 @@
 ﻿using Irony.Parsing;
 namespace Data.Json.JsonQuery;
 
-internal class JsonDeleteQuery : JsonQueryParser
+internal class JsonDeleteQuery : JsonQuery
 {
-    public JsonDeleteQuery(ParseTreeNode tree) : base(tree)
+    public JsonDeleteQuery(ParseTreeNode tree, JsonCommand jsonCommand) : base(tree,jsonCommand)
     {
     }
 

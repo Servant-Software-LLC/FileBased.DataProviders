@@ -17,7 +17,7 @@
 //        {
 //            conn.Open();
 
-//            var adapter = new JsonDataAdapter();
+//            var adapter = new JsonDataAdapterTests();
 //            adapter.SelectCommand = new JsonCommand("select * from locations", conn);
 //            //adapter.UpdateCommand = new JsonCommand("update city, state, zip values(@city, @state, @zip) where id = @id", conn);
 //            //adapter.UpdateCommand.Parameters.Add("@city", DbType.String);

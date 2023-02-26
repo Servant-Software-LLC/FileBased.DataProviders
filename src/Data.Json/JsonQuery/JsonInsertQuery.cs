@@ -2,9 +2,9 @@
 
 namespace Data.Json.JsonQuery;
 
-internal class JsonInsertQuery : JsonQueryParser
+internal class JsonInsertQuery : JsonQuery
 {
-    public JsonInsertQuery(ParseTreeNode node) : base(node)
+    public JsonInsertQuery(ParseTreeNode node, JsonCommand jsonCommand) : base(node, jsonCommand)
     {
     }
 
@@ -14,7 +14,7 @@ internal class JsonInsertQuery : JsonQueryParser
         var values = node
             .ChildNodes[4]
             .ChildNodes[1]
-            .ChildNodes.Select(x => x.Token.Value);
+            .ChildNodes.Select(x => x.ChildNodes.Count==0? x.Token.Value: base.GetValue(x.ChildNodes));
         if (cols.Count() != values.Count())
         {
             throw new InvalidOperationException("The supplied values are not matched");

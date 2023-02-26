@@ -30,22 +30,21 @@ public class JsonConnection : IDbConnection, IConnectionStringProperties
 
 
     internal JsonReader JsonReader { get; private set; }
-    public PathType PathType { get; private set; }
+    public PathType PathType => this.GetPathType();
 
 
     public IDbTransaction BeginTransaction()
     {
-        throw new NotImplementedException();
+        return BeginTransaction(default);
     }
 
     public IDbTransaction BeginTransaction(IsolationLevel il)
     {
-        throw new NotImplementedException();
+        return new JsonTransaction(this,il);
     }
 
     public void ChangeDatabase(string databaseName)
     {
-        PathType = this.GetPathType();
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
         ThrowHelper.ThrowIfInvalidPath(PathType);
         using var file = File.OpenRead(databaseName);
@@ -62,11 +61,8 @@ public class JsonConnection : IDbConnection, IConnectionStringProperties
     {
             return new JsonCommand(this);
     }
-    
-    
     public void Open()
     {
-        PathType = this.GetPathType();
         ThrowHelper.ThrowIfInvalidPath(PathType);
         state = ConnectionState.Open;
     }

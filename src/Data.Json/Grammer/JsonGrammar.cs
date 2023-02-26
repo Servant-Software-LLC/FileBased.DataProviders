@@ -20,9 +20,6 @@ public class JsonGrammar : Grammar
         var tableName = TerminalFactory.CreateSqlExtIdentifier(this, "table_name");
         var tableAlias = TerminalFactory.CreateSqlExtIdentifier(this, "table_alias");
 
-
-        var table_alias = new RegexBasedTerminal("table_alias", "[a-zA-Z0-9_]+\\s+[a-zA-Z0-9_]+");
-
         var comma = ToTerm(",");
         var dot = ToTerm(".");
         var CREATE = ToTerm("CREATE");
@@ -52,9 +49,11 @@ public class JsonGrammar : Grammar
         var COUNT = ToTerm("COUNT");
         var JOIN = ToTerm("JOIN");
         var BY = ToTerm("BY");
+        var PARAMETER = ToTerm("@");
 
         //Non-terminals
         var Id = new NonTerminal("Id");
+        var Parameter = new NonTerminal("Parameter");
         var stmt = new NonTerminal("stmt");
         var createTableStmt = new NonTerminal("createTableStmt");
         var createIndexStmt = new NonTerminal("createIndexStmt");
@@ -134,6 +133,7 @@ public class JsonGrammar : Grammar
 
         //ID Table Name
         Id.Rule = MakePlusRule(Id, dot, Id_simple);
+        Parameter.Rule = MakePlusRule(Parameter, Id_simple);
 
         stmt.Rule = createTableStmt | createIndexStmt | alterStmt
                   | dropTableStmt | dropIndexStmt
@@ -220,10 +220,11 @@ public class JsonGrammar : Grammar
         havingClauseOpt.Rule = Empty | "HAVING" + expression;
         orderClauseOpt.Rule = Empty | "ORDER" + BY + orderList;
 
+
         //Expression
         exprList.Rule = MakePlusRule(exprList, comma, expression);
-        expression.Rule = term | unExpr | binExpr;// | betweenExpr; //-- BETWEEN doesn't work - yet; brings a few parsing conflicts 
-        term.Rule = Id | string_literal | number | funCall | tuple | parSelectStmt;// | inStmt;
+        expression.Rule = term | (PARAMETER + (Parameter | string_literal)) | unExpr | binExpr;// | betweenExpr; //-- BETWEEN doesn't work - yet; brings a few parsing conflicts 
+        term.Rule = Id |(PARAMETER + (Parameter | string_literal)) | string_literal | number | funCall | tuple | parSelectStmt;// | inStmt;
         tuple.Rule = "(" + exprList + ")";
         parSelectStmt.Rule = "(" + selectStmt + ")";
         unExpr.Rule = unOp + term;

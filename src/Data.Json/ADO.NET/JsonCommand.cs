@@ -69,13 +69,13 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = JsonQueryParser.Create(CommandText!);
+        var queryParser = JsonQuery.Create(this);
         if (Connection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        JsonWriter jsonWriter = queryParser.GetJsonWriter(Connection!);
+        JsonWriter jsonWriter = queryParser.GetJsonWriter(Connection!,this);
 
         return jsonWriter.Execute();
     }
@@ -86,7 +86,7 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = JsonQueryParser.Create(CommandText!);
+        var queryParser = JsonQuery.Create(this);
 
         if (Connection!.State != ConnectionState.Open)
         {
@@ -102,7 +102,7 @@ public class JsonCommand : IDbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = JsonQueryParser.Create(CommandText!);
+        var queryParser = JsonQuery.Create(this);
         if (queryParser is not JsonSelectQuery selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
@@ -110,7 +110,7 @@ public class JsonCommand : IDbCommand
         var reader = Connection!.JsonReader;
 
         var dataTable = reader.ReadJson(queryParser, true);
-        var dataView = new DataView(dataTable);
+        var dataView = dataTable.DefaultView;
 
         if (queryParser.Filter!=null)
             dataView.RowFilter = queryParser.Filter.Evaluate();

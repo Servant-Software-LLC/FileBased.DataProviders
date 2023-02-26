@@ -2,9 +2,9 @@
 
 namespace Data.Json.JsonQuery;
 
-internal class JsonUpdateQuery : JsonQueryParser
+internal class JsonUpdateQuery : JsonQuery
 {
-    public JsonUpdateQuery(ParseTreeNode tree) : base(tree)
+    public JsonUpdateQuery(ParseTreeNode tree, JsonCommand jsonCommand) : base(tree, jsonCommand)
     {
 
 
@@ -31,7 +31,7 @@ internal class JsonUpdateQuery : JsonQueryParser
         var cols = GetColumnNames();
         var values = node
      .ChildNodes[3].ChildNodes
-     .Select(item => item.ChildNodes[2].Token.Value);
+     .Select(item =>  base.GetValue(item.ChildNodes));
         if (cols.Count() != values.Count())
         {
             throw new InvalidOperationException("The supplied values are not matched");

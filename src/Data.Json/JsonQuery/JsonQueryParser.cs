@@ -1,16 +1,20 @@
 ﻿using Irony.Parsing;
+using System.Data;
+
 namespace Data.Json.JsonQuery;
 
-public abstract class JsonQueryParser
+public abstract class JsonQuery
 {
     public string TableName { get; }
     public Filter? Filter { get; }
 
     protected readonly ParseTreeNode node;
-    public static JsonQueryParser Create(string query)
+    private readonly JsonCommand jsonCommand;
+
+    public static JsonQuery Create(JsonCommand jsonCommand)
     {
         var parser = new Parser(new JsonGrammar());
-        var parseTree = parser.Parse(query);
+        var parseTree = parser.Parse(jsonCommand.CommandText);
         if (parseTree.HasErrors())
         {
             ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
@@ -19,38 +23,38 @@ public abstract class JsonQueryParser
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new JsonInsertQuery(mainNode);
+                return new JsonInsertQuery(mainNode,
+                                           jsonCommand);
             case "deleteStmt":
-                return new JsonDeleteQuery(mainNode);
+                return new JsonDeleteQuery(mainNode, jsonCommand);
             case "updateStmt":
-                return new JsonUpdateQuery(mainNode);
+                return new JsonUpdateQuery(mainNode,jsonCommand);
             case "selectStmt":
-                return new JsonSelectQuery(mainNode);
+                return new JsonSelectQuery(mainNode, jsonCommand);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();
     }
 
-    protected JsonQueryParser(ParseTreeNode node)
+    protected JsonQuery(ParseTreeNode node,JsonCommand jsonCommand)
     {
         this.node = node;
-        Filter = GetFilter();
+        this.jsonCommand = jsonCommand;
+        Filter = GetFilters();
         TableName = GetTable();
     }
 
-    public JsonWriter GetJsonWriter(JsonConnection jsonConnection) => this switch
+    public JsonWriter GetJsonWriter(JsonConnection jsonConnection,JsonCommand jsonCommand) => this switch
     {
-        JsonInsertQuery insertQuery => new JsonInsert(insertQuery, jsonConnection),
-        JsonUpdateQuery updateQuery => new JsonUpdate(updateQuery, jsonConnection),
-        JsonDeleteQuery deleteQuery => new JsonDelete(deleteQuery, jsonConnection),
+        JsonInsertQuery insertQuery => new JsonInsert(insertQuery, jsonConnection, jsonCommand),
+        JsonUpdateQuery updateQuery => new JsonUpdate(updateQuery, jsonConnection, jsonCommand),
+        JsonDeleteQuery deleteQuery => new JsonDelete(deleteQuery, jsonConnection,jsonCommand),
 
         _ => throw new NotSupportedException($"Cannot create a {nameof(JsonWriter)} from a {this.GetType()}")
     };
-
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
-
-    public virtual Filter? GetFilter()
+    public virtual Filter? GetFilters()
     {
         var whereClause = node
             .ChildNodes
@@ -61,7 +65,6 @@ public abstract class JsonQueryParser
         }
         return ExtractFilter(whereClause!.ChildNodes[1].ChildNodes!);
     }
-
     protected Filter? ExtractFilter(ParseTreeNodeList x)
     {
         Filter? mainFilter = null;
@@ -78,7 +81,8 @@ public abstract class JsonQueryParser
                     field += "." + x[0].ChildNodes[1].Token.ValueString;
 
                 var op = x[1].ChildNodes[0].Token.ValueString;
-                var value = x[2].Token.Value;
+                //check if the query is parameterized
+                object? value = GetValue(x);
 
                 mainFilter = new SimpleFilter(field, op, value);
                 break;
@@ -109,5 +113,42 @@ public abstract class JsonQueryParser
         return mainFilter;
     }
 
+    protected object? GetValue(ParseTreeNodeList x)
+    {
+        object? value = string.Empty;
+        if (x[0].Term.Name=="Parameter")
+        {
+            value = GetValue(x[0].ChildNodes);
 
+        }
+        else if (x[2].Term.Name.StartsWith("Unnamed"))
+        {
+            value = GetValue(x[2].ChildNodes);
+        }
+        else
+            value = x[2].Token.Value;
+        return value;
+
+        object? GetValue(ParseTreeNodeList x)
+        {
+            object? value;
+            string paramName = GetParamName(x);
+            if (!jsonCommand.Parameters.Contains(paramName))
+            {
+                throw new InvalidOperationException($"Must declare the scalar variable \"@{paramName}\"");
+            }
+            var parameter = jsonCommand.Parameters[paramName].Convert<IDbDataParameter>();
+            value = parameter.Value;
+            return value;
+
+             string GetParamName(ParseTreeNodeList x)
+            {
+                if (x[0].ChildNodes.Count==0)
+                {
+                    return x[0].Token.ValueString;
+                }
+                return x[0].ChildNodes[0].Token.ValueString;
+            }
+        }
+    }
 }
