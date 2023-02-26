@@ -34,10 +34,10 @@ dataset.Tables.Add(new DataTable() { TableName = "Table" });
 
 dataAdpater.Fill(dataset);
 dataset.Tables[0].Rows.Remove(dataset.Tables[0].Rows[0]);
-dataset.Tables[0].Rows[0][1]="shahhd";
+dataset.Tables[0].Rows[0][1] = "shahhd";
 
 var updateQuery = "update employees set email=@empname";
-var updateCommand = new JsonCommand(updateQuery,con);
+var updateCommand = new JsonCommand(updateQuery, con);
 nameParameter.Value = "Shhaid Updarted";
 nameParameter.SourceColumn = "email";
 updateCommand.Parameters.Add(nameParameter);
@@ -92,28 +92,18 @@ void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
 
 
 
-//string sqlConnectionStr = "Server=Localhost\\SQLEXPRESS;Database=EcommerceDB;Trusted_Connection=True;MultipleActiveResultSets=True";
-//var con = new SqlConnection(sqlConnectionStr);
-
-//var transaction = con.BeginTransaction();
-//con.Open();
-//var cmd = new SqlCommand("INSERT INTO Customer Values('khan','ShahidKhan.dev88@gmail.com','Hoo','Das')", con, transaction);
-//var ros = cmd.ExecuteNonQuery();
-//transaction.Rollback();
-//ros = cmd.ExecuteNonQuery();
-//con.Close();
-//transaction.Commit();
 
 
 
 
 
- rootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+rootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 for (int i = 0; i < 4; i++)
     rootFolder = Directory.GetParent(rootFolder!)!.FullName;
- jsonFile = Path.Combine(rootFolder!, "tests", "Data.Json.Tests", "Sources", "ecommerce.json");
+jsonFile = Path.Combine(rootFolder!, "tests", "Data.Json.Tests", "Sources", "ecommerce.json");
 
- jsonConnectionString = $"Data Source={jsonFile};";
+jsonConnectionString = $"Data Source={jsonFile};";
 
 var connection = new JsonConnection(jsonConnectionString);
 connection.Open();
@@ -127,10 +117,10 @@ Console.Write($"{"Name",-30}");
 foreach (var item in rows)
 {
     Console.WriteLine();
-    Console.Write($"{item.CustomerName, -30}");
-    Console.Write($"{item.OrderDate.ToString(), -30}");
-    Console.Write($"{item.Quantity, -30}");
-    Console.Write($"{item.Name, -30}");
+    Console.Write($"{item.CustomerName,-30}");
+    Console.Write($"{item.OrderDate.ToString(),-30}");
+    Console.Write($"{item.Quantity,-30}");
+    Console.Write($"{item.Name,-30}");
 }
 Console.ReadLine();
 Console.WriteLine();
