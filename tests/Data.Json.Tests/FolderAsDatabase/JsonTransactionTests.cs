@@ -128,7 +128,6 @@ public partial class JsonTransactionTests
         transaction.Commit();
 
 
-
         // Query the employees table to verify the data was updated
         var adapter = new JsonDataAdapter("SELECT * FROM employees WHERE name = 'Shahid Khan'", connection);
         var dataSet = new DataSet();
