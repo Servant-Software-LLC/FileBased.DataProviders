@@ -25,17 +25,11 @@ public class JsonTransaction : IDbTransaction
             throw new InvalidOperationException("This JsonTransaction has completed; it is no longer usable");
         }
         TransactionDone = true;
-        try
+        Writers.ForEach(writer =>
         {
-            //as we have modified the json file so we don't need to update the tables
-            Writers.ForEach(writer =>
-            {
-                writer.Execute();
-            });
-        }
-        finally
-        {
-        }
+            writer.Execute();
+        });
+
     }
 
     public void Rollback()
@@ -50,7 +44,7 @@ public class JsonTransaction : IDbTransaction
 
     public void Dispose()
     {
-
+        Writers.Clear();
     }
 
     public IDbConnection Connection => _connection;

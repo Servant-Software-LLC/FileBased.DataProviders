@@ -46,9 +46,9 @@ internal class JsonUpdate : JsonWriter
         }
         finally
         {
-            jsonReader.StartWatching();
             Save();
             _rwLock.ExitWriteLock();
+            jsonReader.StartWatching();
         }
 
     }

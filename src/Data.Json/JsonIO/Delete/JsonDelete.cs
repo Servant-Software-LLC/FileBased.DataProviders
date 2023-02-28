@@ -42,9 +42,9 @@ internal class JsonDelete : JsonWriter
         }
         finally
         {
-            jsonReader.StartWatching();
             Save();
             _rwLock.ExitWriteLock();
+            jsonReader.StartWatching();
         }
     }
 }
