@@ -1,7 +1,4 @@
-﻿using Data.Json.JsonIO.Read;
-using Irony.Parsing.Construction;
-
-namespace System.Data.JsonClient;
+﻿namespace System.Data.JsonClient;
 
 public class JsonTransaction : IDbTransaction
 {

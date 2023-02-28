@@ -197,6 +197,7 @@ public class JsonReader : IDisposable
         }
 
     }
+
     private void UpdateFromFolder(string tableName)
     {
         var path = jsonConnection.GetTablePath(tableName);

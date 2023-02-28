@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.JsonClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase
@@ -19,7 +14,7 @@ namespace Data.Json.Tests.FileAsDatabase
             connection.Open();
 
             // Start a transaction
-            var transaction = (JsonTransaction)connection.BeginTransaction();
+            var transaction = connection.BeginTransaction();
 
             // Create a command to insert data into the locations table
             var command = new JsonCommand("INSERT INTO locations (city, state) VALUES (@City, @State)", connection, transaction);
@@ -77,7 +72,7 @@ namespace Data.Json.Tests.FileAsDatabase
             connection.Open();
 
             // Start a transaction
-            var transaction = (JsonTransaction)connection.BeginTransaction();
+            var transaction = connection.BeginTransaction();
 
             // Insert data into the locations table
             var command = new JsonCommand("INSERT INTO locations (city, state) VALUES (@City, @State)", connection, transaction);
@@ -116,7 +111,7 @@ namespace Data.Json.Tests.FileAsDatabase
             connection.Open();
 
             // Start a transaction
-            var transaction = (JsonTransaction)connection.BeginTransaction();
+            var transaction = connection.BeginTransaction();
 
             // Insert data into the employees table
             var command = new JsonCommand("INSERT INTO employees (name, salary) VALUES (@Name, @Salary)", connection, transaction);
@@ -157,7 +152,7 @@ namespace Data.Json.Tests.FileAsDatabase
             connection.Open();
 
             // Start a transaction
-            var transaction = (JsonTransaction)connection.BeginTransaction();
+            var transaction = connection.BeginTransaction();
 
             try
             {
