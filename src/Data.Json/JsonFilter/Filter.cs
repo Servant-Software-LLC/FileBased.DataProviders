@@ -2,17 +2,14 @@
 
 public abstract class Filter
 {
-    public static Filter And(Filter left, Filter right)
-    {
-        return new AndFilter(left, right);
-    }
     public static Filter Create(string propName, string op, object value)
     {
         return new SimpleFilter(propName, op, value);
     }
-
-    public abstract string Evaluate();
-
+    public static Filter And(Filter left, Filter right)
+    {
+        return new AndFilter(left, right);
+    }
     public static Filter AndAlso(Filter left, Filter right)
     {
         return new AndAlsoFilter(left,right);
@@ -25,6 +22,11 @@ public abstract class Filter
     {
         return new OrFilter(left, right);
     }
+
+
+    public abstract string Evaluate();
+
+
 }
 
 

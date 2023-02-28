@@ -27,6 +27,12 @@ internal class JsonDelete : JsonWriter
             dataView.RowFilter = Query.Filter?.ToString();
 
             var rowsAffected = dataView.Count;
+            //don't update now if it is a transaction
+            if (base.IsTransaction)
+            {
+                jsonTransaction!.Writers.Add(this);
+                return rowsAffected;
+            }
             foreach (DataRowView dataRow in dataView)
             {
                 dataTable!.Rows.Remove(dataRow.Row);

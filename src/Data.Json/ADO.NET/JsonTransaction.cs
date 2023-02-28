@@ -28,14 +28,13 @@ public class JsonTransaction : IDbTransaction
         try
         {
             //as we have modified the json file so we don't need to update the tables
-            _connection.JsonReader.StopWatching();
-            JsonWriter._rwLock.EnterWriteLock();
-            Writers.ForEach(writer => writer.Save());
+            Writers.ForEach(writer =>
+            {
+                writer.Execute();
+            });
         }
         finally
         {
-            _connection.JsonReader.StartWatching();
-            JsonWriter._rwLock.ExitWriteLock();
         }
     }
 

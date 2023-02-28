@@ -12,7 +12,7 @@ public class AndFilter : Filter
     }
     public override string ToString()
     {
-        return $"{Left.ToString()} AND {Right.ToString()}";
+        return $"{Left.Evaluate()} AND {Right.Evaluate()}";
     }
     public override string Evaluate()
     {

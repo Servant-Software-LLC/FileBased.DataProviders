@@ -28,6 +28,12 @@ internal class JsonUpdate : JsonWriter
             dataView.RowFilter = queryParser.Filter?.Evaluate();
 
             var rowsAffected = dataView.Count;
+            //don't update now if it is a transaction
+            if (base.IsTransaction)
+            {
+                jsonTransaction!.Writers.Add(this);
+                return rowsAffected;
+            }
             foreach (DataRowView dataRow in dataView)
             {
                 foreach (var val in values)

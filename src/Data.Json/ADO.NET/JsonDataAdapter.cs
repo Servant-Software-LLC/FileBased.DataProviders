@@ -1,4 +1,5 @@
 ﻿using Data.Json.JsonQuery;
+using System.Data.Common;
 
 namespace System.Data.JsonClient;
 
@@ -7,10 +8,10 @@ public class JsonDataAdapter : IDataAdapter
     public JsonCommand? SelectCommand { get; set; }
     public JsonCommand? UpdateCommand { get; set; }
 
-    public MissingMappingAction MissingMappingAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public MissingSchemaAction MissingSchemaAction { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public MissingMappingAction MissingMappingAction { get; set ; }
+    public MissingSchemaAction MissingSchemaAction { get; set ; }
 
-    public ITableMappingCollection TableMappings => throw new NotImplementedException();
+    public ITableMappingCollection TableMappings { get; set; }
 
     public int Fill(DataSet dataSet)
     {
@@ -101,7 +102,7 @@ public class JsonDataAdapter : IDataAdapter
         var cols = query.GetColumnNames()
             .ToList();
       
-        if (cols.FirstOrDefault().Trim() == "*" && cols != null)
+        if (cols!.FirstOrDefault().Trim() == "*" && cols != null)
         {
             cols.Clear();
             foreach (DataColumn column in dataTable.Columns)
@@ -123,13 +124,41 @@ public class JsonDataAdapter : IDataAdapter
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-   
-        return new DataTable[2];
+        var selectQuery = JsonQuery.Create(SelectCommand);
+        var jsonReader = SelectCommand.Connection.JsonReader;
+        var dataTable = jsonReader.ReadJson(selectQuery, true);
+        var cols = GetColumns(dataTable, selectQuery);
+        dataTable.Columns
+        .Cast<DataColumn>()
+        .Where(column => !cols.Contains(column.ColumnName))
+        .Select(column => column.ColumnName)
+        .ToList()
+        .ForEach(dataTable.Columns.Remove);
+        if (dataSet.Tables["Table"]!=null)
+        {
+            dataSet.Tables.Remove("Table");
+        }
+        dataTable.Rows.Clear();
+        return new DataTable[1] { dataTable };
     }
 
     public  IDataParameter[] GetFillParameters()
     {
-        throw new NotImplementedException();
+        IDataParameter[]? value = null;
+        if (SelectCommand != null )
+        {
+            IDataParameterCollection parameters = SelectCommand.Parameters;
+            if (parameters!=null)
+            {
+                value = new IDataParameter[parameters.Count];
+                parameters.CopyTo(value, 0);
+            }
+        }
+        if (value==null)
+        {
+            value = Array.Empty<IDataParameter>();
+        }
+        return value;
     }
 
 

@@ -1,4 +1,5 @@
 ﻿using Data.Json.JsonQuery;
+using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Write;
 
@@ -14,8 +15,14 @@ internal class JsonInsert : JsonWriter
 
     public override int Execute()
     {
+        if (base.IsTransaction)
+        {
+            jsonTransaction!.Writers.Add(this);
+            return 1;
+        }
         try
         {
+           
             //as we have modified the json file so we don't need to update the tables
             jsonReader.StopWatching();
             _rwLock.EnterWriteLock();

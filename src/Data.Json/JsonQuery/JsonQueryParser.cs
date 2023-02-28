@@ -5,13 +5,7 @@ namespace Data.Json.JsonQuery;
 
 public abstract class JsonQuery
 {
-    public string TableName { get; }
-    public Filter? Filter { get; }
-
-    protected readonly ParseTreeNode node;
-    private readonly JsonCommand jsonCommand;
-
-    public static JsonQuery Create(JsonCommand jsonCommand)
+    public static  JsonQuery Create(JsonCommand jsonCommand)
     {
         var parser = new Parser(new JsonGrammar());
         var parseTree = parser.Parse(jsonCommand.CommandText);
@@ -35,6 +29,14 @@ public abstract class JsonQuery
 
         throw ThrowHelper.GetQueryNotSupportedException();
     }
+
+
+    public string TableName { get; }
+    public Filter? Filter { get; }
+
+    protected readonly ParseTreeNode node;
+    private readonly JsonCommand jsonCommand;
+
 
     protected JsonQuery(ParseTreeNode node,JsonCommand jsonCommand)
     {

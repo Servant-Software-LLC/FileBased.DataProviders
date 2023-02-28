@@ -16,7 +16,7 @@ public class OrFilter : Filter
     }
     public override string ToString()
     {
-        return $"{Left.ToString()} OR {Right.ToString()}";
+        return $"{Left.Evaluate()} OR {Right.Evaluate()}";
     }
 }
 

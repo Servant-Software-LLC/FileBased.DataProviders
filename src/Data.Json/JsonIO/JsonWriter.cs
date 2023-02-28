@@ -6,7 +6,7 @@ public abstract class JsonWriter
     internal readonly JsonCommand jsonCommand;
     protected readonly JsonQuery.JsonQuery jsonQuery;
     protected readonly JsonReader jsonReader;
-    private readonly JsonTransaction? jsonTransaction;
+    protected readonly JsonTransaction? jsonTransaction;
 
     public JsonWriter(JsonConnection jsonConnection,
         JsonCommand jsonCommand
@@ -22,11 +22,13 @@ public abstract class JsonWriter
     public abstract int Execute();    
     internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
+    public bool IsTransaction
+        => jsonTransaction != null && jsonTransaction?.TransactionDone == false;
+
     public virtual bool Save()
     {
-        if (jsonTransaction!=null&&jsonTransaction?.TransactionDone==false)
+        if (IsTransaction)
         {
-            jsonTransaction.Writers.Add(this);
             return true;
         }
         if (jsonConnection.PathType == Enum.PathType.Directory)

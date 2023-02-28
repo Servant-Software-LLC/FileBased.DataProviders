@@ -159,7 +159,111 @@ namespace Data.Json.Tests.FileAsDatabase
             // Close the connection
             connection.Close();
         }
+         
+        [Fact]
+        public void FillSchema_ShouldReturnDataTableWithAllColumns()
+            {
+                // Arrange
+                var dataSet = new DataSet();
+                var adapter = new JsonDataAdapter();
+                adapter.SelectCommand = new JsonCommand("SELECT * FROM employees", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
 
+                // Act
+                var tables = adapter.FillSchema(dataSet, SchemaType.Source);
+
+                // Assert
+                Assert.Single(tables);
+                Assert.Equal(4, tables[0].Columns.Count);
+                Assert.Equal("name", tables[0].Columns[0].ColumnName);
+                Assert.Equal("email", tables[0].Columns[1].ColumnName);
+                Assert.Equal("salary", tables[0].Columns[2].ColumnName);
+                Assert.Equal("married", tables[0].Columns[3].ColumnName);
+            }
+
+        [Fact]
+        public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandIsNull()
+            {
+                // Arrange
+                var dataSet = new DataSet();
+                var adapter = new JsonDataAdapter();
+
+                // Act & Assert
+                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+            }
+
+        [Fact]
+        public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandConnectionIsNull()
+            {
+                // Arrange
+                var dataSet = new DataSet();
+                var adapter = new JsonDataAdapter();
+                adapter.SelectCommand = new JsonCommand("SELECT * FROM employees");
+
+                // Act & Assert
+                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+            }
+
+        [Fact]
+        public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandTextIsNullOrEmpty()
+            {
+                // Arrange
+                var dataSet = new DataSet();
+                var adapter = new JsonDataAdapter();
+                adapter.SelectCommand = new JsonCommand("", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
+
+                // Act & Assert
+                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+            }
+        [Fact]
+        public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
+        {
+            // Arrange
+            var connection = new JsonConnection(ConnectionStrings.eComDBConnectionString);
+            var command = new JsonCommand("SELECT [Name], [Email] FROM [Customers]", connection);
+            var adapter = new JsonDataAdapter(command);
+
+            // Act
+            var parameters = adapter.GetFillParameters();
+
+            // Assert
+            Assert.NotNull(parameters);
+            Assert.Empty(parameters);
+        }
+
+        [Fact]
+        public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
+        {
+            // Arrange
+            var connection = new JsonConnection(ConnectionStrings.eComDBConnectionString);
+            var command = new JsonCommand("SELECT [Name], [Email] FROM [Customers] WHERE [ID] = @ID", connection);
+            command.Parameters.Add(new JsonParameter("@ID", 1));
+            var adapter = new JsonDataAdapter(command);
+
+            // Act
+            var parameters = adapter.GetFillParameters();
+
+            // Assert
+            Assert.NotNull(parameters);
+            Assert.Equal(1, parameters.Length);
+            Assert.Equal("@ID", parameters[0].ParameterName);
+            Assert.Equal(1, parameters[0].Value);
+        }
+
+        [Fact]
+        public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
+        {
+            // Arrange
+            var connection = new JsonConnection(ConnectionStrings.eComDBConnectionString);
+            var command = new JsonCommand("INSERT INTO [Customers] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
+            var adapter = new JsonDataAdapter(command);
+
+            // Act
+            var parameters = adapter.GetFillParameters();
+
+            // Assert
+            Assert.NotNull(parameters);
+            Assert.Empty(parameters);
+        }
 
     }
 }

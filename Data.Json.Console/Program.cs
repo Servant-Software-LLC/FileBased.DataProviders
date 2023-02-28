@@ -18,65 +18,62 @@ string jsonConnectionString = $"Data Source={jsonFile};";
 
 
 
-var con = new JsonConnection(jsonConnectionString);
-string query = "select name,email from employees";
-var selectCommand = new JsonCommand(query);
-var nameParameter = new JsonParameter("empname", "Shahid");
-selectCommand.Parameters.Add(nameParameter);
-selectCommand.Connection = con;
-JsonDataAdapter dataAdpater = new JsonDataAdapter(selectCommand);
+//var con = new JsonConnection(jsonConnectionString);
+//string query = "select name,email from employees";
+//var selectCommand = new JsonCommand(query);
+//var nameParameter = new JsonParameter("empname", "Shahid");
+//selectCommand.Parameters.Add(nameParameter);
+//selectCommand.Connection = con;
+//JsonDataAdapter dataAdpater = new JsonDataAdapter(selectCommand);
 
-var dataset = new DataSet();
-dataset.Tables.Add(new DataTable() { TableName = "Table" });
-//var cmd = new SqlCommand("DELETE from customer where id=6", con);
-//dataAdpater.UpdateCommand = cmd;
-
-
-dataAdpater.Fill(dataset);
-dataset.Tables[0].Rows.Remove(dataset.Tables[0].Rows[0]);
-dataset.Tables[0].Rows[0][1] = "shahhd";
-
-var updateQuery = "update employees set email=@empname";
-var updateCommand = new JsonCommand(updateQuery, con);
-nameParameter.Value = "Shhaid Updarted";
-nameParameter.SourceColumn = "email";
-updateCommand.Parameters.Add(nameParameter);
-dataAdpater.UpdateCommand = updateCommand;
-
-
-dataAdpater.Update(dataset);
-con.Open();
-
-
-
-
-
-
-
-
-
-
-//string sqlConnectionStr = "Server=Localhost\\SQLEXPRESS;Database=EcommerceDB;Trusted_Connection=True;MultipleActiveResultSets=True";
-//var con = new SqlConnection(sqlConnectionStr);
-//string query = "select name,email from customer where Id=@id";
-//var dataAdpater = new SqlDataAdapter(query,con);
-//dataAdpater.SelectCommand.Parameters.AddWithValue("id", 6);
 //var dataset = new DataSet();
-//dataset.Tables.Add(new DataTable() { TableName="Table"});
-//var cmd= new SqlCommand("update customer set id=6",con);
-//dataAdpater.UpdateCommand =cmd;
+//dataset.Tables.Add(new DataTable() { TableName = "Table" });
+////var cmd = new SqlCommand("DELETE from customer where id=6", con);
+////dataAdpater.UpdateCommand = cmd;
 
 
 //dataAdpater.Fill(dataset);
 //dataset.Tables[0].Rows.Remove(dataset.Tables[0].Rows[0]);
+//dataset.Tables[0].Rows[0][1] = "shahhd";
+
+//var updateQuery = "update employees set email=@empname";
+//var updateCommand = new JsonCommand(updateQuery, con);
+//nameParameter.Value = "Shhaid Updarted";
+//nameParameter.SourceColumn = "email";
+//updateCommand.Parameters.Add(nameParameter);
+//dataAdpater.UpdateCommand = updateCommand;
+
+
 //dataAdpater.Update(dataset);
 //con.Open();
 
 
 
-void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
-{
-}
+
+
+
+
+
+
+
+string sqlConnectionStr = "Server=Localhost\\SQLEXPRESS;Database=EcommerceDB;Trusted_Connection=True;MultipleActiveResultSets=True";
+var con = new SqlConnection(sqlConnectionStr);
+string query = "select name,email from customer;";
+var dataAdpater = new SqlDataAdapter(query, con);
+//dataAdpater.SelectCommand.Parameters.AddWithValue("id", 6);
+var dataset = new DataSet();
+dataset.Tables.Add(new DataTable() { TableName = "Table34" });
+var cmd = new SqlCommand("update customer set id=6", con);
+dataAdpater.UpdateCommand = cmd;
+
+
+var data=dataAdpater.FillSchema(dataset,SchemaType.Mapped);
+dataset.Tables[0].Rows.Remove(dataset.Tables[0].Rows[0]);
+dataAdpater.Update(dataset);
+con.Open();
+
+
+
 
 
 

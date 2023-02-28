@@ -10,7 +10,7 @@ public class OrElseFilter : Filter
     }
     public override string ToString()
     {
-        return $"{Left.ToString()} || ({Right.ToString()})";
+        return $"{Left.Evaluate()} || ({Right.Evaluate()})";
     }
     public override string Evaluate()
     {
