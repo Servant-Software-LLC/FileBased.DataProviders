@@ -40,8 +40,8 @@ jobs:
         sudo apt install -y curl && \
         curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
         tar -zxvf armdot.tar.gz && \
-        chmod +x armdot && \
-        sudo ./armdot protect -projectPath path/to/project -licFilePath ${{github.workspace}}/Bogus.armlic
+        chmod +x ./bin/ArmDotConsole && \
+        sudo ./bin/ArmDotConsole protect -projectPath path/to/project -licFilePath ${{github.workspace}}/Bogus.armlic
 
     - name: Test
       run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
