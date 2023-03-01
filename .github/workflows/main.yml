@@ -38,8 +38,8 @@ jobs:
       run: |
         sudo apt update && \
         sudo apt install -y curl && \
-        curl -LJO https://www.armdot.com/download/armdot-linux-x64.tar.gz && \
-        tar -zxvf armdot-linux-x64.tar.gz && \
+        curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
+        tar -zxvf armdot.tar.gz && \
         chmod +x armdot && \
         sudo ./armdot protect -projectPath path/to/project -licFilePath ${{github.workspace}}/Bogus.armlic
 
