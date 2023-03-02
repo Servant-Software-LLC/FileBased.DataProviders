@@ -1,11 +1,25 @@
 ﻿using Irony.Parsing;
-using System.Data;
 
 namespace Data.Json.JsonQuery;
 
 public abstract class JsonQuery
 {
-    public static  JsonQuery Create(JsonCommand jsonCommand)
+    protected readonly ParseTreeNode node;
+    private readonly JsonCommand jsonCommand;
+
+    protected JsonQuery(ParseTreeNode node, JsonCommand jsonCommand)
+    {
+        this.node = node;
+        this.jsonCommand = jsonCommand;
+        Filter = GetFilters();
+        TableName = GetTable();
+    }
+
+    public string TableName { get; }
+    public Filter? Filter { get; }
+
+
+    public static JsonQuery Create(JsonCommand jsonCommand)
     {
         var parser = new Parser(new JsonGrammar());
         var parseTree = parser.Parse(jsonCommand.CommandText);
@@ -31,21 +45,6 @@ public abstract class JsonQuery
     }
 
 
-    public string TableName { get; }
-    public Filter? Filter { get; }
-
-    protected readonly ParseTreeNode node;
-    private readonly JsonCommand jsonCommand;
-
-
-    protected JsonQuery(ParseTreeNode node,JsonCommand jsonCommand)
-    {
-        this.node = node;
-        this.jsonCommand = jsonCommand;
-        Filter = GetFilters();
-        TableName = GetTable();
-    }
-
     public JsonWriter GetJsonWriter(JsonConnection jsonConnection,JsonCommand jsonCommand) => this switch
     {
         JsonInsertQuery insertQuery => new JsonInsert(insertQuery, jsonConnection, jsonCommand),
@@ -54,6 +53,7 @@ public abstract class JsonQuery
 
         _ => throw new NotSupportedException($"Cannot create a {nameof(JsonWriter)} from a {this.GetType()}")
     };
+
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
     public virtual Filter? GetFilters()
@@ -67,6 +67,7 @@ public abstract class JsonQuery
         }
         return ExtractFilter(whereClause!.ChildNodes[1].ChildNodes!);
     }
+
     protected Filter? ExtractFilter(ParseTreeNodeList x)
     {
         Filter? mainFilter = null;

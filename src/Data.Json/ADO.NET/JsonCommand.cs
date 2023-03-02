@@ -53,10 +53,9 @@ public class JsonCommand : IDbCommand
 
     }
 
-    public IDbDataParameter CreateParameter()
-    {
-        return new JsonParameter();
-    }
+    public JsonParameter CreateParameter() => new();
+
+    IDbDataParameter IDbCommand.CreateParameter() => CreateParameter();
 
     public void Dispose()
     {
@@ -110,7 +109,7 @@ public class JsonCommand : IDbCommand
         var reader = Connection!.JsonReader;
 
         var dataTable = reader.ReadJson(queryParser, true);
-        var dataView = dataTable.DefaultView;
+        var dataView = new DataView(dataTable);
 
         if (queryParser.Filter!=null)
             dataView.RowFilter = queryParser.Filter.Evaluate();
@@ -147,4 +146,5 @@ public class JsonCommand : IDbCommand
         if (Connection == null)
             throw new ArgumentNullException(nameof(Connection), $"The {nameof(Connection)} property of {nameof(JsonCommand)} must be set prior to execution.");
     }
+
 }

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.JsonClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase
@@ -244,7 +239,7 @@ namespace Data.Json.Tests.FileAsDatabase
 
             // Assert
             Assert.NotNull(parameters);
-            Assert.Equal(1, parameters.Length);
+            Assert.Single(parameters);
             Assert.Equal("@ID", parameters[0].ParameterName);
             Assert.Equal(1, parameters[0].Value);
         }

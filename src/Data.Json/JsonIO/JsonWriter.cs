@@ -9,14 +9,14 @@ public abstract class JsonWriter
     protected readonly JsonTransaction? jsonTransaction;
 
     public JsonWriter(JsonConnection jsonConnection,
-        JsonCommand jsonCommand
-        ,JsonQuery.JsonQuery jsonQuery)
+                      JsonCommand jsonCommand,
+                      JsonQuery.JsonQuery jsonQuery)
     {
         this.jsonConnection = jsonConnection;
         this.jsonCommand = jsonCommand;
         this.jsonQuery = jsonQuery;
-        this.jsonReader = jsonConnection.JsonReader;
-        this.jsonTransaction=jsonCommand.Transaction as JsonTransaction;
+        jsonReader = jsonConnection.JsonReader;
+        jsonTransaction = jsonCommand.Transaction as JsonTransaction;
     }
 
     public abstract int Execute();    
@@ -31,6 +31,7 @@ public abstract class JsonWriter
         {
             return true;
         }
+
         if (jsonConnection.PathType == Enum.PathType.Directory)
         {
             SaveFolderAsDB(jsonQuery.TableName);
@@ -42,6 +43,7 @@ public abstract class JsonWriter
 
         return true;
     }
+
     private void SaveToFile()
     {
         using (var fileStream = new FileStream(jsonConnection.Database, FileMode.Create, FileAccess.Write))
@@ -55,6 +57,7 @@ public abstract class JsonWriter
             jsonWriter.WriteEndObject();
         }
     }
+
     private  void SaveFolderAsDB(string? tableName)
     {
         var tablesToWrite = jsonConnection.JsonReader.DataSet!.Tables.Cast<DataTable>();
@@ -112,7 +115,5 @@ public abstract class JsonWriter
         }
         jsonWriter.WriteEndArray();
     }
-
-
   
 }

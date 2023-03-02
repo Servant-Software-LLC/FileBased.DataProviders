@@ -33,15 +33,13 @@ public class JsonConnection : IDbConnection, IConnectionStringProperties
     public PathType PathType => this.GetPathType();
 
 
-    public IDbTransaction BeginTransaction()
-    {
-        return BeginTransaction(default);
-    }
+    public JsonTransaction BeginTransaction() => BeginTransaction(default);
 
-    public IDbTransaction BeginTransaction(IsolationLevel il)
-    {
-        return new JsonTransaction(this,il);
-    }
+    public JsonTransaction BeginTransaction(IsolationLevel il) => new JsonTransaction(this,il);
+
+    IDbTransaction IDbConnection.BeginTransaction() => BeginTransaction();
+
+    IDbTransaction IDbConnection.BeginTransaction(IsolationLevel il) => BeginTransaction(il);
 
     public void ChangeDatabase(string databaseName)
     {
@@ -51,16 +49,12 @@ public class JsonConnection : IDbConnection, IConnectionStringProperties
         database = JsonDocument.Parse(file);
     }
 
-    public void Close()
-    {
-        state = ConnectionState.Closed;
-    }
+    public void Close() => state = ConnectionState.Closed;
 
+    public JsonCommand CreateCommand() => new(this);
 
-    public IDbCommand CreateCommand()
-    {
-            return new JsonCommand(this);
-    }
+    IDbCommand IDbConnection.CreateCommand() => CreateCommand();
+
     public void Open()
     {
         ThrowHelper.ThrowIfInvalidPath(PathType);
@@ -74,4 +68,5 @@ public class JsonConnection : IDbConnection, IConnectionStringProperties
         JsonReader.Dispose();
         
     }
+
 }

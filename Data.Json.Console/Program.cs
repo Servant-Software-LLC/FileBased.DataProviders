@@ -1,8 +1,5 @@
 ﻿using Dapper;
-using System;
-using System.Data;
 using System.Data.JsonClient;
-using System.Data.SqlClient;
 using System.Reflection;
 
 
@@ -25,10 +22,10 @@ var connection = new JsonConnection(jsonConnectionString);
 connection.Open();
 var rows = connection.Query<Records>("SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]");
 
-Console.Write($"{"Customer Name",-30}");
-Console.Write($"{"Order Date",-30}");
-Console.Write($"{"Quantity",-30}");
-Console.Write($"{"Name",-30}");
+Console.Write($"{"Customer Name", -30}");
+Console.Write($"{"Order Date", -30}");
+Console.Write($"{"Quantity", -30}");
+Console.Write($"{"Name", -30}");
 
 foreach (var item in rows)
 {
