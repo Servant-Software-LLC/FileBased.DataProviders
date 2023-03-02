@@ -17,8 +17,8 @@ internal class JsonDelete : JsonWriter
         try
         {
             //as we have modified the json file so we don't need to update the tables
-            jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
+            jsonReader.StopWatching();
 
             var dataTable = jsonReader.ReadJson(Query);
 
@@ -43,8 +43,8 @@ internal class JsonDelete : JsonWriter
         finally
         {
             Save();
-            _rwLock.ExitWriteLock();
             jsonReader.StartWatching();
+            _rwLock.ExitWriteLock();
         }
     }
 }

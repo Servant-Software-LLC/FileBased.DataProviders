@@ -23,9 +23,9 @@ internal class JsonInsert : JsonWriter
         try
         {
            
+            _rwLock.EnterWriteLock();
             //as we have modified the json file so we don't need to update the tables
             jsonReader.StopWatching();
-            _rwLock.EnterWriteLock();
             var dataTable = jsonReader.ReadJson(queryParser);
             var row = dataTable!.NewRow();
             foreach (var val in queryParser.GetValues())
@@ -37,8 +37,8 @@ internal class JsonInsert : JsonWriter
         finally
         {
             Save();
-            _rwLock.ExitWriteLock();
             jsonReader.StartWatching();
+            _rwLock.ExitWriteLock();
         }
         return 1;
     }

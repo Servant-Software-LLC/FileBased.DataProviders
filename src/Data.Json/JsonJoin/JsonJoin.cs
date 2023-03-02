@@ -56,6 +56,7 @@ public class DataTableJoin
         var dataTableToJoin = database.Tables[dataTableInnerJoin.TableName];
 
         var filter = new SimpleFilter(dataTableInnerJoin.JoinColumn, dataTableInnerJoin.Operation, sourceColumnVal);
+        //File.WriteAllText("foo.txt", "foo");
         var dataView = new DataView(dataTableToJoin!);
         dataView.RowFilter = filter.Evaluate();
 

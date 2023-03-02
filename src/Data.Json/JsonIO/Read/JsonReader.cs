@@ -107,14 +107,13 @@ public class JsonReader : IDisposable
             }
             else
             {
-                foreach (var tableName in tablesToUpdate)
+                for (int i = 0; i < tablesToUpdate.Count; i++)
                 {
+                    string? tableName = tablesToUpdate.ElementAt(i);
                     UpdateFromFolder(tableName);
                 }
             }
-
             tablesToUpdate.Clear();
-
             returnValue = CheckIfSelect(jsonQueryParser);
         }
 

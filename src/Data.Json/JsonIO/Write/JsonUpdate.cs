@@ -17,8 +17,8 @@ internal class JsonUpdate : JsonWriter
         try
         {
             // As we have modified the json file so we don't need to update the tables
-            jsonReader.StopWatching();
             _rwLock.EnterWriteLock();
+            jsonReader.StopWatching();
 
             var dataTable = jsonReader.ReadJson(queryParser);
             var values = queryParser.GetValues();
