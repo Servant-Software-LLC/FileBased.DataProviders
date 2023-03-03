@@ -42,7 +42,7 @@ jobs:
         curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
         tar -zxvf armdot.tar.gz && \
         chmod +x ./bin/ArmDotConsole && \
-        sudo ./bin/ArmDotConsole --input-assembly ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names
+        sudo ./bin/ArmDotConsole --input-assembly ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation
 
     - name: Test
       run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
