@@ -19,7 +19,7 @@
 	<DebugSymbols>False</DebugSymbols>  
   </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 	  <PackageReference Include="Irony" />
   </ItemGroup>
 </Project>
