@@ -58,8 +58,8 @@ jobs:
     - name: Push to nuget.org
       run: dotnet nuget push ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$DataJsonPackageId.$DataJsonPackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate --no-symbols
 
-#    - name: Unlist package at nuget.org
-#      run: dotnet nuget delete $DataJsonPackageId $DataJsonPackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+    - name: Unlist package at nuget.org
+      run: dotnet nuget delete $DataJsonPackageId $DataJsonPackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
 
 
     - name: Code Coverage Report
