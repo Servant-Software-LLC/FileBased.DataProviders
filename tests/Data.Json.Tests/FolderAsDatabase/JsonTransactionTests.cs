@@ -17,10 +17,12 @@ public partial class JsonTransactionTests
         var transaction = connection.BeginTransaction();
 
         // Create a command to insert data into the locations table
-        var command = new JsonCommand("INSERT INTO locations (city, state) VALUES (@City, @State)", connection, transaction);
+        var command = new JsonCommand("INSERT INTO locations (id,city, state,zip) VALUES (@Id,@City, @State,@Zip)", connection, transaction);
 
+        command.Parameters.Add(new JsonParameter("Id", "5601"));
         command.Parameters.Add(new JsonParameter("City", "MiranShah"));
         command.Parameters.Add(new JsonParameter("State", "MA"));
+        command.Parameters.Add(new JsonParameter("Zip", "102"));
 
         // Execute the command
         int rowsAffected = command.ExecuteNonQuery();
