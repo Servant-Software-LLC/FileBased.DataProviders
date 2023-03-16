@@ -35,7 +35,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration $BuildConfiguration
 
-    - name: Protect project with ArmDot
+    - name: Obfuscate assemblies (ArmDot)
       run: |
         sudo apt update && \
         sudo apt install -y curl && \
