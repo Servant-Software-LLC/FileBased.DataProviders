@@ -6,10 +6,13 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4D05F87-43FB-4A72-8660-E58B789E8253}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		..\..\..\..\Downloads\archive (1)\News_Category_Dataset_v3.json = ..\..\..\..\Downloads\archive (1)\News_Category_Dataset_v3.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Common", "src\Data.Common\Data.Common.csproj", "{3026B504-332A-42BB-BD14-2E909CDBA5C7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Csv", "src\Data.Csv\Data.Csv.csproj", "{0BD24A56-DBEA-4A4B-AFD2-144DBDB89D2B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Tests", "tests\Data.Csv.Tests\Data.Tests.csproj", "{C791BD15-311F-48A8-B2CF-5A64494E682F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +24,14 @@ Global
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BD24A56-DBEA-4A4B-AFD2-144DBDB89D2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BD24A56-DBEA-4A4B-AFD2-144DBDB89D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BD24A56-DBEA-4A4B-AFD2-144DBDB89D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BD24A56-DBEA-4A4B-AFD2-144DBDB89D2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C791BD15-311F-48A8-B2CF-5A64494E682F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C791BD15-311F-48A8-B2CF-5A64494E682F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C791BD15-311F-48A8-B2CF-5A64494E682F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C791BD15-311F-48A8-B2CF-5A64494E682F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
