@@ -31,7 +31,7 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
     public abstract IDbTransaction BeginTransaction(IsolationLevel il);
 
  
-    public void ChangeDatabase(string databaseName)
+    public virtual void ChangeDatabase(string databaseName)
     {
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
         ThrowHelper.ThrowIfInvalidPath(PathType);
@@ -44,7 +44,7 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
   
 
 
-    public void Open()
+    public virtual void Open()
     {
         ThrowHelper.ThrowIfInvalidPath(PathType);
         state = ConnectionState.Open;
