@@ -18,6 +18,6 @@
     <PackageReference Update="Dapper" Version="2.0.123" />
     <PackageReference Update="Bogus" Version="34.0.2" />
     <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
-
+	  <PackageReference Include="CsvHelper" Version="30.0.1" />
   </ItemGroup>
 </Project>
