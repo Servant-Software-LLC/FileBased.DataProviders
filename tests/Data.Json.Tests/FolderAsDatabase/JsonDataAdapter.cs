@@ -168,7 +168,7 @@ namespace Data.Json.Tests.FolderAsDatabase
             var locationUpdateCommand = new JsonCommand("UPDATE locations SET zip = '32655' WHERE city = 'Boston'", connection);
             var employeeUpdateCommand = new JsonCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'", connection);
 
-            var locationSelectCommand = new JsonCommand("SELECT city, state, zip FROM locations WHERE city = 'Boston'", connection);
+            var locationSelectCommand = new JsonCommand("SELECT city, state, zip FROM locations WHERE zip = '32655'", connection);
             var employeeSelectCommand = new JsonCommand("SELECT name, salary FROM employees WHERE name = 'Alice'", connection);
 
             // Act - insert a row into locations and employees tables

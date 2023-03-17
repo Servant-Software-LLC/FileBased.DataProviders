@@ -1,4 +1,5 @@
-﻿using Data.Json.Extension;
+﻿using Data.Common.Extension;
+using Data.Json.Extension;
 using System.Data.JsonClient;
 using Xunit;
 
@@ -12,7 +13,7 @@ public class JsonInsertTests
     [Fact]
     public void Insert_ShouldInsertData()
     {
-        const int id = 1000;
+        const int id = 123054;
 
         // Arrange
         var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);

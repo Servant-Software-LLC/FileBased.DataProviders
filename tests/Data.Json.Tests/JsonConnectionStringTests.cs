@@ -1,4 +1,5 @@
-﻿using Data.Json.Utils.ConnectionString;
+﻿using Data.Common.Utils.ConnectionString;
+using Data.Common.Utils.ConnectionString;
 using Xunit;
 
 namespace Data.Json.Tests;
@@ -8,7 +9,7 @@ public class JsonConnectionStringTests
     [Fact]
     public void ConnectionString_Empty()
     {
-        JsonConnectionString connectionString = new();
+        FileConnectionString connectionString = new();
         
         Assert.Throws<ArgumentNullException>("connectionString", () => connectionString.Parse(null));
     }
@@ -16,10 +17,10 @@ public class JsonConnectionStringTests
     [Fact]
     public void ConnectionString_ParsableButMissingDataSource()
     {
-        JsonConnectionString connectionString = new();
+        FileConnectionString connectionString = new();
 
         var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString.Parse("tree=oak;"));
-        Assert.Contains(nameof(JsonConnectionStringKeywords.DataSource), exception.Message);
+        Assert.Contains(nameof(FileConnectionStringKeywords.DataSource), exception.Message);
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class JsonConnectionStringTests
         const string unknownKeyword = "tree";
         const string connectionStringValue = $"DataSource={dataSourceValue};{unknownKeyword}=oak;";
 
-        JsonConnectionString connectionString = new();
+        FileConnectionString connectionString = new();
 
         var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString.Parse(connectionStringValue));
         Assert.Contains(unknownKeyword, exception.Message);
@@ -41,7 +42,7 @@ public class JsonConnectionStringTests
         const string dataSourceValue = @"c:\database.json";
         const string connectionStringValue = $"DataSource={dataSourceValue};";
 
-        JsonConnectionString connectionString = new();
+        FileConnectionString connectionString = new();
 
         
         connectionString.Parse(connectionStringValue);
@@ -56,7 +57,7 @@ public class JsonConnectionStringTests
         const string dataSourceValue = @"c:\database.json";
         const string connectionStringValue = $"Data Source={dataSourceValue};";
 
-        JsonConnectionString connectionString = new();
+        FileConnectionString connectionString = new();
 
 
         connectionString.Parse(connectionStringValue);

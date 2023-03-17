@@ -12,9 +12,11 @@ public partial class JsonTransactionTests
         // Arrange
         var connection = new JsonConnection(ConnectionStrings.FolderAsDBConnectionString);
         connection.Open();
+         
+
 
         // Start a transaction
-        var transaction = connection.BeginTransaction();
+        var transaction = (JsonTransaction)connection.BeginTransaction();
 
         // Create a command to insert data into the locations table
         var command = new JsonCommand("INSERT INTO locations (id,city, state,zip) VALUES (@Id,@City, @State,@Zip)", connection, transaction);
@@ -70,7 +72,7 @@ public partial class JsonTransactionTests
         connection.Open();
 
         // Start a transaction
-        var transaction = connection.BeginTransaction();
+        var transaction = (JsonTransaction)connection.BeginTransaction();
 
         // Insert data into the locations table
         var command = new JsonCommand("INSERT INTO locations (city, state) VALUES (@City, @State)", connection, transaction);
@@ -110,7 +112,7 @@ public partial class JsonTransactionTests
         connection.Open();
 
         // Start a transaction
-        var transaction = connection.BeginTransaction();
+        var transaction = (JsonTransaction)connection.BeginTransaction();
 
         // Insert data into the employees table
         var command = new JsonCommand("INSERT INTO employees (name, salary) VALUES (@Name, @Salary)", connection, transaction);
@@ -150,7 +152,7 @@ public partial class JsonTransactionTests
         connection.Open();
 
         // Start a transaction
-        var transaction = connection.BeginTransaction();
+        var transaction = (JsonTransaction)connection.BeginTransaction();
 
         try
         {

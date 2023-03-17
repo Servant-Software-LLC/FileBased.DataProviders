@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Common", "src\Data.Common\Data.Common.csproj", "{3026B504-332A-42BB-BD14-2E909CDBA5C7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json", "src\Data.Json\Data.Json.csproj", "{BE6D1046-E463-4289-ACDC-C4D884177505}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json.Tests", "tests\Data.Json.Tests\Data.Json.Tests.csproj", "{D49C802C-8829-4865-9098-891C76F64573}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3026B504-332A-42BB-BD14-2E909CDBA5C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE6D1046-E463-4289-ACDC-C4D884177505}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE6D1046-E463-4289-ACDC-C4D884177505}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE6D1046-E463-4289-ACDC-C4D884177505}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE6D1046-E463-4289-ACDC-C4D884177505}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D49C802C-8829-4865-9098-891C76F64573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D49C802C-8829-4865-9098-891C76F64573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D49C802C-8829-4865-9098-891C76F64573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D49C802C-8829-4865-9098-891C76F64573}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
