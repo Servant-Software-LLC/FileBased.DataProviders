@@ -1,6 +1,10 @@
 ﻿namespace Data.Common.Extension;
 
-internal static class ObjectExtensions
+public static class ObjectExtensions
 {
-    internal static TTarget Convert<TTarget>(this object source) => (TTarget)source;
+    public static TTarget Convert<TTarget>(this object source) => (TTarget)source;
+    public static T GetValueAsType<T>(this object obj)
+    {
+        return (T)System.Convert.ChangeType(obj, typeof(T))!;
+    }
 }
