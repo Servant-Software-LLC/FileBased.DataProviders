@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>11.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>ServantSoftware.Data.Xml</PackageId>
+    <Title>ServantSoftware.Data.Xml</Title>
+    <Authors>Servant Software LLC</Authors>
+    <Product>ADO.NET Xml Data Provider</Product>
+    <RepositoryUrl>https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Version>1.0.0.0</Version>
+    <PackageReadmeFile>Xml Provider.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\Xml Provider.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>  
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>
