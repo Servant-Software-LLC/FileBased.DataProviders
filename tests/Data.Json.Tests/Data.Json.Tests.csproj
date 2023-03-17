@@ -29,10 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Data.Json\Data.Json.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Sources\database.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
