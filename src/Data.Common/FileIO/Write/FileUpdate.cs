@@ -35,6 +35,7 @@ public class FileUpdate : FileWriter
             {
                 foreach (var val in values)
                 {
+                    dataTable.Columns[val.Key]!.ReadOnly = false;
                     dataRow[val.Key] = val.Value;
                 }
             }
