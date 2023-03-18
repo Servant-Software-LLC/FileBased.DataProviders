@@ -3,6 +3,25 @@ internal class JsonDataSetWriter : IDataSetWriter
 {
     private readonly FileConnection fileConnection;
     private readonly FileQuery fileQuery;
+
+    public JsonDataSetWriter(FileConnection fileConnection, FileQuery fileQuery)
+    {
+        this.fileConnection = fileConnection;
+        this.fileQuery = fileQuery;
+    }
+
+    public void WriteDataSet(DataSet dataSet)
+    {
+        if (fileConnection.PathType == PathType.Directory)
+        {
+            SaveFolderAsDB(fileQuery.TableName, dataSet);
+        }
+        else
+        {
+            SaveToFile(dataSet);
+        }
+    }
+
     private static void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
     {
         if (writeTableName)
@@ -44,6 +63,7 @@ internal class JsonDataSetWriter : IDataSetWriter
         }
         jsonWriter.WriteEndArray();
     }
+
     private void SaveToFile(DataSet dataSet)
     {
         using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
@@ -72,23 +92,6 @@ internal class JsonDataSetWriter : IDataSetWriter
             {
                 WriteTable(jsonWriter, table, false);
             }
-        }
-    }
-    public JsonDataSetWriter(FileConnection fileConnection,FileQuery fileQuery)
-    {
-        this.fileConnection = fileConnection;
-        this.fileQuery = fileQuery;
-    }
-
-    public void WriteDataSet(DataSet dataSet)
-    {
-        if (fileConnection.PathType == PathType.Directory)
-        {
-            SaveFolderAsDB(fileQuery.TableName, dataSet);
-        }
-        else
-        {
-            SaveToFile(dataSet);
         }
     }
 }

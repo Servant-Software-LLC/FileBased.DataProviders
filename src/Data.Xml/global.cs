@@ -1,12 +1,9 @@
 ﻿global using System.Data;
-global using System.Data.Common;
 global using System.Data.FileClient;
 global using Data.Common.FileQuery;
 global using Data.Common.FileIO;
 global using Data.Common.FileIO.Delete;
 global using Data.Common.FileFilter;
-global using System.Data.XmlClient;
-global using Data.Xml.XmlIO;
 global using Data.Xml.XmlIO.Read;
 global using Data.Xml.XmlIO.Write;
 global using Data.Xml.XmlIO.Delete;

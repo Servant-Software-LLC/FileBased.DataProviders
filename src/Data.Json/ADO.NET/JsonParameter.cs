@@ -13,7 +13,8 @@ public class JsonParameter : FileParameter
     {
     }
 
-    public JsonParameter(string parameterName, DbType dbType, string sourceColumn) : base(parameterName, dbType, sourceColumn)
+    public JsonParameter(string parameterName, DbType dbType, string sourceColumn) 
+        : base(parameterName, dbType, sourceColumn)
     {
     }
 }

@@ -1,4 +1,5 @@
 ﻿namespace Data.Json.Extension;
+
 internal static class JsonElementExtensions
 {
     internal static object? GetValue(this JsonElement jsonElement)
@@ -14,6 +15,7 @@ internal static class JsonElementExtensions
             JsonValueKind.False => false,
             JsonValueKind.Object => jsonElement.GetRawText(),
             JsonValueKind.Null => null,
+
             _ => throw new NotImplementedException()
         };
 

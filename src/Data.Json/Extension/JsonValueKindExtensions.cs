@@ -1,4 +1,5 @@
 ﻿namespace Data.Json.Extension;
+
 internal static class JsonValueKindExtensions
 {
     internal static Type GetClrFieldType(this JsonValueKind kind) => kind switch
@@ -10,6 +11,7 @@ internal static class JsonValueKindExtensions
         JsonValueKind.Null => typeof(string),
         JsonValueKind.Array => typeof(string),
         JsonValueKind.Object => typeof(string),
+
         _ => throw new NotSupportedException($"Unsupported JSON value kind: {kind}")
     };
 }

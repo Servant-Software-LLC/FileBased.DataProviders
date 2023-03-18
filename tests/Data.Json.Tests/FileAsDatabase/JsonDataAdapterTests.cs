@@ -32,6 +32,7 @@ namespace Data.Json.Tests.FileAsDatabase
             // Close the connection
             connection.Close();
         }
+
         [Fact]
         public void Adapter_ShouldReturnData()
         {
@@ -157,58 +158,59 @@ namespace Data.Json.Tests.FileAsDatabase
          
         [Fact]
         public void FillSchema_ShouldReturnDataTableWithAllColumns()
-            {
-                // Arrange
-                var dataSet = new DataSet();
-                var adapter = new JsonDataAdapter();
-                adapter.SelectCommand = new JsonCommand("SELECT * FROM employees", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
+        {
+            // Arrange
+            var dataSet = new DataSet();
+            var adapter = new JsonDataAdapter();
+            adapter.SelectCommand = new JsonCommand("SELECT * FROM employees", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
 
-                // Act
-                var tables = adapter.FillSchema(dataSet, SchemaType.Source);
+            // Act
+            var tables = adapter.FillSchema(dataSet, SchemaType.Source);
 
-                // Assert
-                Assert.Single(tables);
-                Assert.Equal(4, tables[0].Columns.Count);
-                Assert.Equal("name", tables[0].Columns[0].ColumnName);
-                Assert.Equal("email", tables[0].Columns[1].ColumnName);
-                Assert.Equal("salary", tables[0].Columns[2].ColumnName);
-                Assert.Equal("married", tables[0].Columns[3].ColumnName);
-            }
+            // Assert
+            Assert.Single(tables);
+            Assert.Equal(4, tables[0].Columns.Count);
+            Assert.Equal("name", tables[0].Columns[0].ColumnName);
+            Assert.Equal("email", tables[0].Columns[1].ColumnName);
+            Assert.Equal("salary", tables[0].Columns[2].ColumnName);
+            Assert.Equal("married", tables[0].Columns[3].ColumnName);
+        }
 
         [Fact]
         public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandIsNull()
-            {
-                // Arrange
-                var dataSet = new DataSet();
-                var adapter = new JsonDataAdapter();
+        {
+            // Arrange
+            var dataSet = new DataSet();
+            var adapter = new JsonDataAdapter();
 
-                // Act & Assert
-                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
-            }
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+        }
 
         [Fact]
         public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandConnectionIsNull()
-            {
-                // Arrange
-                var dataSet = new DataSet();
-                var adapter = new JsonDataAdapter();
-                adapter.SelectCommand = new JsonCommand("SELECT * FROM employees");
+        {
+            // Arrange
+            var dataSet = new DataSet();
+            var adapter = new JsonDataAdapter();
+            adapter.SelectCommand = new JsonCommand("SELECT * FROM employees");
 
-                // Act & Assert
-                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
-            }
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+        }
 
         [Fact]
         public void FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandTextIsNullOrEmpty()
-            {
-                // Arrange
-                var dataSet = new DataSet();
-                var adapter = new JsonDataAdapter();
-                adapter.SelectCommand = new JsonCommand("", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
+        {
+            // Arrange
+            var dataSet = new DataSet();
+            var adapter = new JsonDataAdapter();
+            adapter.SelectCommand = new JsonCommand("", new JsonConnection(ConnectionStrings.FileAsDBConnectionString));
 
-                // Act & Assert
-                Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
-            }
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
+        }
+
         [Fact]
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
         {

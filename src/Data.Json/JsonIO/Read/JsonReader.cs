@@ -1,4 +1,5 @@
 ﻿namespace Data.Json.JsonIO.Read;
+
 public class JsonReader : FileReader
 {
     public JsonReader(FileConnection jsonConnection) 
@@ -6,6 +7,7 @@ public class JsonReader : FileReader
         base(jsonConnection)
     {
     }
+
     private JsonDocument Read(string path)
     {
         //ThrowHelper.ThrowIfInvalidPath(path);
@@ -14,6 +16,7 @@ public class JsonReader : FileReader
             return JsonDocument.Parse(stream);
         }
     }
+
     protected override void ReadFromFolder(IEnumerable<string> tableNames)
     {
 
@@ -49,7 +52,7 @@ public class JsonReader : FileReader
         doc.Dispose();
 
     }
-    #region File Read Update
+
     protected override void ReadFromFile()
     {
         var doc = Read(fileConnection.Database);
@@ -67,6 +70,7 @@ public class JsonReader : FileReader
         doc.Dispose();
 
     }
+
     protected override void UpdateFromFile()
     {
         DataSet!.Clear();
@@ -82,21 +86,8 @@ public class JsonReader : FileReader
         doc.Dispose();
 
     }
-    #endregion
 
-
-    DataTable CreateNewDataTable(JsonElement jsonElement)
-    {
-        DataTable dataTable = new DataTable();
-        foreach (var col in GetFields(jsonElement))
-        {
-            dataTable.Columns.Add(col.name, col.type);
-        }
-
-        return dataTable;
-    }
- 
-    public IEnumerable<(string name, Type type)> GetFields(JsonElement table)
+    private IEnumerable<(string name, Type type)> GetFields(JsonElement table)
     {
         var maxFieldElement = table.EnumerateArray().MaxBy(x =>
         {
@@ -105,7 +96,8 @@ public class JsonReader : FileReader
         var enumerator = maxFieldElement.EnumerateObject();
         return enumerator.Select(x => (x.Name, x.Value.ValueKind.GetClrFieldType()));
     }
-    internal void Fill(DataTable dataTable, JsonElement jsonElement)
+
+    private void Fill(DataTable dataTable, JsonElement jsonElement)
     {
         //fill datatables
         foreach (var row in jsonElement.EnumerateArray())
@@ -121,5 +113,16 @@ public class JsonReader : FileReader
         }
 
     }
-   
+
+    private DataTable CreateNewDataTable(JsonElement jsonElement)
+    {
+        DataTable dataTable = new DataTable();
+        foreach (var col in GetFields(jsonElement))
+        {
+            dataTable.Columns.Add(col.name, col.type);
+        }
+
+        return dataTable;
+    }
+
 }

@@ -34,7 +34,6 @@ internal class JsonEnumerator : IEnumerator<object?[]>
     public List<string> Columns { get; } = new List<string>();
     public int FieldCount => Columns.Count;
 
-
     public bool MoveNext()
     {
         CurrentIndex++;
@@ -57,12 +56,14 @@ internal class JsonEnumerator : IEnumerator<object?[]>
         }
         return false;
     }
+
     public bool MoveNextInitial()
     {
         var res = MoveNext();
         Reset();
         return res;
     }
+
     public void Reset()
     {
         CurrentIndex = -1;
