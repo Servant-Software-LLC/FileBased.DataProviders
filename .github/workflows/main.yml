@@ -10,7 +10,10 @@ on:
 env:
   TargetFramework:  net7.0
   BuildConfiguration: Release
+  DataCommonPackageId: ServantSoftware.Data.Common
   DataJsonPackageId: ServantSoftware.Data.Json
+  DataCsvPackageId: ServantSoftware.Data.Csv
+  DataXmlPackageId: ServantSoftware.Data.Xml
   PackageVersion: 1.0.0.${{github.run_number}}
   
 jobs:
@@ -56,11 +59,29 @@ jobs:
         name: Nuget Packages
         path: ${{github.workspace}}/src/**/*.nupkg
 
-#    - name: Push to nuget.org
-#      run: dotnet nuget push ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+    - name: Push to nuget.org (Common provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-#    - name: Unlist package at nuget.org
-#      run: dotnet nuget delete $DataJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+    - name: Unlist package at nuget.org (Common provider)
+      run: dotnet nuget delete $DataCommonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (Json provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (Json provider)
+      run: dotnet nuget delete $DataJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (CSV provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (CSV provider)
+      run: dotnet nuget delete $DataCsvPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (XML provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (XML provider)
+      run: dotnet nuget delete $DataXmlPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
 
 
     - name: Code Coverage Report
