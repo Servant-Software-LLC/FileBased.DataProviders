@@ -22,7 +22,7 @@ public class FileParameterCollection : ArrayList, IDataParameterCollection
         int index = 0;
         foreach (FileParameter item in this)
         {
-            if (0 == _cultureAwareCompare(item.ParameterName, parameterName))
+            if (0 == CultureAwareCompare(item.ParameterName, parameterName))
             {
                 return index;
             }
@@ -59,7 +59,7 @@ public class FileParameterCollection : ArrayList, IDataParameterCollection
     public int Add(string parameterName, DbType dbType, string sourceColumn)
         => Add(new FileParameter(parameterName, dbType, sourceColumn));
 
-    private int _cultureAwareCompare(string strA, string strB)
+    private int CultureAwareCompare(string strA, string strB)
         => CultureInfo.CurrentCulture.CompareInfo.Compare(strA, strB, CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase);
 
 }

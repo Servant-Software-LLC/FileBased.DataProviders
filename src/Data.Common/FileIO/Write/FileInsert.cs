@@ -2,16 +2,16 @@
 public abstract class FileInsert : FileWriter
 {
     private readonly FileInsertQuery queryParser;
+
     public FileInsert(FileInsertQuery queryParser, FileConnection jsonConnection, FileCommand jsonCommand)
         : base(jsonConnection, jsonCommand,(FileQuery.FileQuery)queryParser)
     {
         this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
 
-
     public override int Execute()
     {
-        if (base.IsTransaction)
+        if (IsTransaction)
         {
             fileTransaction!.Writers.Add(this);
             return 1;

@@ -1,4 +1,4 @@
-﻿using Data.Common.Grammer;
+﻿using Data.Common.Parsing;
 using Irony.Parsing;
 namespace Data.Common.FileQuery;
 
@@ -17,35 +17,6 @@ public abstract class FileQuery
 
     public string TableName { get; }
     public Filter? Filter { get; }
-
-
-    public static FileQuery Create(FileCommand jsonCommand)
-    {
-        var parser = new Parser(new JsonGrammar());
-        var parseTree = parser.Parse(jsonCommand.CommandText);
-        if (parseTree.HasErrors())
-        {
-            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
-        }
-        var mainNode = parseTree.Root.ChildNodes[0];
-        switch (mainNode.Term.Name)
-        {
-            case "insertStmt":
-                return new FileInsertQuery(mainNode,
-                                           jsonCommand);
-            case "deleteStmt":
-                return new FileDeleteQuery(mainNode, jsonCommand);
-            case "updateStmt":
-                return new FileUpdateQuery(mainNode,jsonCommand);
-            case "selectStmt":
-                return new FileSelectQuery(mainNode, jsonCommand);
-        }
-
-        throw ThrowHelper.GetQueryNotSupportedException();
-    }
-
-
-  
 
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
@@ -147,4 +118,30 @@ public abstract class FileQuery
             }
         }
     }
+
+    public static FileQuery Create(FileCommand jsonCommand)
+    {
+        var parser = new Parser(new SqlGrammar());
+        var parseTree = parser.Parse(jsonCommand.CommandText);
+        if (parseTree.HasErrors())
+        {
+            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
+        }
+        var mainNode = parseTree.Root.ChildNodes[0];
+        switch (mainNode.Term.Name)
+        {
+            case "insertStmt":
+                return new FileInsertQuery(mainNode,
+                                           jsonCommand);
+            case "deleteStmt":
+                return new FileDeleteQuery(mainNode, jsonCommand);
+            case "updateStmt":
+                return new FileUpdateQuery(mainNode, jsonCommand);
+            case "selectStmt":
+                return new FileSelectQuery(mainNode, jsonCommand);
+        }
+
+        throw ThrowHelper.GetQueryNotSupportedException();
+    }
+
 }

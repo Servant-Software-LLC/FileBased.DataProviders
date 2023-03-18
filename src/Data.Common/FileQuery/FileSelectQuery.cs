@@ -61,6 +61,7 @@ public class FileSelectQuery : FileQuery
         var fromClauseOpt = node
           .ChildNodes
           .First(item => item.Term.Name == "fromClauseOpt");
+
         var table= fromClauseOpt
         .ChildNodes[1]
         .ChildNodes[0]
@@ -133,7 +134,8 @@ public class FileSelectQuery : FileQuery
             AddJoin(list,joinNode.ChildNodes[2]);
         }
     }
-    Join? FindJoin(List<Join> joins, Func<Join, bool> func)
+
+    private Join? FindJoin(List<Join> joins, Func<Join, bool> func)
     {
         foreach (var item in joins)
         {
@@ -145,7 +147,8 @@ public class FileSelectQuery : FileQuery
         }
         return null;
     }
-    Join? FindJoinRecursive(Join join,Func<Join, bool> func)
+
+    private Join? FindJoinRecursive(Join join,Func<Join, bool> func)
     {
         if (func(join))
         {
@@ -161,12 +164,8 @@ public class FileSelectQuery : FileQuery
         }
         return null;
     }
-    private static string GetColumnWithAlias(ParseTreeNode sourceColumnNode)
-    {
-        return $"{sourceColumnNode.ChildNodes[0].Token.ValueString}.{sourceColumnNode.ChildNodes[1].Token.ValueString}";
-    }
 
-    public (string tableName,string alias) GetNameWithAlias(string name)
+    public static (string tableName,string alias) GetNameWithAlias(string name)
     {
         if (name.Contains('.')||name.Contains(' '))
         {
@@ -182,4 +181,9 @@ public class FileSelectQuery : FileQuery
         }
         return (name,"");
     }
+
+    private static string GetColumnWithAlias(ParseTreeNode sourceColumnNode) => 
+        $"{sourceColumnNode.ChildNodes[0].Token.ValueString}.{sourceColumnNode.ChildNodes[1].Token.ValueString}";
+
+
 }

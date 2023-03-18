@@ -5,8 +5,6 @@ public class FileUpdateQuery : FileQuery
 {
     public FileUpdateQuery(ParseTreeNode tree, FileCommand jsonCommand) : base(tree, jsonCommand)
     {
-
-
     }
 
     public override IEnumerable<string> GetColumnNames()
@@ -18,12 +16,7 @@ public class FileUpdateQuery : FileQuery
         return cols;
     }
 
-
-
-    public override string GetTable()
-    {
-        return node.ChildNodes[1].ChildNodes[0].Token.ValueString;
-    }
+    public override string GetTable() => node.ChildNodes[1].ChildNodes[0].Token.ValueString;
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {

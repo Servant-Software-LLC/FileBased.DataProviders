@@ -1,6 +1,4 @@
-﻿
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 
 namespace Data.Common.Utils.ConnectionString;
@@ -63,7 +61,6 @@ public class FileConnectionString : IConnectionStringProperties
 
         ConnectionString = connectionString;
     }
-
 
     private static bool? ConvertToBoolean(object value)
     {

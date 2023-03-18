@@ -1,4 +1,5 @@
 ﻿namespace Data.Xml.JsonJoin;
+
 public class Join
 {
     public string TableName { get; internal set; }

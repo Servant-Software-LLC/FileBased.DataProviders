@@ -1,39 +1,33 @@
 ﻿namespace System.Data.FileClient;
 public abstract class FileCommand : IDbCommand
 {
-    private FileParameterCollection parameters;
-
     public string? CommandText { get; set; } = string.Empty;
     public int CommandTimeout { get; set; }
     public CommandType CommandType { get; set; }
     public IDbConnection? Connection { get; set; }
 
-    public IDataParameterCollection Parameters { get { return parameters; } }
+    public IDataParameterCollection Parameters { get; } = new FileParameterCollection();
     public IDbTransaction? Transaction { get; set; }
     public UpdateRowSource UpdatedRowSource { get; set; }
         
     public FileCommand()
     {
-        parameters = new FileParameterCollection();
     }
 
     public FileCommand(string command)
     {
         CommandText = command;
-        parameters = new FileParameterCollection();
     }
 
     public FileCommand(FileConnection connection)
     {
         Connection = connection;
-        parameters = new FileParameterCollection();
     }
 
     public FileCommand(string cmdText, FileConnection connection)
     {
         CommandText = cmdText;
         Connection = connection;
-        parameters = new FileParameterCollection();
     }
 
     public FileCommand(string cmdText, FileConnection connection, FileTransaction transaction)
@@ -41,7 +35,6 @@ public abstract class FileCommand : IDbCommand
         CommandText = cmdText;
         Connection = connection;
         Transaction = transaction;
-        parameters = new FileParameterCollection();
     }
 
     public void Cancel()
@@ -56,8 +49,9 @@ public abstract class FileCommand : IDbCommand
     {
         Connection?.Close();
         CommandText = string.Empty;
-        parameters.Clear();
+        Parameters.Clear();
     }
+
     public int ExecuteNonQuery()
     {
         ThrowOnInvalidExecutionState();
@@ -89,7 +83,8 @@ public abstract class FileCommand : IDbCommand
     }
 
     public void Prepare() => throw new NotImplementedException();
-    public   object? ExecuteScalar()
+
+    public object? ExecuteScalar()
     {
         ThrowOnInvalidExecutionState();
 
@@ -130,15 +125,15 @@ public abstract class FileCommand : IDbCommand
         return result;
     }
 
+    public IDataReader ExecuteReader() => ExecuteReader(default);
+
     private void ThrowOnInvalidExecutionState()
     {
         if (string.IsNullOrEmpty(CommandText))
-            throw new ArgumentNullException(nameof(CommandText), $"The {nameof(CommandText)} property of {nameof(FileCommand)} must be set prior to execution.");
+            throw new ArgumentNullException(nameof(CommandText), $"The {nameof(CommandText)} property of {GetType().FullName} must be set prior to execution.");
 
         if (Connection == null)
-            throw new ArgumentNullException(nameof(Connection), $"The {nameof(Connection)} property of {nameof(FileCommand)} must be set prior to execution.");
+            throw new ArgumentNullException(nameof(Connection), $"The {nameof(Connection)} property of {GetType().FullName} must be set prior to execution.");
     }
 
-    public IDataReader ExecuteReader() => ExecuteReader(default);
-  
 }

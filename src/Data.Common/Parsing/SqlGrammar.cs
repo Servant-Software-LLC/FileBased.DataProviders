@@ -1,12 +1,12 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Common.Grammer;
+namespace Data.Common.Parsing;
 
 // Loosely based on SQL89 grammar from Gold parser. Supports some extra TSQL constructs.
 [Language("SQL", "89", "SQL 89 grammar")]
-public class JsonGrammar : Grammar
+public class SqlGrammar : Grammar
 {
-    public JsonGrammar() : base(false)
+    public SqlGrammar() : base(false)
     { //SQL is case insensitive
       //Terminals
         var comment = new CommentTerminal("comment", "/*", "*/");

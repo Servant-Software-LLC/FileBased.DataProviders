@@ -11,15 +11,11 @@ public class SimpleFilter : Filter
         this.op = op;
         this.value = value;
     }
-    public override string ToString()
-    {
-        return $"{propName} {ChangeOp(op)} '{value}'";
-    }
-    public override string Evaluate()
-    {
-        return ToString();
-    }
-    public string ChangeOp(string op)
+
+    public override string ToString() => $"{propName} {ChangeOp(op)} '{value}'";
+    public override string Evaluate() => ToString();
+
+    public static string ChangeOp(string op)
     {
         return op switch
         {

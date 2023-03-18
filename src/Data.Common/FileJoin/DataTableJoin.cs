@@ -43,6 +43,7 @@ public class DataTableJoin
         }
         return resultTable;
     }
+
     public List<DataRow> JoinRows(DataRow sourceRow,
                                   DataTable resultTable,
                                   Join dataTableInnerJoin,

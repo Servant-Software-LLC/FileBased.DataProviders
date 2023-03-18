@@ -1,5 +1,6 @@
 ﻿using Irony.Parsing;
 namespace Data.Common.FileQuery;
+
 public class FileInsertQuery : FileQuery
 {
     public FileInsertQuery(ParseTreeNode node, FileCommand jsonCommand) : base(node, jsonCommand)
@@ -30,8 +31,6 @@ public class FileInsertQuery : FileQuery
        .Select(item => item.ChildNodes[0].Token.ValueString);
         return cols;
     }
-    public override string GetTable()
-    {
-        return node.ChildNodes[2].ChildNodes[0].Token.ValueString;
-    }
+
+    public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
 }

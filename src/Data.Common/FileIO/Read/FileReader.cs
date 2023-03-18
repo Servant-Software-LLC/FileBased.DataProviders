@@ -5,7 +5,6 @@ public abstract class FileReader : IDisposable
     protected readonly FileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
-
     public DataSet? DataSet { get; protected set; }
 
     public FileReader(FileConnection fileConnection)
@@ -13,7 +12,6 @@ public abstract class FileReader : IDisposable
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
 
         DataSet = null;
-
     }
 
     public void StartWatching()
@@ -41,9 +39,6 @@ public abstract class FileReader : IDisposable
 
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
-
-   
-
 
     public DataTable ReadFile(FileQuery.FileQuery jsonQueryParser, bool shouldLock = false)
     {
@@ -162,16 +157,8 @@ public abstract class FileReader : IDisposable
 
     protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
     protected abstract void UpdateFromFolder(string tableName);
-
-    #region File Read Update
     protected abstract void ReadFromFile();
     protected abstract void UpdateFromFile();
-
- 
-    #endregion
-
-
- 
    
     public void Dispose()
     {

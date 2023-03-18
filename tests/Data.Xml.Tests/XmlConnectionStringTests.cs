@@ -1,5 +1,4 @@
 ﻿using Data.Common.Utils.ConnectionString;
-using Data.Common.Utils.ConnectionString;
 using Xunit;
 
 namespace Data.Xml.Tests;

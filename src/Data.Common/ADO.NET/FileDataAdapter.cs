@@ -3,10 +3,12 @@
 public abstract class FileDataAdapter : IDataAdapter
 {
     private DataRow? lastDataRowChanged;
-    private FileConnection connection;
+    private FileConnection? connection;
+
     public FileDataAdapter()
     {
     }
+
     public FileDataAdapter(string query, FileConnection connection)
     {
         if (string.IsNullOrEmpty(query))
@@ -22,8 +24,14 @@ public abstract class FileDataAdapter : IDataAdapter
     public FileDataAdapter(FileCommand selectCommand)
     {
         SelectCommand = selectCommand ?? throw new ArgumentNullException(nameof(selectCommand));
-            var con=SelectCommand.Connection ?? throw new ArgumentNullException(nameof(connection));
-        connection = (FileConnection)con;
+        
+        if (SelectCommand.Connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        if (SelectCommand.Connection is not FileConnection selectConnection)
+            throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection)}");
+
+        connection = selectConnection;
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
         {
             throw new ArgumentException($"'{nameof(FileCommand.CommandText)}' cannot be null or empty.", nameof(SelectCommand.CommandText));
@@ -41,6 +49,9 @@ public abstract class FileDataAdapter : IDataAdapter
 
     public int Fill(DataSet dataSet)
     {
+        if (connection == null)
+            throw new InvalidOperationException($"A connection cannot be inferred when calling the {nameof(Fill)} method");
+
         if (SelectCommand == null)
             throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
 

@@ -9,15 +9,8 @@ public class OrFilter : Filter
         Left = left;
         Right = right;
     }
-    public override string Evaluate()
-    {
-        return ToString();
-
-    }
-    public override string ToString()
-    {
-        return $"{Left.Evaluate()} OR {Right.Evaluate()}";
-    }
+    public override string Evaluate() => ToString();
+    public override string ToString() => $"{Left.Evaluate()} OR {Right.Evaluate()}";
 }
 
 

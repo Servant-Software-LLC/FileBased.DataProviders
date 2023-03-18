@@ -3,7 +3,7 @@
 public abstract class FileConnection : IDbConnection, IConnectionStringProperties
 {
     private readonly FileConnectionString connectionString = new();
-    private ConnectionState state;
+
     public abstract string FileExtension { get; }
     public string? ConnectionString { get => connectionString.ConnectionString!; set => connectionString.Parse(value); }
     public string? DataSource => connectionString.DataSource;
@@ -11,17 +11,17 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
 
     public int ConnectionTimeout { get; }
     public string Database => connectionString.DataSource ?? string.Empty;
-    public ConnectionState State => state;
+    public ConnectionState State { get; private set; }
  
     protected FileConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
         this.connectionString.Parse(connectionString);
-        state = ConnectionState.Closed;
+        State = ConnectionState.Closed;
     }
 
 
-  
+ 
     public PathType PathType => this.GetPathType();
 
     public FileReader FileReader { get; protected set; }
@@ -38,7 +38,7 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
         
     }
 
-    public void Close() => state = ConnectionState.Closed;
+    public void Close() => State = ConnectionState.Closed;
 
     public abstract IDbCommand CreateCommand();
   
@@ -47,14 +47,12 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
     public virtual void Open()
     {
         ThrowHelper.ThrowIfInvalidPath(PathType);
-        state = ConnectionState.Open;
+        State = ConnectionState.Open;
     }
 
     public virtual void Dispose()
     {
-        state = ConnectionState.Closed;
-      
-        
+        State = ConnectionState.Closed;
     }
 
 }

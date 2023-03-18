@@ -1,16 +1,18 @@
 ﻿namespace System.Data.FileClient;
+
 public class FileTransaction : IDbTransaction
 {
-    private FileConnection _connection;
-    private IsolationLevel _isolationLevel;
-    internal bool TransactionDone = false;
-    public readonly List<FileWriter> Writers 
-        =new List<FileWriter>();
+    private readonly FileConnection connection;
+    private readonly IsolationLevel isolationLevel;
+    internal bool TransactionDone { get; private set; } = false;
+
     public FileTransaction(FileConnection connection, IsolationLevel isolationLevel = default)
     {
-        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
-        _isolationLevel = isolationLevel;
+        this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        this.isolationLevel = isolationLevel;
     }
+
+    public readonly List<FileWriter> Writers = new List<FileWriter>();
 
     public void Commit()
     {
@@ -41,7 +43,7 @@ public class FileTransaction : IDbTransaction
         Writers.Clear();
     }
 
-    public IDbConnection Connection => _connection;
+    public IDbConnection Connection => connection;
 
-    public IsolationLevel IsolationLevel => _isolationLevel;
+    public IsolationLevel IsolationLevel => isolationLevel;
 }

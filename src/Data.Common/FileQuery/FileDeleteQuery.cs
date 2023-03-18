@@ -9,10 +9,5 @@ public class FileDeleteQuery : FileQuery
     {
         throw new NotImplementedException();
     }
-    public override string GetTable()
-    {
-        return node
-         .ChildNodes[2].ChildNodes[0].Token.ValueString;
-
-    }
+    public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
 }

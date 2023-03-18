@@ -27,15 +27,12 @@ public class FileDataReader : IDataReader
     public bool IsClosed => FileEnumerator == null;
     public int RecordsAffected => -1;
 
-    public void Close()
-    {
-        Dispose();
-    }
+    public void Close() => Dispose();
 
     public DataTable GetSchemaTable()
     {
         DataTable tempSchemaTable = new DataTable("SchemaTable");
-        tempSchemaTable.Locale = System.Globalization.CultureInfo.InvariantCulture;
+        tempSchemaTable.Locale = Globalization.CultureInfo.InvariantCulture;
 
         DataColumn ColumnName = new DataColumn(SchemaTableColumn.ColumnName, typeof(string));
         DataColumn ColumnOrdinal = new DataColumn(SchemaTableColumn.ColumnOrdinal, typeof(int));
@@ -176,15 +173,9 @@ public class FileDataReader : IDataReader
 
     public int FieldCount => FileEnumerator.FieldCount;
 
-    public bool GetBoolean(int i)
-    {
-        return GetValueAsType<bool>(i);
-    }
+    public bool GetBoolean(int i) => GetValueAsType<bool>(i);
 
-    public byte GetByte(int i)
-    {
-        return GetValueAsType<byte>(i);
-    }
+    public byte GetByte(int i) => GetValueAsType<byte>(i);
 
     public long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
     {
@@ -223,10 +214,7 @@ public class FileDataReader : IDataReader
 
     }
 
-    public char GetChar(int i)
-    {
-        return GetValueAsType<char>(i);
-    }
+    public char GetChar(int i) => GetValueAsType<char>(i);
 
     public long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
     {
@@ -267,10 +255,7 @@ public class FileDataReader : IDataReader
     }
 
 
-    public IDataReader GetData(int i)
-    {
-        throw new NotSupportedException();
-    }
+    public IDataReader GetData(int i) => throw new NotSupportedException();
 
     public string GetDataTypeName(int i) => GetValueAsType<string>(i).GetType().Name;
     public DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
@@ -311,6 +296,7 @@ public class FileDataReader : IDataReader
             return GetValue(ordinal);
         }
     }
+
     public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(currentDataRow![index], typeof(T))!;
 
 

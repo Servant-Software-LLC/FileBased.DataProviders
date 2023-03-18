@@ -2,12 +2,12 @@
 
 public abstract class FileDelete : FileWriter
 {
-    internal readonly FileDeleteQuery Query;
+    private readonly FileDeleteQuery query;
 
     public FileDelete(FileDeleteQuery queryParser, FileConnection jsonConnection,FileCommand jsonCommand)
         : base(jsonConnection, jsonCommand, queryParser)
     {
-        this.Query = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        query = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }
 
     public override int Execute()
@@ -18,11 +18,11 @@ public abstract class FileDelete : FileWriter
             _rwLock.EnterWriteLock();
             fileReader.StopWatching();
 
-            var dataTable = fileReader.ReadFile(Query);
+            var dataTable = fileReader.ReadFile(query);
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = Query.Filter?.ToString();
+            dataView.RowFilter = query.Filter?.ToString();
 
             var rowsAffected = dataView.Count;
             //don't update now if it is a transaction

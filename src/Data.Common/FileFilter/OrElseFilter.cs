@@ -1,4 +1,5 @@
 ﻿namespace Data.Common.FileFilter;
+
 public class OrElseFilter : Filter
 {
     public Filter Left { get; set; }
@@ -8,15 +9,8 @@ public class OrElseFilter : Filter
         Left = left;
         Right = right;
     }
-    public override string ToString()
-    {
-        return $"{Left.Evaluate()} || ({Right.Evaluate()})";
-    }
-    public override string Evaluate()
-    {
-        return ToString();
-
-    }
+    public override string ToString() => $"{Left.Evaluate()} || ({Right.Evaluate()})";
+    public override string Evaluate() => ToString();
 }
 
 

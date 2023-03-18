@@ -57,7 +57,7 @@ public class FileParameter : IDbDataParameter
     public byte Scale { get ; set; }
     public int Size { get ; set; }
 
-    private DbType InferType(object value)
+    private static DbType InferType(object value)
     {
         switch (Type.GetTypeCode(value.GetType()))
         {
