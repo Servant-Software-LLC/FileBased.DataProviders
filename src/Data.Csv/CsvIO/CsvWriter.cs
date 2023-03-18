@@ -1,5 +1,7 @@
 ﻿using CsvHelper;
+
 namespace Data.Csv.CsvIO;
+
 internal class CsvDataSetWriter : IDataSetWriter
 {
     private readonly FileConnection fileConnection;
@@ -22,6 +24,7 @@ internal class CsvDataSetWriter : IDataSetWriter
             throw new InvalidOperationException("File as database is not supported in Csv Provider");
         }
     }
+
     private void SaveFolderAsDB(string? tableName, DataSet dataSet)
     {
         var tablesToWrite = dataSet!.Tables.Cast<DataTable>();

@@ -33,6 +33,7 @@ namespace Data.Xml.Tests.FolderAsDatabase
             // Close the connection
             connection.Close();
         }
+
         [Fact]
         public void Adapter_ShouldReturnData()
         {
@@ -153,8 +154,6 @@ namespace Data.Xml.Tests.FolderAsDatabase
             // Close the connection
             connection.Close();
         }
-
-
 
         [Fact]
         public void FillSchema_ShouldReturnDataTableWithAllColumns()

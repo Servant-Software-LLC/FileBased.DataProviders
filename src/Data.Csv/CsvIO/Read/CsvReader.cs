@@ -1,10 +1,10 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
+﻿using CsvHelper.Configuration;
 using System.Globalization;
+
 namespace Data.Csv.CsvIO.Read;
+
 public class CsvReader : FileReader
-{
-    
+{    
     public CsvReader(FileConnection connection) 
         : 
         base(connection)
@@ -50,6 +50,7 @@ public class CsvReader : FileReader
         DataSet!.Tables.Add(dataTable);
     }
     #endregion
+
     #region File Read Update
     protected override void ReadFromFile()
     {

@@ -15,11 +15,12 @@ public class CsvDataAdapter : FileDataAdapter
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
         FileDeleteQuery deleteQuery =>
-        new CsvDelete(deleteQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+            new CsvDelete(deleteQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
         FileInsertQuery insertQuery =>
-        new CsvInsert(insertQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+            new CsvInsert(insertQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
         FileUpdateQuery updateQuery =>
-      new CsvUpdate(updateQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+            new CsvUpdate(updateQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+
         _ => throw new InvalidOperationException("query not supported")
     };
 }

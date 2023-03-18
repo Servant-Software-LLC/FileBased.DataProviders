@@ -29,7 +29,6 @@ public partial class CsvTransactionTests
         int rowsAffected = command.ExecuteNonQuery();
 
 
-
         // Create a command to insert data into the employees table
         command = new CsvCommand("INSERT INTO employees (name, salary) VALUES (@Name, @Salary)", connection, transaction);
         command.Parameters.Add(new CsvParameter("Name", "Smith Kline"));
@@ -190,6 +189,5 @@ public partial class CsvTransactionTests
         // Close the connection
         connection.Close();
     }
-
 
 }

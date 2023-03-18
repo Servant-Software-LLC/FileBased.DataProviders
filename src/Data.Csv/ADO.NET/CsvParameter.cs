@@ -14,7 +14,8 @@ public class CsvParameter : FileParameter
     {
     }
 
-    public CsvParameter(string parameterName, DbType dbType, string sourceColumn) : base(parameterName, dbType, sourceColumn)
+    public CsvParameter(string parameterName, DbType dbType, string sourceColumn) 
+        : base(parameterName, dbType, sourceColumn)
     {
     }
 }

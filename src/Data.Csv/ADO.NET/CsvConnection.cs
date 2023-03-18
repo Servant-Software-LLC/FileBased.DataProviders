@@ -8,24 +8,18 @@ public class CsvConnection : FileConnection
         base(connectionString)
     {
         FileReader = new CsvReader(this);
-
     }
 
 
-    public override string FileExtension
-    {
-        get
-        {
-            return "csv";
-        }
-    }
+    public override string FileExtension => "csv";
+
     public override void Open()
     {
         base.Open();
 
         EnsureNotFileAsDatabase();
-
     }
+
     public override void ChangeDatabase(string constring)
     {
         base.ChangeDatabase(constring);
@@ -40,16 +34,9 @@ public class CsvConnection : FileConnection
         }
     }
 
-    public override IDbTransaction BeginTransaction()
-    {
-        return new CsvTransaction(this, default);
-    }
+    public override IDbTransaction BeginTransaction() => new CsvTransaction(this, default);
 
     public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
-    public override IDbCommand CreateCommand()
-    {
-        return new CsvCommand();
-    }
-
+    public override IDbCommand CreateCommand() => new CsvCommand();
 }
