@@ -2,8 +2,7 @@
 
 public class XmlDataReader : FileDataReader
 {
-    public XmlDataReader(FileQuery queryParser, 
-        FileReader fileReader) 
+    public XmlDataReader(FileQuery queryParser, FileReader fileReader) 
         : base(queryParser, fileReader)
     {
     }

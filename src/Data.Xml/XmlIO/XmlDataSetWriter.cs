@@ -1,4 +1,6 @@
-﻿internal class XmlDataSetWriter : IDataSetWriter
+﻿namespace Data.Xml.XmlIO;
+
+internal class XmlDataSetWriter : IDataSetWriter
 {
     private readonly FileConnection fileConnection;
     private readonly FileQuery fileQuery;

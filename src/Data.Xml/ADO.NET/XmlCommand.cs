@@ -18,28 +18,25 @@ public class XmlCommand : FileCommand
     {
     }
 
-    public XmlCommand(string cmdText, XmlConnection connection, XmlTransaction transaction) : base(cmdText, connection, transaction)
+    public XmlCommand(string cmdText, XmlConnection connection, XmlTransaction transaction) 
+        : base(cmdText, connection, transaction)
     {
     }
 
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
         FileDeleteQuery deleteQuery =>
-        new XmlDelete(deleteQuery, (XmlConnection)Connection!, this),
+            new XmlDelete(deleteQuery, (XmlConnection)Connection!, this),
         FileInsertQuery insertQuery =>
-        new XmlInsert(insertQuery, (XmlConnection)Connection!, this),
+            new XmlInsert(insertQuery, (XmlConnection)Connection!, this),
         FileUpdateQuery updateQuery =>
-      new XmlUpdate(updateQuery, (XmlConnection)Connection!, this),
+            new XmlUpdate(updateQuery, (XmlConnection)Connection!, this),
+
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override FileDataReader CreateDataReader(FileQuery queryParser)
-    {
-        return new XmlDataReader(queryParser, ((XmlConnection)Connection!).FileReader);
-    }
+    protected override FileDataReader CreateDataReader(FileQuery queryParser) => 
+        new XmlDataReader(queryParser, ((XmlConnection)Connection!).FileReader);
 
-    public override IDbDataParameter CreateParameter()
-    {
-        return new XmlParameter();
-    }
+    public override IDbDataParameter CreateParameter() => new XmlParameter();
 }

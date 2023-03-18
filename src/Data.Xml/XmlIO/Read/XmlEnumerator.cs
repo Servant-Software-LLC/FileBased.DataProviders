@@ -1,4 +1,5 @@
 ﻿namespace Data.Xml.XmlIO.Read;
+
 internal class XmlEnumerator : IEnumerator<object?[]>
 {
     private readonly DataView workingDataView;  // We cannot use the DefaultView of the DataTable, because workingResultset may be a pointer directly to
@@ -35,7 +36,6 @@ internal class XmlEnumerator : IEnumerator<object?[]>
     public int CurrentIndex { get; private set; } = -1;
     public List<string> Columns { get; } = new List<string>();
     public int FieldCount => Columns.Count;
-
 
     public bool MoveNext()
     {

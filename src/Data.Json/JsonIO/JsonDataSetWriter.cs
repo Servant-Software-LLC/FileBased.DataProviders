@@ -1,4 +1,5 @@
 ﻿namespace Data.Json.JsonIO;
+
 internal class JsonDataSetWriter : IDataSetWriter
 {
     private readonly FileConnection fileConnection;

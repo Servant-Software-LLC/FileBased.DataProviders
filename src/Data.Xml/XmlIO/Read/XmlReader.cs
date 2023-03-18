@@ -1,5 +1,5 @@
-﻿
-namespace Data.Xml.XmlIO.Read;
+﻿namespace Data.Xml.XmlIO.Read;
+
 public class XmlReader : FileReader
 {
     public XmlReader(FileConnection connection) 
@@ -40,7 +40,7 @@ public class XmlReader : FileReader
         oldDataTable.TableName = tableName;
         dataSet.Dispose();
     }
-    #region File Read Update
+
     protected override void ReadFromFile()
     {
       
@@ -52,5 +52,4 @@ public class XmlReader : FileReader
         DataSet!.Clear();
         DataSet.ReadXml(fileConnection.Database);
     }
-    #endregion
 }

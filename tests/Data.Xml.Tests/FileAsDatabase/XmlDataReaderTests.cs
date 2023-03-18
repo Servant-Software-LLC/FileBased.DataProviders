@@ -161,5 +161,4 @@ public class XmlDataReaderTests
         connection.Close();
     }
 
-
 }

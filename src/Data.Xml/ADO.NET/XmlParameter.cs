@@ -14,7 +14,8 @@ public class XmlParameter : FileParameter
     {
     }
 
-    public XmlParameter(string parameterName, DbType dbType, string sourceColumn) : base(parameterName, dbType, sourceColumn)
+    public XmlParameter(string parameterName, DbType dbType, string sourceColumn) 
+        : base(parameterName, dbType, sourceColumn)
     {
     }
 }
