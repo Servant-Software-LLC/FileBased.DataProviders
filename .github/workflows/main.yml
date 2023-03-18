@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 env:
+  TargetFramework:  net7.0
   BuildConfiguration: Release
   DataJsonPackageId: ServantSoftware.Data.Json
   DataJsonPackageVersion: 1.0.0.${{github.run_number}}
@@ -34,11 +35,21 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration $BuildConfiguration
 
+    - name: Obfuscate assemblies (ArmDot)
+      run: |
+        sudo apt update && \
+        sudo apt install -y curl && \
+        curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
+        tar -zxvf armdot.tar.gz && \
+        chmod +x ./bin/ArmDotConsole && \
+        echo "${{secrets.ARMDOT_LICENSE_KEY}}" >> ${{github.workspace}}/.github/workflows/ArmDot.License.txt
+        sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation
+
     - name: Test
       run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
-
+      
     - name: Create nuget packages
-      run: dotnet pack DataProviders.sln --configuration $BuildConfiguration
+      run: dotnet pack DataProviders.sln --configuration $BuildConfiguration --no-build 
 
     - uses: actions/upload-artifact@v3
       with:
