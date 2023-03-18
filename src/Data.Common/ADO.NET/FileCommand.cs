@@ -1,4 +1,5 @@
 ﻿namespace System.Data.FileClient;
+
 public abstract class FileCommand : IDbCommand
 {
     public string? CommandText { get; set; } = string.Empty;

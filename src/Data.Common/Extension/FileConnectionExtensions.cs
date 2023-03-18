@@ -1,4 +1,5 @@
 ﻿namespace Data.Common.Extension;
+
 public static class FileConnectionExtensions
 {
     public static string GetTablePath(this FileConnection fileConnection, string tableName)
