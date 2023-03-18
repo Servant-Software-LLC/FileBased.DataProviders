@@ -7,6 +7,7 @@
     <Version>1.0.0.0</Version>
     <IsPackable>true</IsPackable>
 	<ImplicitUsings>enable</ImplicitUsings>
+    <OutputPath>..\bin\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
