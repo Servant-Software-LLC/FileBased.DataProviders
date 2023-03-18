@@ -6,7 +6,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Version>1.0.0.0</Version>
     <IsPackable>true</IsPackable>
-
+	<ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
