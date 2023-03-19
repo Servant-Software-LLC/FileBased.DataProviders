@@ -15,6 +15,6 @@ public class XmlConnection : FileConnection
 
     public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
-    public override IDbCommand CreateCommand() => new XmlCommand();
+    public override IDbCommand CreateCommand() => new XmlCommand(this);
 
 }

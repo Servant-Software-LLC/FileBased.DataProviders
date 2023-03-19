@@ -38,5 +38,5 @@ public class CsvConnection : FileConnection
 
     public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
-    public override IDbCommand CreateCommand() => new CsvCommand();
+    public override IDbCommand CreateCommand() => new CsvCommand(this);
 }
