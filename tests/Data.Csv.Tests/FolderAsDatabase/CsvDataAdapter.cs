@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase
 {
-    public partial class JsonDataAdapterTests
+    public partial class CsvDataAdapterTests
     {
         [Fact]
         public void DataAdapter_ShouldFillTheDataSet()
