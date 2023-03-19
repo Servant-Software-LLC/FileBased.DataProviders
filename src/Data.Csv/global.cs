@@ -5,7 +5,7 @@ global using Data.Common.FileQuery;
 global using Data.Common.FileIO;
 global using Data.Common.FileIO.Delete;
 global using Data.Common.FileFilter;
-global using System.Data.XmlClient;
+global using System.Data.CsvClient;
 global using Data.Csv.CsvIO;
 global using Data.Csv.CsvIO.Read;
 global using Data.Csv.CsvIO.Write;

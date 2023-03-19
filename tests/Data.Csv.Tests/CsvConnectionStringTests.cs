@@ -1,7 +1,7 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Xunit;
 
-namespace Data.Xml.Tests;
+namespace Data.Csv.Tests;
 
 public class CsvConnectionStringTests
 {

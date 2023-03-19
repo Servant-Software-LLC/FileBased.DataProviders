@@ -1,4 +1,4 @@
-﻿namespace Data.Xml.Tests;
+﻿namespace Data.Csv.Tests;
 
 public static class ConnectionStrings
 {

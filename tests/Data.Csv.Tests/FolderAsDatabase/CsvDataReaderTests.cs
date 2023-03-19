@@ -1,8 +1,8 @@
 ﻿using Data.Common.Extension;
-using System.Data.XmlClient;
+using System.Data.CsvClient;
 using Xunit;
 
-namespace Data.Xml.Tests.FolderAsDatabase;
+namespace Data.Csv.Tests.FolderAsDatabase;
 
 /// <summary>
 /// Tests that exercise the <see cref="CsvDataReader"/> class.

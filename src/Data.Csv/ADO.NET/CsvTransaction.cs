@@ -1,4 +1,4 @@
-﻿namespace System.Data.XmlClient;
+﻿namespace System.Data.CsvClient;
 
 public class CsvTransaction : FileTransaction
 {

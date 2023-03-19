@@ -1,7 +1,7 @@
-﻿using System.Data.XmlClient;
+﻿using System.Data.CsvClient;
 using Xunit;
 
-namespace Data.Xml.Tests.FolderAsDatabase;
+namespace Data.Csv.Tests.FolderAsDatabase;
 
 /// <summary>
 /// These tests indirectly exercise the <see cref="JsonIO.Write.JsonUpdate"/> class via calls to <see cref="CsvCommand.ExecuteNonQuery" />/>. 

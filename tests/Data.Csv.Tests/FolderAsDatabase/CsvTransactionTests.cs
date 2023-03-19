@@ -1,9 +1,9 @@
 ﻿using Data.Common.Extension;
 using System.Data;
-using System.Data.XmlClient;
+using System.Data.CsvClient;
 using Xunit;
 
-namespace Data.Xml.Tests.FolderAsDatabase;
+namespace Data.Csv.Tests.FolderAsDatabase;
 
 public partial class CsvTransactionTests
 {
