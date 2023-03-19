@@ -6,10 +6,10 @@ namespace Data.Csv.CsvIO.Read;
 public class CsvReader : FileReader
 {    
     public CsvReader(FileConnection connection) 
-        : 
-        base(connection)
+        : base(connection)
     {
     }
+
     void FillDataTable(string path,DataTable dataTable)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -26,7 +26,6 @@ public class CsvReader : FileReader
             }
         }
     }
-
    
     #region Folder Read Update
     protected override void ReadFromFolder(IEnumerable<string> tableNames)
@@ -39,6 +38,7 @@ public class CsvReader : FileReader
             DataSet!.Tables.Add(dataTable);
         }
     }
+
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
@@ -52,13 +52,12 @@ public class CsvReader : FileReader
     #endregion
 
     #region File Read Update
-    protected override void ReadFromFile()
-    {
-      //do nothing
-    }
-    protected override void UpdateFromFile()
-    {
-      //do nothing
-    }
+
+    protected override void ReadFromFile() => 
+        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
+
+    protected override void UpdateFromFile() =>
+        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
+
     #endregion
 }
