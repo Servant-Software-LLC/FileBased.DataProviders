@@ -155,7 +155,67 @@ namespace Data.Json.Tests.FileAsDatabase
             // Close the connection
             connection.Close();
         }
-         
+
+        [Fact]
+        public void Update_DataAdapter_Should_Update_Existing_Row()
+        {
+            // Arrange - create connection and commands to insert and update data
+            var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+            connection.Open();
+
+            var locationInsertCommand = new JsonCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', '90001')", connection);
+            var employeeInsertCommand = new JsonCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)", connection);
+
+            var locationUpdateCommand = new JsonCommand("UPDATE locations SET zip = '32655' WHERE city = 'Boston'", connection);
+            var employeeUpdateCommand = new JsonCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'", connection);
+
+            var locationSelectCommand = new JsonCommand("SELECT city, state, zip FROM locations WHERE zip = '32655'", connection);
+            var employeeSelectCommand = new JsonCommand("SELECT name, salary FROM employees WHERE name = 'Alice'", connection);
+
+            // Act - insert a row into locations and employees tables
+            locationInsertCommand.ExecuteNonQuery();
+            employeeInsertCommand.ExecuteNonQuery();
+
+            // Update the inserted row using a DataAdapter
+            var adapter = new JsonDataAdapter(locationSelectCommand);
+            adapter.UpdateCommand = locationUpdateCommand;
+            var dataSet = new DataSet();
+            adapter.Fill(dataSet);
+            adapter.Update(dataSet);
+
+
+            adapter = new JsonDataAdapter(employeeSelectCommand);
+            adapter.UpdateCommand = employeeUpdateCommand;
+            dataSet = new DataSet();
+            adapter.Fill(dataSet);
+            adapter.Update(dataSet);
+
+            // Act - retrieve the updated data using a DataReader
+            dataSet = new DataSet();
+            adapter = new JsonDataAdapter(locationSelectCommand);
+            adapter.Fill(dataSet);
+            var dataTable = dataSet.Tables[0];
+            Assert.Single(dataTable.Rows);
+            var row = dataTable.Rows[0];
+            Assert.Equal("Boston", row["city"]);
+            Assert.Equal("MA", row["state"]);
+            Assert.Equal(32655M, row["zip"]);
+
+            dataSet = new DataSet();
+            adapter = new JsonDataAdapter(employeeSelectCommand);
+            adapter.Fill(dataSet);
+            dataTable = dataSet.Tables[0];
+
+            // Assert - check that the updated data is retrieved correctly
+            Assert.Single(dataTable.Rows);
+            row = dataTable.Rows[0];
+            Assert.Equal("Alice", row["name"]);
+            Assert.Equal(60000M, row["salary"]);
+
+            // Close the connection
+            connection.Close();
+        }
+
         [Fact]
         public void FillSchema_ShouldReturnDataTableWithAllColumns()
         {

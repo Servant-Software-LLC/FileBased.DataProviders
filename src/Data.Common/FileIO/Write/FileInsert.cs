@@ -1,4 +1,5 @@
 ﻿namespace Data.Common.FileIO.Write;
+
 public abstract class FileInsert : FileWriter
 {
     private readonly FileInsertQuery queryParser;
@@ -27,7 +28,8 @@ public abstract class FileInsert : FileWriter
             {
                 row[val.Key] = val.Value;
             }
-                dataTable.Rows.Add(row);
+            
+            dataTable.Rows.Add(row);
         }
         finally
         {

@@ -11,5 +11,6 @@ public static class ConnectionStrings
 
     public static string eComDBConnectionString = $"Data Source={eComDataBase}";
 
-    public static string AddFormatted(string connectionString, bool formatted) => connectionString += $"; Formatted={formatted}";
+    public static string AddFormatted(this string connectionString, bool formatted) => 
+        connectionString += $"; Formatted={formatted}";
 }

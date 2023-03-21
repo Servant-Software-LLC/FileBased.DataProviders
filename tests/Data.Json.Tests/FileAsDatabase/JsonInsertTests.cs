@@ -36,7 +36,7 @@ public class JsonInsertTests
     public void Insert_JsonShouldBeFormatted()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.AddFormatted(ConnectionStrings.FileAsDBConnectionString, true));
+        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString.AddFormatted(true));
         connection.Open();
 
         // Act - Insert a new record into the locations table

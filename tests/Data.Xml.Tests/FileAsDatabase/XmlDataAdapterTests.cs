@@ -157,6 +157,66 @@ public partial class XmlDataAdapterTests
     }
 
     [Fact]
+    public void Update_DataAdapter_Should_Update_Existing_Row()
+    {
+        // Arrange - create connection and commands to insert and update data
+        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        connection.Open();
+
+        var locationInsertCommand = new XmlCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', '90001')", connection);
+        var employeeInsertCommand = new XmlCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)", connection);
+
+        var locationUpdateCommand = new XmlCommand("UPDATE locations SET zip = '32655' WHERE city = 'Boston'", connection);
+        var employeeUpdateCommand = new XmlCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'", connection);
+
+        var locationSelectCommand = new XmlCommand("SELECT city, state, zip FROM locations WHERE zip = '32655'", connection);
+        var employeeSelectCommand = new XmlCommand("SELECT name, salary FROM employees WHERE name = 'Alice'", connection);
+
+        // Act - insert a row into locations and employees tables
+        locationInsertCommand.ExecuteNonQuery();
+        employeeInsertCommand.ExecuteNonQuery();
+
+        // Update the inserted row using a DataAdapter
+        var adapter = new XmlDataAdapter(locationSelectCommand);
+        adapter.UpdateCommand = locationUpdateCommand;
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+        adapter.Update(dataSet);
+
+
+        adapter = new XmlDataAdapter(employeeSelectCommand);
+        adapter.UpdateCommand = employeeUpdateCommand;
+        dataSet = new DataSet();
+        adapter.Fill(dataSet);
+        adapter.Update(dataSet);
+
+        // Act - retrieve the updated data using a DataReader
+        dataSet = new DataSet();
+        adapter = new XmlDataAdapter(locationSelectCommand);
+        adapter.Fill(dataSet);
+        var dataTable = dataSet.Tables[0];
+        Assert.Single(dataTable.Rows);
+        var row = dataTable.Rows[0];
+        Assert.Equal("Boston", row["city"]);
+        Assert.Equal("MA", row["state"]);
+        Assert.Equal(32655M, row["zip"]);
+
+        dataSet = new DataSet();
+        adapter = new XmlDataAdapter(employeeSelectCommand);
+        adapter.Fill(dataSet);
+        dataTable = dataSet.Tables[0];
+
+        // Assert - check that the updated data is retrieved correctly
+        Assert.Single(dataTable.Rows);
+        row = dataTable.Rows[0];
+        Assert.Equal("Alice", row["name"]);
+        Assert.Equal(60000M, row["salary"]);
+
+        // Close the connection
+        connection.Close();
+    }
+
+    [Fact]
     public void FillSchema_ShouldReturnDataTableWithAllColumns()
     {
         // Arrange
