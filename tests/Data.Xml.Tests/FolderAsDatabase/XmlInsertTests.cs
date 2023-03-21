@@ -55,7 +55,7 @@ public class XmlInsertTests
     public void Insert_JsonShouldBeFormatted()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.AddFormatted(ConnectionStrings.FolderAsDBConnectionString, true));
+        var connection = new XmlConnection(ConnectionStrings.FolderAsDBConnectionString.AddFormatted(true));
         connection.Open();
 
         // Act - Insert a new record into the locations table
