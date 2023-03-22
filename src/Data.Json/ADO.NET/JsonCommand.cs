@@ -23,6 +23,10 @@ public class JsonCommand : FileCommand
     {
     }
 
+    public override IDbDataParameter CreateParameter() => new JsonParameter();
+
+    public override FileDataAdapter CreateAdapter() => new JsonDataAdapter(this);
+
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
         FileDeleteQuery deleteQuery =>
@@ -38,5 +42,4 @@ public class JsonCommand : FileCommand
     protected override FileDataReader CreateDataReader(FileQuery queryParser) => 
         new JsonDataReader(queryParser, ((JsonConnection)Connection!).FileReader);
 
-    public override IDbDataParameter CreateParameter() => new JsonParameter();
 }

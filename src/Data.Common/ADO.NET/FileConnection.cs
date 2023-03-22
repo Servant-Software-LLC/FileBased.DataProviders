@@ -41,7 +41,7 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
     public void Close() => State = ConnectionState.Closed;
 
     public abstract IDbCommand CreateCommand();
-  
+    public abstract FileCommand CreateCommand(string connectionString);  
 
 
     public virtual void Open()

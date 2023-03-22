@@ -39,4 +39,6 @@ public class XmlCommand : FileCommand
         new XmlDataReader(queryParser, ((XmlConnection)Connection!).FileReader);
 
     public override IDbDataParameter CreateParameter() => new XmlParameter();
+
+    public override FileDataAdapter CreateAdapter() => new XmlDataAdapter(this);
 }

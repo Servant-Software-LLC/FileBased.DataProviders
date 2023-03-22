@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data.Csv\Data.Csv.csproj" />
+    <ProjectReference Include="..\Data.Tests.Common\Data.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

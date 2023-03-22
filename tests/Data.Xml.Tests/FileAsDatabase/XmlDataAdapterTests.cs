@@ -1,5 +1,7 @@
-﻿using System.Data;
+﻿using Data.Tests.Common;
+using System.Data;
 using System.Data.XmlClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Xml.Tests.FileAsDatabase;
@@ -10,7 +12,7 @@ public partial class XmlDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         var adapter = new XmlDataAdapter("SELECT * FROM locations", connection);
 
         // Act
@@ -37,7 +39,7 @@ public partial class XmlDataAdapterTests
     public void Adapter_ShouldReturnData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         var adapter = new XmlDataAdapter("SELECT * FROM employees", connection);
 
         // Act
@@ -75,7 +77,7 @@ public partial class XmlDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet_WithFilter()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         var selectCommand = new XmlCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
         var dataAdapter = new XmlDataAdapter(selectCommand);
         var dataSet = new DataSet();
@@ -102,7 +104,7 @@ public partial class XmlDataAdapterTests
     public void Adapter_ShouldFillDatasetWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
         var command = new XmlCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]", connection);
         var adapter = new XmlDataAdapter(command);
         var dataSet = new DataSet();
@@ -127,7 +129,7 @@ public partial class XmlDataAdapterTests
     public void Adapter_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         var dataSet = new DataSet();
 
         // Act - Query two columns from the locations table
@@ -159,61 +161,10 @@ public partial class XmlDataAdapterTests
     [Fact]
     public void Update_DataAdapter_Should_Update_Existing_Row()
     {
-        // Arrange - create connection and commands to insert and update data
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
-        connection.Open();
-
-        var locationInsertCommand = new XmlCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', '90001')", connection);
-        var employeeInsertCommand = new XmlCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)", connection);
-
-        var locationUpdateCommand = new XmlCommand("UPDATE locations SET zip = '32655' WHERE city = 'Boston'", connection);
-        var employeeUpdateCommand = new XmlCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'", connection);
-
-        var locationSelectCommand = new XmlCommand("SELECT city, state, zip FROM locations WHERE zip = '32655'", connection);
-        var employeeSelectCommand = new XmlCommand("SELECT name, salary FROM employees WHERE name = 'Alice'", connection);
-
-        // Act - insert a row into locations and employees tables
-        locationInsertCommand.ExecuteNonQuery();
-        employeeInsertCommand.ExecuteNonQuery();
-
-        // Update the inserted row using a DataAdapter
-        var adapter = new XmlDataAdapter(locationSelectCommand);
-        adapter.UpdateCommand = locationUpdateCommand;
-        var dataSet = new DataSet();
-        adapter.Fill(dataSet);
-        adapter.Update(dataSet);
-
-
-        adapter = new XmlDataAdapter(employeeSelectCommand);
-        adapter.UpdateCommand = employeeUpdateCommand;
-        dataSet = new DataSet();
-        adapter.Fill(dataSet);
-        adapter.Update(dataSet);
-
-        // Act - retrieve the updated data using a DataReader
-        dataSet = new DataSet();
-        adapter = new XmlDataAdapter(locationSelectCommand);
-        adapter.Fill(dataSet);
-        var dataTable = dataSet.Tables[0];
-        Assert.Single(dataTable.Rows);
-        var row = dataTable.Rows[0];
-        Assert.Equal("Boston", row["city"]);
-        Assert.Equal("MA", row["state"]);
-        Assert.Equal(32655M, row["zip"]);
-
-        dataSet = new DataSet();
-        adapter = new XmlDataAdapter(employeeSelectCommand);
-        adapter.Fill(dataSet);
-        dataTable = dataSet.Tables[0];
-
-        // Assert - check that the updated data is retrieved correctly
-        Assert.Single(dataTable.Rows);
-        row = dataTable.Rows[0];
-        Assert.Equal("Alice", row["name"]);
-        Assert.Equal(60000M, row["salary"]);
-
-        // Close the connection
-        connection.Close();
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+        );
     }
 
     [Fact]
@@ -222,7 +173,7 @@ public partial class XmlDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new XmlDataAdapter();
-        adapter.SelectCommand = new XmlCommand("SELECT * FROM employees", new XmlConnection(ConnectionStrings.FileAsDBConnectionString));
+        adapter.SelectCommand = new XmlCommand("SELECT * FROM employees", new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString));
 
         // Act
         var tables = adapter.FillSchema(dataSet, SchemaType.Source);
@@ -265,7 +216,7 @@ public partial class XmlDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new XmlDataAdapter();
-        adapter.SelectCommand = new XmlCommand("", new XmlConnection(ConnectionStrings.FileAsDBConnectionString));
+        adapter.SelectCommand = new XmlCommand("", new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString));
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
@@ -275,7 +226,7 @@ public partial class XmlDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
         var command = new XmlCommand("SELECT [Name], [Email] FROM [Customers]", connection);
         var adapter = new XmlDataAdapter(command);
 
@@ -291,7 +242,7 @@ public partial class XmlDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
         var command = new XmlCommand("SELECT [Name], [Email] FROM [Customers] WHERE [ID] = @ID", connection);
         command.Parameters.Add(new XmlParameter("@ID", 1));
         var adapter = new XmlDataAdapter(command);
@@ -310,7 +261,7 @@ public partial class XmlDataAdapterTests
     public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
         var command = new XmlCommand("INSERT INTO [Customers] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
         var adapter = new XmlDataAdapter(command);
 

@@ -14,9 +14,12 @@ public abstract class FileDelete : FileWriter
     {
         try
         {
-            //as we have modified the json file so we don't need to update the tables
-            _rwLock.EnterWriteLock();
-            fileReader.StopWatching();
+            if (!IsTransaction)
+            {
+                //as we have modified the json file so we don't need to update the tables
+                _rwLock.EnterWriteLock();
+                fileReader.StopWatching();
+            }
 
             var dataTable = fileReader.ReadFile(query);
 
@@ -26,7 +29,7 @@ public abstract class FileDelete : FileWriter
 
             var rowsAffected = dataView.Count;
             //don't update now if it is a transaction
-            if (base.IsTransaction)
+            if (IsTransactedLater)
             {
                 fileTransaction!.Writers.Add(this);
                 return rowsAffected;
@@ -41,8 +44,11 @@ public abstract class FileDelete : FileWriter
         finally
         {
             Save();
-            fileReader.StartWatching();
-            _rwLock.ExitWriteLock();
+            if (!IsTransaction)
+            {
+                fileReader.StartWatching();
+                _rwLock.ExitWriteLock();
+            }
         }
     }
 }

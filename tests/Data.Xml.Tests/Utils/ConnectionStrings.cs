@@ -1,15 +1,10 @@
-﻿namespace Data.Xml.Tests;
+﻿using Data.Tests.Common.Utils;
 
-public static class ConnectionStrings
+namespace Data.Xml.Tests;
+
+public class ConnectionStrings : ConnectionStringsBase
 {
-    private static string Folder = Path.Combine("Sources", "Folder");
-    private static string File = Path.Combine("Sources", "database.xml");
-    private static string eComDataBase = Path.Combine("Sources", "ecommerce.xml");
+    public override string Extension => "xml";
 
-    public static string FolderAsDBConnectionString = $"Data Source={Folder}";
-    public static string FileAsDBConnectionString = $"Data Source={File}";
-
-    public static string eComDBConnectionString = $"Data Source={eComDataBase}";
-
-    public static string AddFormatted(this string connectionString, bool formatted) => connectionString += $"; Formatted={formatted}";
+    public new static ConnectionStrings Instance => new ConnectionStrings();
 }

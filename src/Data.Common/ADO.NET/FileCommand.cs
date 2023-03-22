@@ -45,6 +45,7 @@ public abstract class FileCommand : IDbCommand
 
     public abstract IDbDataParameter CreateParameter();
 
+    public abstract FileDataAdapter CreateAdapter();
 
     public void Dispose()
     {

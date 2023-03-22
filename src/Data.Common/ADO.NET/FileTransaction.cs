@@ -21,10 +21,19 @@ public class FileTransaction : IDbTransaction
             throw new InvalidOperationException("This JsonTransaction has completed; it is no longer usable");
         }
         TransactionDone = true;
-        Writers.ForEach(writer =>
+
+        FileWriter._rwLock.EnterWriteLock();
+        try
         {
-            writer.Execute();
-        });
+            Writers.ForEach(writer =>
+            {
+                writer.Execute();
+            });
+        }
+        finally
+        {
+            FileWriter._rwLock.ExitWriteLock();
+        }
 
     }
 

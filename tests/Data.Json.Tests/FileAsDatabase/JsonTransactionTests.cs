@@ -10,7 +10,7 @@ public partial class JsonTransactionTests
     public void Transaction_ShouldInsertDataIntoDatabase()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -64,7 +64,7 @@ public partial class JsonTransactionTests
     public void Transaction_ShouldDeleteDataFromDatabase()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -104,7 +104,7 @@ public partial class JsonTransactionTests
     public void Transaction_ShouldUpdateDataInDatabase()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -145,7 +145,7 @@ public partial class JsonTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction

@@ -23,6 +23,10 @@ public class CsvCommand : FileCommand
     {
     }
 
+    public override IDbDataParameter CreateParameter() => new CsvParameter();
+
+    public override FileDataAdapter CreateAdapter() => new CsvDataAdapter(this);
+
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
         FileDeleteQuery deleteQuery =>
@@ -37,5 +41,4 @@ public class CsvCommand : FileCommand
 
     protected override FileDataReader CreateDataReader(FileQuery queryParser) => new CsvDataReader(queryParser, ((CsvConnection)Connection!).FileReader);
 
-    public override IDbDataParameter CreateParameter() => new CsvParameter();
 }

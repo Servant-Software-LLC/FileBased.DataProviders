@@ -13,9 +13,12 @@ public class FileUpdate : FileWriter
     {
         try
         {
-            // As we have modified the File file so we don't need to update the tables
-            _rwLock.EnterWriteLock();
-            fileReader.StopWatching();
+            if (!IsTransaction)
+            {
+                // As we have modified the File file so we don't need to update the tables
+                _rwLock.EnterWriteLock();
+                fileReader.StopWatching();
+            }
 
             var dataTable = fileReader.ReadFile(queryParser);
             var values = queryParser.GetValues();
@@ -25,8 +28,9 @@ public class FileUpdate : FileWriter
             dataView.RowFilter = queryParser.Filter?.Evaluate();
 
             var rowsAffected = dataView.Count;
+
             //don't update now if it is a transaction
-            if (base.IsTransaction)
+            if (IsTransactedLater)
             {
                 fileTransaction!.Writers.Add(this);
                 return rowsAffected;
@@ -45,8 +49,12 @@ public class FileUpdate : FileWriter
         finally
         {
             Save();
-            _rwLock.ExitWriteLock();
-            fileReader.StartWatching();
+
+            if (!IsTransaction)
+            {
+                _rwLock.ExitWriteLock();
+                fileReader.StartWatching();
+            }
         }
 
     }

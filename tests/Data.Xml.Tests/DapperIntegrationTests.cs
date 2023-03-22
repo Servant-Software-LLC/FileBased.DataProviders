@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
         connection.Open();
 
         // Act

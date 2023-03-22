@@ -1,5 +1,4 @@
-﻿using Data.Common.Extension;
-using System.Data.CsvClient;
+﻿using System.Data.CsvClient;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;
@@ -13,7 +12,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReadData()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Act - Query the locations table
@@ -42,7 +41,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReturnData()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         var command = new CsvCommand("SELECT * FROM [employees]", connection);
 
         // Act
@@ -83,7 +82,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReturnData_WithFilter()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         var command = new CsvCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
 
         // Act
@@ -109,7 +108,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Act
@@ -131,7 +130,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Act - Query two columns from the locations table

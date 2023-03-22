@@ -15,5 +15,6 @@ public class JsonConnection : FileConnection
     public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
     public override IDbCommand CreateCommand() => new JsonCommand(this);
+    public override FileCommand CreateCommand(string cmdText) => new JsonCommand(cmdText, this);
 
 }

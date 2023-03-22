@@ -12,16 +12,20 @@ public abstract class FileInsert : FileWriter
 
     public override int Execute()
     {
-        if (IsTransaction)
+        if (IsTransactedLater)
         {
             fileTransaction!.Writers.Add(this);
             return 1;
         }
         try
         {
-            _rwLock.EnterWriteLock();
-            //as we have modified the json file so we don't need to update the tables
-            fileReader.StopWatching();
+            if (!IsTransaction)
+            {
+                _rwLock.EnterWriteLock();
+                //as we have modified the json file so we don't need to update the tables
+                fileReader.StopWatching();
+            }
+
             var dataTable = fileReader.ReadFile(queryParser);
             var row = dataTable!.NewRow();
             foreach (var val in queryParser.GetValues())
@@ -34,8 +38,12 @@ public abstract class FileInsert : FileWriter
         finally
         {
             Save();
-            fileReader.StartWatching();
-            _rwLock.ExitWriteLock();
+
+            if (!IsTransaction)
+            {
+                fileReader.StartWatching();
+                _rwLock.ExitWriteLock();
+            }
         }
         return 1;
     }

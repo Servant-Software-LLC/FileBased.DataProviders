@@ -10,7 +10,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldInsertDataIntoDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -66,7 +66,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldDeleteDataFromDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -106,7 +106,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldUpdateDataInDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -146,7 +146,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
         connection.Open();
 
         // Start a transaction

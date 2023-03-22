@@ -1,6 +1,4 @@
-﻿using Data.Common.FileException;
-
-namespace System.Data.CsvClient;
+﻿namespace System.Data.CsvClient;
 
 public class CsvConnection : FileConnection
 {
@@ -39,4 +37,5 @@ public class CsvConnection : FileConnection
     public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
     public override IDbCommand CreateCommand() => new CsvCommand(this);
+    public override FileCommand CreateCommand(string cmdText) => new CsvCommand(cmdText, this);
 }

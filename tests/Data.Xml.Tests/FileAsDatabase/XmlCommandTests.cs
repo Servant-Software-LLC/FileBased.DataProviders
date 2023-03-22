@@ -14,7 +14,7 @@ public class XmlCommandTests
         const string query = "SELECT city, state FROM locations";
 
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
         var command = new XmlCommand(query, connection);
         var reader = command.ExecuteReader();
@@ -40,7 +40,7 @@ public class XmlCommandTests
     public void ExecuteScalar_ShouldCountRecords()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Act - Count the records in the locations table

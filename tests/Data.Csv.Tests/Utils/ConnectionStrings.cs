@@ -1,10 +1,15 @@
-﻿namespace Data.Csv.Tests;
+﻿using Data.Tests.Common.Utils;
 
-public static class ConnectionStrings
+namespace Data.Csv.Tests;
+
+public class ConnectionStrings : ConnectionStringsBase
 {
-    private static string Folder = Path.Combine("Sources", "Folder");
-    public static string FolderAsDBConnectionString = $"Data Source={Folder}";
+    public override string Extension => "cvs";
 
-    public static string AddFormatted(this string connectionString, bool formatted) => 
-        connectionString += $"; Formatted={formatted}";
+    public override ConnectionString FileAsDBConnectionString => throw new NotImplementedException();
+
+    //TODO:  This will be provided in a 'Folder as Database' style.
+    public override ConnectionString eComDBConnectionString => throw new NotImplementedException();
+
+    public new static ConnectionStrings Instance => new ConnectionStrings();
 }

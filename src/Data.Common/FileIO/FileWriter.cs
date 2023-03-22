@@ -18,14 +18,16 @@ public abstract class FileWriter
     }
 
     public abstract int Execute();    
-    public static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
+    internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
     public bool IsTransaction
+        => fileTransaction != null;
+    public bool IsTransactedLater
         => fileTransaction != null && fileTransaction?.TransactionDone == false;
 
     public virtual bool Save()
     {
-        if (IsTransaction)
+        if (IsTransactedLater)
         {
             return true;
         }

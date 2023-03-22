@@ -6,11 +6,11 @@ public class XmlDataAdapter : FileDataAdapter
     {
     }
 
-    public XmlDataAdapter(FileCommand selectCommand) : base(selectCommand)
+    public XmlDataAdapter(XmlCommand selectCommand) : base(selectCommand)
     {
     }
 
-    public XmlDataAdapter(string query, FileConnection connection) : base(query, connection)
+    public XmlDataAdapter(string query, XmlConnection connection) : base(query, connection)
     {
     }
 

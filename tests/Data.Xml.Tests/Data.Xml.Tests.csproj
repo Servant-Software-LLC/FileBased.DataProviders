@@ -10,10 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="FluentAssertions" />
 	<PackageReference Include="Microsoft.NET.Test.Sdk" />
-	<PackageReference Include="Moq" />
-	<PackageReference Include="xunit" />
 	<PackageReference Include="xunit.runner.visualstudio">
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		<PrivateAssets>all</PrivateAssets>
@@ -31,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data.Xml\Data.Xml.csproj" />
+    <ProjectReference Include="..\Data.Tests.Common\Data.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

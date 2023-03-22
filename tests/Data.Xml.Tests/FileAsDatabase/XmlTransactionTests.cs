@@ -10,7 +10,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldInsertDataIntoDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -26,7 +26,6 @@ public partial class XmlTransactionTests
         int rowsAffected = command.ExecuteNonQuery();
 
 
-
         // Create a command to insert data into the employees table
         command = new XmlCommand("INSERT INTO employees (name, salary) VALUES (@Name, @Salary)", connection, transaction);
         command.Parameters.Add(new XmlParameter("Name", "Smith Kline"));
@@ -34,10 +33,6 @@ public partial class XmlTransactionTests
 
         // Execute the command
         rowsAffected += command.ExecuteNonQuery();
-
-
-
-
 
         transaction.Commit();
 
@@ -68,7 +63,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldDeleteDataFromDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -108,7 +103,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldUpdateDataInDatabase()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction
@@ -149,7 +144,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
         connection.Open();
 
         // Start a transaction

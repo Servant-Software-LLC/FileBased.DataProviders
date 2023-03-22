@@ -5,11 +5,11 @@ public class CsvDataAdapter : FileDataAdapter
     {
     }
 
-    public CsvDataAdapter(FileCommand selectCommand) : base(selectCommand)
+    public CsvDataAdapter(CsvCommand selectCommand) : base(selectCommand)
     {
     }
 
-    public CsvDataAdapter(string query, FileConnection connection) : base(query, connection)
+    public CsvDataAdapter(string query, CsvConnection connection) : base(query, connection)
     {
     }
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch

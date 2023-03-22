@@ -6,11 +6,11 @@ public class JsonDataAdapter : FileDataAdapter
     {
     }
 
-    public JsonDataAdapter(FileCommand selectCommand) : base(selectCommand)
+    public JsonDataAdapter(JsonCommand selectCommand) : base(selectCommand)
     {
     }
 
-    public JsonDataAdapter(string query, FileConnection connection) : base(query, connection)
+    public JsonDataAdapter(string query, JsonConnection connection) : base(query, connection)
     {
     }
 
