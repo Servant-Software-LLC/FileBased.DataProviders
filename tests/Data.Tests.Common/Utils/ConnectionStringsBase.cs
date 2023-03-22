@@ -2,11 +2,14 @@
 
 public abstract class ConnectionStringsBase : IConnectionStrings
 {
+    public const string SourcesFolder = "Sources";
+    public const string SourcesPristineCopy = "Sources.Pristine";
+
     public abstract string Extension { get; }
 
-    protected virtual string Folder => Path.Combine("Sources", "Folder");
-    protected virtual string File => Path.Combine("Sources", $"database.{Extension}");
-    protected virtual string eComDataBase => Path.Combine("Sources", $"ecommerce.{Extension}");
+    protected virtual string Folder => Path.Combine(SourcesFolder, "Folder");
+    protected virtual string File => Path.Combine(SourcesFolder, $"database.{Extension}");
+    protected virtual string eComDataBase => Path.Combine(SourcesFolder, $"ecommerce.{Extension}");
 
     public virtual ConnectionString FolderAsDBConnectionString => Folder;
 
