@@ -10,11 +10,12 @@ public class JsonConnection : FileConnection
 
     public override string FileExtension => "json";
 
-    public override IDbTransaction BeginTransaction() => new JsonTransaction(this, default);
+    public override JsonTransaction BeginTransaction() => new(this, default);
 
-    public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+    public override JsonTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+    public override JsonDataAdapter CreateDataAdapter(string query) => new(query, this);
 
-    public override IDbCommand CreateCommand() => new JsonCommand(this);
-    public override FileCommand CreateCommand(string cmdText) => new JsonCommand(cmdText, this);
+    public override JsonCommand CreateCommand() => new(this);
+    public override JsonCommand CreateCommand(string cmdText) => new(cmdText, this);
 
 }

@@ -32,10 +32,12 @@ public class CsvConnection : FileConnection
         }
     }
 
-    public override IDbTransaction BeginTransaction() => new CsvTransaction(this, default);
+    public override CsvTransaction BeginTransaction() => new(this, default);
 
-    public override IDbTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+    public override CsvTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
 
-    public override IDbCommand CreateCommand() => new CsvCommand(this);
-    public override FileCommand CreateCommand(string cmdText) => new CsvCommand(cmdText, this);
+    public override CsvDataAdapter CreateDataAdapter(string query) => new(query, this);
+
+    public override CsvCommand CreateCommand() => new(this);
+    public override CsvCommand CreateCommand(string cmdText) => new(cmdText, this);
 }

@@ -1,6 +1,6 @@
 ﻿namespace System.Data.FileClient;
 
-public class FileTransaction : IDbTransaction
+public abstract class FileTransaction : IDbTransaction
 {
     private readonly FileConnection connection;
     private readonly IsolationLevel isolationLevel;
@@ -55,4 +55,6 @@ public class FileTransaction : IDbTransaction
     public IDbConnection Connection => connection;
 
     public IsolationLevel IsolationLevel => isolationLevel;
+
+    public abstract FileCommand CreateCommand(string cmdText);
 }

@@ -23,9 +23,10 @@ public class JsonCommand : FileCommand
     {
     }
 
-    public override IDbDataParameter CreateParameter() => new JsonParameter();
+    public override JsonParameter CreateParameter() => new();
+    public override JsonParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
-    public override FileDataAdapter CreateAdapter() => new JsonDataAdapter(this);
+    public override JsonDataAdapter CreateAdapter() => new(this);
 
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
@@ -39,7 +40,6 @@ public class JsonCommand : FileCommand
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override FileDataReader CreateDataReader(FileQuery queryParser) => 
-        new JsonDataReader(queryParser, ((JsonConnection)Connection!).FileReader);
+    protected override JsonDataReader CreateDataReader(FileQuery queryParser) => new(queryParser, ((JsonConnection)Connection!).FileReader);
 
 }

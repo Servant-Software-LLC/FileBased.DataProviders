@@ -43,9 +43,12 @@ public abstract class FileCommand : IDbCommand
 
     }
 
-    public abstract IDbDataParameter CreateParameter();
+    public abstract FileParameter CreateParameter();
+    public abstract FileParameter CreateParameter(string parameterName, object value);
+    IDbDataParameter IDbCommand.CreateParameter() => CreateParameter();
 
     public abstract FileDataAdapter CreateAdapter();
+
 
     public void Dispose()
     {

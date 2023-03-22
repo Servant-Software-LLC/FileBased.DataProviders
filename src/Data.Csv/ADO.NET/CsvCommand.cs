@@ -23,9 +23,10 @@ public class CsvCommand : FileCommand
     {
     }
 
-    public override IDbDataParameter CreateParameter() => new CsvParameter();
+    public override CsvParameter CreateParameter() => new();
+    public override CsvParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
-    public override FileDataAdapter CreateAdapter() => new CsvDataAdapter(this);
+    public override CsvDataAdapter CreateAdapter() => new(this);
 
     protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
@@ -39,6 +40,6 @@ public class CsvCommand : FileCommand
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override FileDataReader CreateDataReader(FileQuery queryParser) => new CsvDataReader(queryParser, ((CsvConnection)Connection!).FileReader);
+    protected override CsvDataReader CreateDataReader(FileQuery queryParser) => new(queryParser, ((CsvConnection)Connection!).FileReader);
 
 }

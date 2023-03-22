@@ -26,11 +26,16 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
 
     public FileReader FileReader { get; protected set; }
 
-    public abstract IDbTransaction BeginTransaction();
+    public abstract FileTransaction BeginTransaction();
 
-    public abstract IDbTransaction BeginTransaction(IsolationLevel il);
+    public abstract FileTransaction BeginTransaction(IsolationLevel il);
 
- 
+    IDbTransaction IDbConnection.BeginTransaction() => BeginTransaction();
+
+    IDbTransaction IDbConnection.BeginTransaction(IsolationLevel il) => BeginTransaction(il);
+
+    public abstract FileDataAdapter CreateDataAdapter(string query);
+
     public virtual void ChangeDatabase(string databaseName)
     {
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
@@ -40,8 +45,9 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
 
     public void Close() => State = ConnectionState.Closed;
 
-    public abstract IDbCommand CreateCommand();
-    public abstract FileCommand CreateCommand(string connectionString);  
+    public abstract FileCommand CreateCommand();
+    public abstract FileCommand CreateCommand(string cmdText);
+    IDbCommand IDbConnection.CreateCommand() => CreateCommand();
 
 
     public virtual void Open()

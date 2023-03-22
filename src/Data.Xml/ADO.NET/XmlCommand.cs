@@ -35,10 +35,10 @@ public class XmlCommand : FileCommand
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override FileDataReader CreateDataReader(FileQuery queryParser) => 
-        new XmlDataReader(queryParser, ((XmlConnection)Connection!).FileReader);
+    protected override XmlDataReader CreateDataReader(FileQuery queryParser) => new(queryParser, ((XmlConnection)Connection!).FileReader);
 
-    public override IDbDataParameter CreateParameter() => new XmlParameter();
+    public override XmlParameter CreateParameter() => new();
+    public override XmlParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
-    public override FileDataAdapter CreateAdapter() => new XmlDataAdapter(this);
+    public override XmlDataAdapter CreateAdapter() => new(this);
 }

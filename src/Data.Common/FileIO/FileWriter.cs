@@ -1,4 +1,5 @@
 ﻿namespace Data.Common.FileIO;
+
 public abstract class FileWriter
 {
     protected readonly FileCommand jsonCommand;
