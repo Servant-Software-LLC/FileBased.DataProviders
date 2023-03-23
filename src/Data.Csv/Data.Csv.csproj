@@ -13,6 +13,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CsvHelper" />
+
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
   </ItemGroup>
 </Project>
