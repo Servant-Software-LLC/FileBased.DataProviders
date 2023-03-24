@@ -9,7 +9,9 @@ public class ConnectionStrings : ConnectionStringsBase
     public override ConnectionString FileAsDBConnectionString => throw new NotImplementedException();
 
     //TODO:  This will be provided in a 'Folder as Database' style.
-    public override ConnectionString eComDBConnectionString => throw new NotImplementedException();
+
+    protected override string eComDataBase => Path.Combine(SourcesFolder, $"eCom");
+    public override ConnectionString eComDBConnectionString => eComDataBase;
 
     public new static ConnectionStrings Instance => new ConnectionStrings();
 }

@@ -1,6 +1,6 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileDataAdapter : IDataAdapter
+public abstract class FileDataAdapter : IDataAdapter,IDisposable
 {
     private DataRow? lastDataRowChanged;
     private FileConnection? connection;
@@ -215,4 +215,8 @@ public abstract class FileDataAdapter : IDataAdapter
         return cols!;
     }
 
+    public void Dispose()
+    {
+      
+    }
 }

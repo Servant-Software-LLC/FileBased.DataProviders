@@ -146,7 +146,7 @@ public abstract class FileReader : IDisposable
         {
             string[] jsonFiles = Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}");
 
-            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x != jsonQueryParser.TableName))
+            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
             {
                 tableNames.Add(jsonFile);
             }
