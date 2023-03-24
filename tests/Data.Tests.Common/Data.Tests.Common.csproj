@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="FluentAssertions" />
+	  <!-- FluentAssertions isn't needed, but for some reason in a Linux build the package isn't being found.
+	    <PackageReference Include="FluentAssertions" />
+	  -->
 	  <!-- Moq is causing Castle.Core to be pulled in, but for some reason in a Linux build it can't find Castle.Core.
 		<PackageReference Include="Moq" />
 	  -->
