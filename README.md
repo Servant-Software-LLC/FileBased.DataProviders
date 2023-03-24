@@ -1,10 +1,11 @@
 # EFCore FileBased Providers
 EF Core data providers for common serializable formats stored to disk.
 
+Originally, I wanted to create a [sample provider for use by the EF Core community](https://github.com/Servant-Software-LLC/EFCore.SampleProvider), but ran out of time and further decided that my goal of wrapping it around the SQLite in-memory EFCore provider didn't simplify the excerise for me, as I had hoped.  Anyhow, [the comment by roji](https://github.com/dotnet/EntityFramework.Docs/issues/681#issuecomment-1368492738) may be useful here as well as some of the other comments in that thread.  
+
 ## Requirements
 - Instructions on [Writing a Database Provider](https://learn.microsoft.com/en-us/ef/core/providers/writing-a-provider) and [So you want to write an EF Core provider](https://blog.oneunicorn.com/2016/11/11/so-you-want-to-write-an-ef-core-provider/)(This documentation is grossly outdated.  Written in EFCore 1.1) 
 - Must have database-first support (i.e. [scaffolding](https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/?tabs=dotnet-core-cli) with a class that inherits IDesignTimeServices).
-
 
 - Data providers for each of the following serializable formats (json, csv, xml)
 - Each data provider to live in its own project and have its own set of unit tests which should have at least 60% coverage.  For examples of unit tests, you may want to refer to the [unit tests provided for Microsoft's EF Core providers](https://github.com/dotnet/efcore/tree/main/test).
