@@ -8,7 +8,9 @@
 
   <ItemGroup>
 	  <PackageReference Include="FluentAssertions" />
-	  <PackageReference Include="Moq" />
+	  <!-- Moq is causing Castle.Core to be pulled in, but for some reason in a Linux build it can't find Castle.Core.
+		<PackageReference Include="Moq" />
+	  -->
 	  <PackageReference Include="xunit" />
 
 	  <ProjectReference Include="..\..\src\Data.Common\Data.Common.csproj" />
