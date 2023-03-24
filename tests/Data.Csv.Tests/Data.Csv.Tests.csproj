@@ -31,16 +31,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Sources\eCom\customers.csv">
+    <None Update="Sources\eCom\Customers.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orderitems.csv">
+    <None Update="Sources\eCom\OrderItems.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orders.csv">
+    <None Update="Sources\eCom\Orders.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\products.csv">
+    <None Update="Sources\eCom\Products.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Sources\Folder\employees.csv">
