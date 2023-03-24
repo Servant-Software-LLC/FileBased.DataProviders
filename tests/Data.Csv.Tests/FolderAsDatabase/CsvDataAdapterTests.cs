@@ -99,8 +99,6 @@ namespace Data.Csv.Tests.FolderAsDatabase
             connection.Close();
         }
 
-        //TODO: Once we have an eComDB then uncomment...
-
         [Fact]
         public void Adapter_ShouldFillDatasetWithInnerJoin()
         {
@@ -128,7 +126,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
                         Assert.Equal(40, table.Rows.Count);
                         Assert.Equal(4, table.Columns.Count);
                         Assert.Equal("John Doe", table.Rows[0]["CustomerName"].ToString());
-                        Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]["OrderDate"].ToString()));
+                        Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]["OrderDate"].ToString()!));
                         Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
                         Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
                     }

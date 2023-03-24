@@ -8,8 +8,6 @@ public class ConnectionStrings : ConnectionStringsBase
 
     public override ConnectionString FileAsDBConnectionString => throw new NotImplementedException();
 
-    //TODO:  This will be provided in a 'Folder as Database' style.
-
     protected override string eComDataBase => Path.Combine(SourcesFolder, $"eCom");
     public override ConnectionString eComDBConnectionString => eComDataBase;
 
