@@ -7,10 +7,9 @@ EF Core data providers for common serializable formats stored to disk.
 
 
 - Data providers for each of the following serializable formats (json, csv, xml)
-- Each data provider to live in its own project and have its own set of unit tests which at a minimum provide the same coverage as the unit tests provided in this repo for the Sqlite in-memory data provider.
+- Each data provider to live in its own project and have its own set of unit tests which should have at least 60% coverage.  For examples of unit tests, you may want to refer to the [unit tests provided for Microsoft's EF Core providers](https://github.com/dotnet/efcore/tree/main/test).
 - Provider's source code, for the classes needed to achieve the definition of done for this task, should follow a similar class naming/signature and folder structure as the [Sqlite data provider](https://github.com/dotnet/efcore/tree/main/src/EFCore.Sqlite.Core).
-- Extension methods on [DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder?view=efcore-7.0) for use on each of the different data providers will be made that take a folder path.  This folder will represent the 'database' and each file within the folder (recursion of sub-folders is unnecessary) will represent a 'table'.
-- If a SQL intermediate syntax is required or makes development easier, use the [Sqlite in-memory database](https://www.sqlite.org/inmemorydb.html).  This avoids having to generate and parse a SQL-like syntax for each of our providers and provides in-memory structured data.
+- Extension methods on [DbContextOptionsBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder?view=efcore-7.0) for use on each of the different data providers will follow the models (FolderAsDatabase and FileAsDatabase) used as the DataSource for the [ADO.NET.FileBased.DataProviders](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders).  
 - Per recommendations of the EFCore contributors start with the [Npgsql](https://github.com/npgsql/efcore.pg) or [Pomelo MySQL](https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql) providers as the basis for our providers.
 
 ### CSV Data Provider
