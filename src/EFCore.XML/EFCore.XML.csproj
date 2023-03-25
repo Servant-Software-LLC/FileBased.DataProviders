@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+	  <PackageReference Include="ServantSoftware.Data.Xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EFCore.FileBasedProviders.Common\EFCore.FileBasedProviders.Common.csproj" />
   </ItemGroup>
 </Project>
