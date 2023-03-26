@@ -5,6 +5,7 @@
     <Title>ServantSoftware.Data.Csv</Title>
     <Product>ADO.NET Csv Data Provider</Product>
     <PackageReadmeFile>Csv Provider.md</PackageReadmeFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\Csv Provider.md">
