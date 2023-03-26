@@ -1,81 +1,21 @@
-﻿using Data.Json.Enum;
-using Data.Json.Interfaces;
-using Data.Json.Utils.ConnectionString;
+﻿namespace System.Data.JsonClient;
 
-namespace System.Data.JsonClient;
-
-public class JsonConnection : IDbConnection, IConnectionStringProperties
+public class JsonConnection : FileConnection
 {
-    private readonly JsonConnectionString connectionString = new();
-    private ConnectionState state;
-    private JsonDocument? database;
-
-    public string? ConnectionString { get => connectionString.ConnectionString; set => connectionString.Parse(value); }
-    public string? DataSource => connectionString.DataSource;
-    public bool Formatted => connectionString.Formatted;
-
-    public int ConnectionTimeout { get; }
-    public string Database => connectionString.DataSource ?? string.Empty;
-    public ConnectionState State => state;
- 
-    public JsonConnection(string connectionString)
+    public JsonConnection(string connectionString) : 
+        base(connectionString)
     {
-        ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
-        this.connectionString.Parse(connectionString);
-
-
-        state = ConnectionState.Closed;
-        JsonReader = new JsonReader(this);
+        FileReader = new JsonReader(this);
     }
 
+    public override string FileExtension => "json";
 
-    internal JsonReader JsonReader { get; private set; }
-    public PathType PathType { get; private set; }
+    public override JsonTransaction BeginTransaction() => new(this, default);
 
+    public override JsonTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+    public override JsonDataAdapter CreateDataAdapter(string query) => new(query, this);
 
-    public IDbTransaction BeginTransaction()
-    {
-        throw new NotImplementedException();
-    }
+    public override JsonCommand CreateCommand() => new(this);
+    public override JsonCommand CreateCommand(string cmdText) => new(cmdText, this);
 
-    public IDbTransaction BeginTransaction(IsolationLevel il)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void ChangeDatabase(string databaseName)
-    {
-        PathType = this.GetPathType();
-        ArgumentNullException.ThrowIfNull(nameof(databaseName));
-        ThrowHelper.ThrowIfInvalidPath(PathType);
-        using var file = File.OpenRead(databaseName);
-        database = JsonDocument.Parse(file);
-    }
-
-    public void Close()
-    {
-        state = ConnectionState.Closed;
-    }
-
-
-    public IDbCommand CreateCommand()
-    {
-            return new JsonCommand(this);
-    }
-    
-    
-    public void Open()
-    {
-        PathType = this.GetPathType();
-        ThrowHelper.ThrowIfInvalidPath(PathType);
-        state = ConnectionState.Open;
-    }
-
-    public void Dispose()
-    {
-        state = ConnectionState.Closed;
-        database?.Dispose();
-        JsonReader.Dispose();
-        
-    }
 }

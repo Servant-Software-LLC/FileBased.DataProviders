@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Servant Software LLC</Authors>
+    <RepositoryUrl>https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Version>1.0.0.0</Version>
+    <IsPackable>true</IsPackable>
+	<ImplicitUsings>enable</ImplicitUsings>
+    <OutputPath>..\bin\$(Configuration)</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+</Project>

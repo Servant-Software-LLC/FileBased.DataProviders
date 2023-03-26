@@ -1,15 +1,10 @@
-﻿namespace Data.Json.Tests;
+﻿using Data.Tests.Common.Utils;
 
-public static class ConnectionStrings
+namespace Data.Json.Tests;
+
+public class ConnectionStrings : ConnectionStringsBase
 {
-    private static string Folder = Path.Combine("Sources", "Folder");
-    private static string File = Path.Combine("Sources", "database.json");
-    private static string eComDataBase = Path.Combine("Sources", "ecommerce.json");
+    public override string Extension => "json";
 
-    public static string FolderAsDBConnectionString = $"Data Source={Folder}";
-    public static string FileAsDBConnectionString = $"Data Source={File}";
-
-    public static string eComDBConnectionString = $"Data Source={eComDataBase}";
-
-    public static string AddFormatted(string connectionString, bool formatted) => connectionString += $"; Formatted={formatted}";
+    public new static ConnectionStrings Instance => new ConnectionStrings();
 }

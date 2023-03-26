@@ -1,4 +1,4 @@
-name: Main Build
+name: DataProviders Build
 
 on:
   push:
@@ -10,8 +10,11 @@ on:
 env:
   TargetFramework:  net7.0
   BuildConfiguration: Release
+  DataCommonPackageId: ServantSoftware.Data.Common
   DataJsonPackageId: ServantSoftware.Data.Json
-  DataJsonPackageVersion: 1.0.0.${{github.run_number}}
+  DataCsvPackageId: ServantSoftware.Data.Csv
+  DataXmlPackageId: ServantSoftware.Data.Xml
+  PackageVersion: 1.0.0.${{github.run_number}}
   
 jobs:
   build:
@@ -43,7 +46,7 @@ jobs:
         tar -zxvf armdot.tar.gz && \
         chmod +x ./bin/ArmDotConsole && \
         echo "${{secrets.ARMDOT_LICENSE_KEY}}" >> ${{github.workspace}}/.github/workflows/ArmDot.License.txt
-        sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation
+        sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Common.dll --enable-obfuscate-names --enable-control-flow-obfuscation --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Csv.dll --enable-obfuscate-names --enable-control-flow-obfuscation --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Xml.dll --enable-obfuscate-names --enable-control-flow-obfuscation
 
     - name: Test
       run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
@@ -56,11 +59,29 @@ jobs:
         name: Nuget Packages
         path: ${{github.workspace}}/src/**/*.nupkg
 
-    - name: Push to nuget.org
-      run: dotnet nuget push ${{github.workspace}}/src/Data.Json/bin/$BuildConfiguration/$DataJsonPackageId.$DataJsonPackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate --no-symbols
+    - name: Push to nuget.org (Common provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org
-      run: dotnet nuget delete $DataJsonPackageId $DataJsonPackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+    - name: Unlist package at nuget.org (Common provider)
+      run: dotnet nuget delete $DataCommonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (Json provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (Json provider)
+      run: dotnet nuget delete $DataJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (CSV provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (CSV provider)
+      run: dotnet nuget delete $DataCsvPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (XML provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (XML provider)
+      run: dotnet nuget delete $DataXmlPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
 
 
     - name: Code Coverage Report

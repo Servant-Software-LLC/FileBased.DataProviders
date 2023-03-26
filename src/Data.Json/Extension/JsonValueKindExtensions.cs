@@ -11,18 +11,7 @@ internal static class JsonValueKindExtensions
         JsonValueKind.Null => typeof(string),
         JsonValueKind.Array => typeof(string),
         JsonValueKind.Object => typeof(string),
-        _ => throw new NotSupportedException($"Unsupported JSON value kind: {kind}")
-    };
 
-    internal static string GetClrDataTypeName(this JsonValueKind kind) => kind switch
-    {
-        JsonValueKind.String => "string",
-        JsonValueKind.Number => "decimal",
-        JsonValueKind.True => "bool",
-        JsonValueKind.False => "bool",
-        JsonValueKind.Null => "null",
-        JsonValueKind.Array => "string",
-        JsonValueKind.Object => "string",
         _ => throw new NotSupportedException($"Unsupported JSON value kind: {kind}")
     };
 }

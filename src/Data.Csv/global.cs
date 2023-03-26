@@ -1,0 +1,15 @@
+﻿global using System.Data;
+global using System.Data.FileClient;
+global using Data.Common.FileQuery;
+global using Data.Common.FileIO;
+global using Data.Common.FileIO.Delete;
+global using Data.Common.FileFilter;
+global using Data.Csv.CsvIO.Read;
+global using Data.Csv.CsvIO.Write;
+global using Data.Csv.CsvIO.Delete;
+global using Data.Common.Interfaces;
+global using Data.Common.Enum;
+global using System.Collections;
+global using Data.Common.Extension;
+global using Data.Common.FileIO.Read;
+global using Data.Common.FileIO.Write;

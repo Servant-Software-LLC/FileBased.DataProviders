@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.Data.Csv</PackageId>
+    <Title>ServantSoftware.Data.Csv</Title>
+    <Product>ADO.NET Csv Data Provider</Product>
+    <PackageReadmeFile>Csv Provider.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\Csv Provider.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" />
+
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>

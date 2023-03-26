@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.Data.Xml</PackageId>
+    <Title>ServantSoftware.Data.Xml</Title>
+    <Product>ADO.NET Xml Data Provider</Product>
+    <PackageReadmeFile>Xml Provider.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Xml Provider.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+	  
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>

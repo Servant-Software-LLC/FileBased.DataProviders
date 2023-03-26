@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.Data.Common</PackageId>
+    <Title>ServantSoftware.Data.Common</Title>
+    <Product>ADO.NET Common Data Provider</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Irony" />
+  </ItemGroup>  
+
+</Project>
