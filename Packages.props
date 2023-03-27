@@ -1,8 +1,12 @@
 <Project>
   <ItemGroup>
-	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="6.0.10" />
+    <!-- Data.Common -->
+    <PackageReference Update="Irony" Version="1.1.0" />
 
-	<!-- Unit Tests -->
+    <!-- Data.Csv -->
+    <PackageReference Update="CsvHelper" Version="30.0.1" />
+
+    <!-- Unit Tests -->
 	<PackageReference Update="FluentAssertions" Version="6.0.0" />
 	<PackageReference Update="Moq" Version="4.16.1" />
 	<PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.11.0" />
@@ -11,13 +15,7 @@
 	<PackageReference Update="coverlet.collector" Version="3.0.2" />
 	<PackageReference Update="coverlet.msbuild" Version="3.0.2" />
 	<PackageReference Update="XunitXml.TestLogger" Version="3.0.70" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="6.0.10" />
-	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="6.0.10" />
-	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="6.0.10" />
-	<PackageReference Update="Irony" Version="1.1.0" />
     <PackageReference Update="Dapper" Version="2.0.123" />
-    <PackageReference Update="Bogus" Version="34.0.2" />
     <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
-	<PackageReference Update="CsvHelper" Version="30.0.1" />
   </ItemGroup>
 </Project>
