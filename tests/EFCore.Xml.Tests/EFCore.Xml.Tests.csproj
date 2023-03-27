@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\EFCore.XML\EFCore.XML.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.Xml\EFCore.Xml.csproj" />
     <ProjectReference Include="..\EFCore.Common.Tests\EFCore.Common.Tests.csproj" />
   </ItemGroup>
 

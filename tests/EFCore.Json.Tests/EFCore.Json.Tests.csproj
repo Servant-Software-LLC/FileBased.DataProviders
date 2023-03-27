@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EFCore.FileBasedProviders.Common\EFCore.FileBasedProviders.Common.csproj" />
-    <ProjectReference Include="..\..\src\EFCore.JSON\EFCore.JSON.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.Json\EFCore.Json.csproj" />
     <ProjectReference Include="..\EFCore.Common.Tests\EFCore.Common.Tests.csproj" />
   </ItemGroup>
 
