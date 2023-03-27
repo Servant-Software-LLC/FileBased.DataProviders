@@ -1,21 +1,21 @@
-﻿namespace Data.Tests.Common.Utils;
+﻿using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
+
+namespace Data.Tests.Common.Utils;
 
 public abstract class ConnectionStringsBase : IConnectionStrings
 {
-    public const string SourcesFolder = "Sources";
-    public const string SourcesPristineCopy = "Sources.Pristine";
-
     public abstract string Extension { get; }
 
-    protected virtual string Folder => Path.Combine(SourcesFolder, "Folder");
-    protected virtual string File => Path.Combine(SourcesFolder, $"database.{Extension}");
-    protected virtual string eComDataBase => Path.Combine(SourcesFolder, $"ecommerce.{Extension}");
+    protected virtual string Folder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder");
+    protected virtual string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{Extension}");
+    protected virtual string eComDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{Extension}");
 
-    public virtual ConnectionString FolderAsDBConnectionString => Folder;
+    public virtual FileConnectionString FolderAsDBConnectionString => new FileConnectionString() { DataSource = Folder };
 
-    public virtual ConnectionString FileAsDBConnectionString => File;
+    public virtual FileConnectionString FileAsDBConnectionString => new FileConnectionString() { DataSource = File };
 
-    public virtual ConnectionString eComDBConnectionString => eComDataBase;
+    public virtual FileConnectionString eComDBConnectionString => new FileConnectionString() { DataSource = eComDataBase };
 
     public static ConnectionStringsBase Instance => throw new NotImplementedException();
 }

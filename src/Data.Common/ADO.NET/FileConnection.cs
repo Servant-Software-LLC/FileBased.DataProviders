@@ -5,9 +5,9 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
     private readonly FileConnectionString connectionString = new();
 
     public abstract string FileExtension { get; }
-    public string? ConnectionString { get => connectionString.ConnectionString!; set => connectionString.Parse(value); }
-    public string? DataSource => connectionString.DataSource;
-    public bool Formatted => connectionString.Formatted;
+    public string ConnectionString { get => connectionString.ConnectionString!; set => connectionString.ConnectionString = value; }
+    public string DataSource => connectionString.DataSource;
+    public bool? Formatted => connectionString.Formatted;
 
     public int ConnectionTimeout { get; }
     public string Database => connectionString.DataSource ?? string.Empty;
@@ -16,7 +16,7 @@ public abstract class FileConnection : IDbConnection, IConnectionStringPropertie
     protected FileConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
-        this.connectionString.Parse(connectionString);
+        this.connectionString = connectionString;
         State = ConnectionState.Closed;
     }
 
