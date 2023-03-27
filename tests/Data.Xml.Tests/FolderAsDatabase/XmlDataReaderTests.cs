@@ -41,7 +41,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
         var command = new XmlCommand("SELECT * FROM [employees]", connection);
 
         // Act
@@ -83,7 +83,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData_WithFilter()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
         var command = new XmlCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
 
         // Act
@@ -109,7 +109,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
         connection.Open();
 
         // Act

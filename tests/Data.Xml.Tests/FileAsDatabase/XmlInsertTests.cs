@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+﻿using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;

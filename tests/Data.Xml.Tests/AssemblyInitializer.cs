@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common.Utils;
+﻿using Data.Common.Extension;
+using Data.Tests.Common.Utils;
 using System.Runtime.CompilerServices;
 
 namespace Data.Xml.Tests;
@@ -12,6 +13,6 @@ internal static class AssemblyInitializer
     [ModuleInitializer]
     public static void Initialize()
     {
-        FileUtils.CopyDirectory(ConnectionStringsBase.SourcesFolder, ConnectionStringsBase.SourcesPristineCopy, true);
+        FileUtils.CopyDirectory(FileConnectionStringTestsExtensions.SourcesFolder, FileConnectionStringTestsExtensions.SourcesPristineCopy, true);
     }
 }

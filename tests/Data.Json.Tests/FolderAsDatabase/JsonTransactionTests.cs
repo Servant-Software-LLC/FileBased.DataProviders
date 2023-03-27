@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+﻿using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data;
 using System.Data.JsonClient;
 using System.Reflection;
