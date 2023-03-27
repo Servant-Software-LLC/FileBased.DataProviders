@@ -13,6 +13,7 @@
     <BaseArtifactsPath>$(MSBuildThisFileDirectory)artifacts</BaseArtifactsPath>
     <DefaultArtifactsFileMatch>*.nupkg *.snupkg</DefaultArtifactsFileMatch>
     <DelaySign>false</DelaySign>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' == 'true'">

@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PackageId>ServantSoftware.EFCore.Json</PackageId>
+    <Title>ServantSoftware.EFCore.Json</Title>
+    <Product>EFCore Json Data Provider</Product>
   </PropertyGroup>
 
   <ItemGroup>

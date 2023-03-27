@@ -1,0 +1,106 @@
+name: DataProviders Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  TargetFramework:  net7.0
+  BuildConfiguration: Release
+  EFCoreCommonPackageId: ServantSoftware.EFCore.FileBasedProviders.Common
+  EFCoreJsonPackageId: ServantSoftware.EFCore.Json
+  EFCoreCsvPackageId: ServantSoftware.EFCore.Csv
+  EFCoreXmlPackageId: ServantSoftware.EFCore.Xml
+  PackageVersion: 1.0.0.${{github.run_number}}
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 7.0.x
+
+    - name: Set version number
+      run:  '& ${{github.workspace}}/.github/workflows/UpdateVersion.ps1 ${{github.run_number}}'
+      shell: pwsh
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration $BuildConfiguration
+
+    - name: Obfuscate assemblies (ArmDot)
+      run: |
+        sudo apt update && \
+        sudo apt install -y curl && \
+        curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
+        tar -zxvf armdot.tar.gz && \
+        chmod +x ./bin/ArmDotConsole && \
+        echo "${{secrets.ARMDOT_LICENSE_KEY}}" >> ${{github.workspace}}/.github/workflows/ArmDot.License.txt
+        sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.FileBasedProviders.Common.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Csv.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Xml.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings
+
+    - name: Test
+      run: dotnet test EFCoreFileBasedProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      
+    - name: Create nuget packages
+      run: dotnet pack EFCoreFileBasedProviders.sln --configuration $BuildConfiguration --no-build 
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nuget Packages
+        path: ${{github.workspace}}/src/**/*.nupkg
+
+    - name: Push to nuget.org (Common provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (Common provider)
+      run: dotnet nuget delete $EFCoreCommonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (Json provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (Json provider)
+      run: dotnet nuget delete $EFCoreJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (CSV provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (CSV provider)
+      run: dotnet nuget delete $EFCoreCsvPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+    - name: Push to nuget.org (XML provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Unlist package at nuget.org (XML provider)
+      run: dotnet nuget delete $EFCoreXmlPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
+
+
+    - name: Code Coverage Report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      continue-on-error: true
+      with:
+        filename: coverage/**/coverage.cobertura.xml
+        badge: true
+        fail_below_min: false
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '40 60'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md

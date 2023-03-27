@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PackageId>ServantSoftware.EFCore.FileBasedProviders.Common</PackageId>
+    <Title>ServantSoftware.EFCore.FileBasedProviders.Common</Title>
+    <Product>EFCore Common Data Provider</Product>
   </PropertyGroup>
 
   <ItemGroup>
