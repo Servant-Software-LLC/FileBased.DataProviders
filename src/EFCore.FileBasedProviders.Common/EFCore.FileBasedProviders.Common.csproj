@@ -5,6 +5,7 @@
     <PackageId>ServantSoftware.EFCore.FileBasedProviders.Common</PackageId>
     <Title>ServantSoftware.EFCore.FileBasedProviders.Common</Title>
     <Product>EFCore Common Data Provider</Product>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
