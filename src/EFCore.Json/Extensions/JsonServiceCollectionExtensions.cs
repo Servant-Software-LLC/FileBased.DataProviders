@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using EFCore.JSON.Infrastructure.Internal;
+using EFCore.Json.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using EFCore.Json.Diagnostics.Internal;
-using EFCore.JSON.Storage.Internal;
+using EFCore.Json.Storage.Internal;
 
-namespace EFCore.JSON.Extensions;
+namespace EFCore.Json.Extensions;
 
 public static class JsonServiceCollectionExtensions
 {

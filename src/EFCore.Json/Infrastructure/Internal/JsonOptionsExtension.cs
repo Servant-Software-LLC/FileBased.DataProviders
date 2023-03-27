@@ -1,8 +1,8 @@
-﻿using EFCore.JSON.Extensions;
+﻿using EFCore.Json.Extensions;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EFCore.JSON.Infrastructure.Internal;
+namespace EFCore.Json.Infrastructure.Internal;
 
 public class JsonOptionsExtension : RelationalOptionsExtension
 {

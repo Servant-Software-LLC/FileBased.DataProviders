@@ -1,4 +1,4 @@
-﻿using EFCore.JSON.Infrastructure.Internal;
+﻿using EFCore.Json.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore;

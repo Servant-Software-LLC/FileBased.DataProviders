@@ -1,4 +1,4 @@
-﻿using EFCore.XML.Infrastructure.Internal;
+﻿using EFCore.Xml.Infrastructure.Internal;
 
 namespace Microsoft.EntityFrameworkCore.Infrastructure;
 

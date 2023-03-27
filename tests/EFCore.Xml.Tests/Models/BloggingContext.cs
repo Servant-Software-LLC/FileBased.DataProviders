@@ -1,7 +1,7 @@
 ﻿using EFCore.Common.Tests.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EFCore.XML.Tests.Models;
+namespace EFCore.Xml.Tests.Models;
 
 public class BloggingContext : BloggingContextBase
 {

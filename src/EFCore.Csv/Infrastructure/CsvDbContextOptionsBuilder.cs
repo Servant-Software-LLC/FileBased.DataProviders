@@ -1,4 +1,4 @@
-﻿using EFCore.CSV.Infrastructure.Internal;
+﻿using EFCore.Csv.Infrastructure.Internal;
 
 namespace Microsoft.EntityFrameworkCore.Infrastructure;
 

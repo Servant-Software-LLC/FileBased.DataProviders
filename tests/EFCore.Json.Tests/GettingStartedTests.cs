@@ -1,9 +1,9 @@
 ﻿using EFCore.Common.Tests;
 using EFCore.FileBasedProviders.Common;
-using EFCore.JSON.Tests.Models;
+using EFCore.Json.Tests.Models;
 using Xunit;
 
-namespace EFCore.JSON.Tests;
+namespace EFCore.Json.Tests;
 
 /// <summary>
 /// Unit tests created based off of the Getting Started page in EF Core.  REF: https://learn.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=netcore-cli

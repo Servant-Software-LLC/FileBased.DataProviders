@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 
-namespace EFCore.JSON.Storage.Internal;
+namespace EFCore.Json.Storage.Internal;
 
 public interface IJsonRelationalConnection : IRelationalConnection
 {

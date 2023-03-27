@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EFCore.XML.Infrastructure.Internal;
+namespace EFCore.Xml.Infrastructure.Internal;
 
 public class XmlOptionsExtension : RelationalOptionsExtension
 {

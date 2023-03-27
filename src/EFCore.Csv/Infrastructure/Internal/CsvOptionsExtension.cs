@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EFCore.CSV.Infrastructure.Internal;
+namespace EFCore.Csv.Infrastructure.Internal;
 
 public class CsvOptionsExtension : RelationalOptionsExtension
 {
