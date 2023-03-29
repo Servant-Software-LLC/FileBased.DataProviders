@@ -12,7 +12,7 @@ public class XmlDeleteTests
     public void Delete_ShouldDeleteData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        DeleteTests.Delete_ShouldDeleteData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId)));
+        DeleteTests.Delete_ShouldDeleteData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

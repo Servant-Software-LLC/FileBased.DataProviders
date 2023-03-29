@@ -13,7 +13,7 @@ public class JsonUpdateTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         UpdateTests.Update_ShouldUpdateData(
-            () => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

@@ -13,7 +13,7 @@ public partial class JsonDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var adapter = new XmlDataAdapter("SELECT * FROM locations", connection);
 
         // Act
@@ -40,7 +40,7 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldReturnData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var adapter = new XmlDataAdapter("SELECT * FROM employees", connection);
 
         // Act
@@ -78,7 +78,7 @@ public partial class JsonDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet_WithFilter()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var selectCommand = new XmlCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
         var dataAdapter = new XmlDataAdapter(selectCommand);
         var dataSet = new DataSet();
@@ -105,7 +105,7 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldFillDatasetWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
         var command = new XmlCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]", connection);
         var adapter = new XmlDataAdapter(command);
         var dataSet = new DataSet();
@@ -130,7 +130,7 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var dataSet = new DataSet();
 
         // Act - Query two columns from the locations table
@@ -164,7 +164,7 @@ public partial class JsonDataAdapterTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -174,7 +174,7 @@ public partial class JsonDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new XmlDataAdapter();
-        adapter.SelectCommand = new XmlCommand("SELECT * FROM employees", new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+        adapter.SelectCommand = new XmlCommand("SELECT * FROM employees", new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
 
         // Act
         var tables = adapter.FillSchema(dataSet, SchemaType.Source);
@@ -217,7 +217,7 @@ public partial class JsonDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new XmlDataAdapter();
-        adapter.SelectCommand = new XmlCommand("", new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+        adapter.SelectCommand = new XmlCommand("", new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
@@ -227,7 +227,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
         var command = new XmlCommand("SELECT [Name], [Email] FROM [Customers]", connection);
         var adapter = new XmlDataAdapter(command);
 
@@ -243,7 +243,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var command = new XmlCommand("SELECT [Name], [Email] FROM [Employees] WHERE [married] = @married", connection);
         command.Parameters.Add(new XmlParameter("@married", true));
         var adapter = new XmlDataAdapter(command);
@@ -262,7 +262,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         var command = new XmlCommand("INSERT INTO [Employees] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
         var adapter = new XmlDataAdapter(command);
 

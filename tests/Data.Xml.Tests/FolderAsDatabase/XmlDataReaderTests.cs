@@ -12,7 +12,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         connection.Open();
 
         // Act - Query the locations table
@@ -41,7 +41,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB.ConnectionString);
         var command = new XmlCommand("SELECT * FROM [employees]", connection);
 
         // Act
@@ -83,7 +83,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData_WithFilter()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB.ConnectionString);
         var command = new XmlCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
 
         // Act
@@ -109,7 +109,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.ConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB.ConnectionString);
         connection.Open();
 
         // Act
@@ -131,7 +131,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB);
         connection.Open();
 
         // Act - Query two columns from the locations table

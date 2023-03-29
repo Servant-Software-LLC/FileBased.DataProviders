@@ -4,10 +4,11 @@ namespace Data.Tests.Common.Utils;
 
 public interface IConnectionStrings
 {
-    FileConnectionString FolderAsDBConnectionString { get; }
-    FileConnectionString FileAsDBConnectionString { get; }
-    FileConnectionString FileAsDBEmptyWithTablesConnectionString { get; }
-    FileConnectionString eComDBConnectionString { get; }
+    FileConnectionString FolderAsDB { get; }
+    FileConnectionString FileAsDB { get; }
+    FileConnectionString FileAsDBEmptyWithTables { get; }
+    FileConnectionString FolderAsDB_eCom { get; }
+    FileConnectionString FileAsDB_eCom { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

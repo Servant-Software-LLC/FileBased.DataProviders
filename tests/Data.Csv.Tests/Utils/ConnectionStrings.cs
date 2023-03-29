@@ -8,10 +8,9 @@ public class ConnectionStrings : ConnectionStringsBase
 {
     public override string Extension => "cvs";
 
-    public override FileConnectionString FileAsDBConnectionString => throw new NotImplementedException();
+    public override FileConnectionString FileAsDB => throw new NotImplementedException();
 
-    protected override string eComDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
-    public override FileConnectionString eComDBConnectionString => new FileConnectionString() { DataSource = eComDataBase };
+    public override FileConnectionString FileAsDB_eCom => throw new NotImplementedException();
 
     public new static ConnectionStrings Instance => new ConnectionStrings();
 }

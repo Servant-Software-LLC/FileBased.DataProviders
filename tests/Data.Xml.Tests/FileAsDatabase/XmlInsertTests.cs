@@ -12,14 +12,14 @@ public class XmlInsertTests
     public void Insert_ShouldInsertData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId)));
+        InsertTests.Insert_ShouldInsertData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.AddFormatted(true));
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB.AddFormatted(true));
         connection.Open();
 
         // Act - Insert a new record into the locations table

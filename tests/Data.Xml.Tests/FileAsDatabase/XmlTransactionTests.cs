@@ -14,7 +14,7 @@ public partial class XmlTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldInsertDataIntoDatabase(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -23,7 +23,7 @@ public partial class XmlTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldDeleteDataFromDatabase(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -32,7 +32,7 @@ public partial class XmlTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldUpdateDataInDatabase(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -40,7 +40,7 @@ public partial class XmlTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB);
         connection.Open();
 
         // Start a transaction

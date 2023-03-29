@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB_eCom);
         connection.Open();
 
         // Act

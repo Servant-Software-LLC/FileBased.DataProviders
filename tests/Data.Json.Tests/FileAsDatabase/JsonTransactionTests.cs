@@ -14,7 +14,7 @@ public partial class JsonTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldInsertDataIntoDatabase(
-            () => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -23,7 +23,7 @@ public partial class JsonTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldDeleteDataFromDatabase(
-            () => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -32,7 +32,7 @@ public partial class JsonTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldUpdateDataInDatabase(
-            () => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -40,7 +40,7 @@ public partial class JsonTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB);
         connection.Open();
 
         // Start a transaction
