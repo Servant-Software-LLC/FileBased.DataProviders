@@ -6,6 +6,7 @@ public interface IConnectionStrings
 {
     FileConnectionString FolderAsDBConnectionString { get; }
     FileConnectionString FileAsDBConnectionString { get; }
+    FileConnectionString FileAsDBEmptyWithTablesConnectionString { get; }
     FileConnectionString eComDBConnectionString { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
