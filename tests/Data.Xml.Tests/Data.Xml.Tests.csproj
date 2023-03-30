@@ -38,16 +38,16 @@
     <None Update="Sources\ecommerce.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\customers1.xml">
+    <None Update="Sources\eCom\Customers.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orderitems1.xml">
+    <None Update="Sources\eCom\OrderItems.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orders1.xml">
+    <None Update="Sources\eCom\Orders.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\products1.xml">
+    <None Update="Sources\eCom\Products.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Sources\Folder\employees.xml">
