@@ -41,16 +41,16 @@
     <None Update="Sources\emptyDatabase.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\customers1.json">
+    <None Update="Sources\eCom\Customers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orderitems1.json">
+    <None Update="Sources\eCom\OrderItems.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orders1.json">
+    <None Update="Sources\eCom\Orders.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\products1.json">
+    <None Update="Sources\eCom\Products.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Sources\Folder\employees.json">
