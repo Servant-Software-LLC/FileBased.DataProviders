@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB_eCom);
+        var connection = new CsvConnection(ConnectionStrings.Instance.eComFolderDB);
         connection.Open();
 
         // Act

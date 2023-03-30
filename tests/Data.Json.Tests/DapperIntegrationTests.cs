@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System.Data.JsonClient;
 using Xunit;
 
@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB_eCom);
+        var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDB);
         connection.Open();
 
         // Act

@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
 using Data.Tests.Common.Utils;
 
@@ -10,7 +10,7 @@ public class ConnectionStrings : ConnectionStringsBase
 
     public override FileConnectionString FileAsDB => throw new NotImplementedException();
 
-    public override FileConnectionString FileAsDB_eCom => throw new NotImplementedException();
+    public override FileConnectionString eComFileDB => throw new NotImplementedException();
 
     public new static ConnectionStrings Instance => new ConnectionStrings();
 }

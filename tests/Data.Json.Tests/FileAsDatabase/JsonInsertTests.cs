@@ -21,7 +21,7 @@ public class JsonInsertTests
     public void Insert_ShouldInsertDataIntoEmptyTables()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.FileAsDBEmptyWithTables.Sandbox("Sandbox", sandboxId)));
+        InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.EmptyWithTablesFileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]

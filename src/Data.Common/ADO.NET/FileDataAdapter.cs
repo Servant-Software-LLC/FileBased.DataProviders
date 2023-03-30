@@ -1,6 +1,6 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileDataAdapter : IDataAdapter,IDisposable
+public abstract class FileDataAdapter : IDataAdapter, IDisposable
 {
     private DataRow? lastDataRowChanged;
     private FileConnection? connection;
@@ -24,7 +24,7 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
     public FileDataAdapter(FileCommand selectCommand)
     {
         SelectCommand = selectCommand ?? throw new ArgumentNullException(nameof(selectCommand));
-        
+
         if (SelectCommand.Connection == null)
             throw new ArgumentNullException(nameof(connection));
 
@@ -38,13 +38,11 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
         }
     }
 
-    
-
     public IDbCommand? SelectCommand { get; set; }
     public IDbCommand? UpdateCommand { get; set; }
 
-    public MissingMappingAction MissingMappingAction { get; set ; }
-    public MissingSchemaAction MissingSchemaAction { get; set ; }
+    public MissingMappingAction MissingMappingAction { get; set; }
+    public MissingSchemaAction MissingSchemaAction { get; set; }
     public ITableMappingCollection TableMappings { get; }
 
     public int Fill(DataSet dataSet)
@@ -64,9 +62,9 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
         var selectQuery = FileQuery.Create((FileCommand)SelectCommand);
         var jsonReader = connection.FileReader;
         var dataTable = jsonReader.ReadFile(selectQuery, true);
-        dataTable = GetTable(dataTable,selectQuery);
-      
-        var cols = GetColumns(dataTable,selectQuery);
+        dataTable = GetTable(dataTable, selectQuery);
+
+        var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()
             .Where(column => !cols.Contains(column.ColumnName))
@@ -74,7 +72,6 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
             .ToList()
             .ForEach(dataTable.Columns.Remove);
 
-        
         dataTable.RowChanged += DataTable_RowChanged;
 
         dataTable.TableName = "Table";
@@ -82,7 +79,6 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
         dataSet.Tables.Add(dataTable);
         return dataTable.Rows.Count;
     }
-
     public DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
     {
         if (SelectCommand == null)
@@ -107,7 +103,7 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
             .ToList()
             .ForEach(dataTable.Columns.Remove);
 
-        if (dataSet.Tables["Table"]!=null)
+        if (dataSet.Tables["Table"] != null)
         {
             dataSet.Tables.Remove("Table");
         }
@@ -119,27 +115,26 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
     public IDataParameter[] GetFillParameters()
     {
         IDataParameter[]? value = null;
-        if (SelectCommand != null )
+        if (SelectCommand != null)
         {
             IDataParameterCollection parameters = SelectCommand.Parameters;
-            if (parameters!=null)
+            if (parameters != null)
             {
                 value = new IDataParameter[parameters.Count];
                 parameters.CopyTo(value, 0);
             }
         }
-        if (value==null)
+        if (value == null)
         {
             value = Array.Empty<IDataParameter>();
         }
         return value;
     }
 
-
-    public  int Update(DataSet dataSet)
+    public int Update(DataSet dataSet)
     {
-       // dataSet.Tables.Clear();
-        if (dataSet==null)
+        // dataSet.Tables.Clear();
+        if (dataSet == null)
             throw new ArgumentNullException($"{nameof(dataSet)} cannot be null");
         if (UpdateCommand == null)
             throw new InvalidOperationException($"Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
@@ -152,20 +147,20 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
 
         connection = (FileConnection)UpdateCommand!.Connection!;
 
-        var query =FileQuery.Create((FileCommand)UpdateCommand);
+        var query = FileQuery.Create((FileCommand)UpdateCommand);
         if (query is not FileUpdateQuery updateQuery)
         {
             throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
         }
 
         //check if source column is set and has parameters
-        if (UpdateCommand.Parameters.Count>0)
+        if (UpdateCommand.Parameters.Count > 0)
         {
             foreach (IDbDataParameter parameter in UpdateCommand.Parameters)
             {
                 if (!string.IsNullOrEmpty(parameter.SourceColumn)
                     &&
-                    lastDataRowChanged!=null
+                    lastDataRowChanged != null
                     &&
                     lastDataRowChanged.Table.Columns.Contains(parameter.SourceColumn))
                 {
@@ -177,6 +172,7 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
         var updater = CreateWriter(query);
         return updater.Execute();
     }
+
     protected abstract FileWriter CreateWriter(FileQuery fileQuery);
 
     private void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
@@ -217,6 +213,5 @@ public abstract class FileDataAdapter : IDataAdapter,IDisposable
 
     public void Dispose()
     {
-      
     }
 }

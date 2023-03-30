@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.XmlClient;
@@ -102,28 +102,10 @@ public partial class JsonDataAdapterTests
     }
 
     [Fact]
-    public void Adapter_ShouldFillDatasetWithInnerJoin()
+    public void Adapter_ShouldFillDatasetWithInnerJoinFromFolderAsDB()
     {
-        // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
-        var command = new XmlCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]", connection);
-        var adapter = new XmlDataAdapter(command);
-        var dataSet = new DataSet();
-
-        // Act
-        adapter.Fill(dataSet);
-
-        // Assert
-        var table = dataSet.Tables[0];
-        Assert.True(table.Rows.Count > 0, "No records were returned in the INNER JOINs");
-
-        foreach (DataRow row in table.Rows)
-        {
-            Assert.NotNull(row[0]);
-            Assert.NotNull(row[1]);
-            Assert.NotNull(row[2]);
-            Assert.NotNull(row[3]);
-        }
+        DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
+                () => new XmlConnection(ConnectionStrings.Instance.eComFolderDB));
     }
 
     [Fact]
@@ -227,7 +209,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDB);
         var command = new XmlCommand("SELECT [Name], [Email] FROM [Customers]", connection);
         var adapter = new XmlDataAdapter(command);
 
@@ -273,5 +255,4 @@ public partial class JsonDataAdapterTests
         Assert.NotNull(parameters);
         Assert.Empty(parameters);
     }
-
 }

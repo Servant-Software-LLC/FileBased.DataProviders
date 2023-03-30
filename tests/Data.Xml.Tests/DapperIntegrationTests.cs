@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System.Data.XmlClient;
 using Xunit;
 
@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDB);
         connection.Open();
 
         // Act
@@ -28,9 +28,7 @@ public class DapperIntegrationTests
             Assert.False(item.Quantity == 0);
             Assert.False(string.IsNullOrEmpty(item.Name));
         }
-
     }
-
 
     private class Records
     {
@@ -39,5 +37,4 @@ public class DapperIntegrationTests
         public int Quantity { get; set; }
         public string? Name { get; set; }
     }
-
 }

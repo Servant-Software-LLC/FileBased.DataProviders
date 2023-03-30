@@ -1,4 +1,4 @@
-﻿using System.Data.XmlClient;
+using System.Data.XmlClient;
 using Xunit;
 
 namespace Data.Xml.Tests.FileAsDatabase;
@@ -106,7 +106,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB_eCom);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDB);
         connection.Open();
 
         // Act - Query two columns from the locations table
