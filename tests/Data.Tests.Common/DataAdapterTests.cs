@@ -32,7 +32,6 @@ public static class DataAdapterTests
         adapter.Fill(dataSet);
         adapter.Update(dataSet);
 
-
         adapter = employeeSelectCommand.CreateAdapter();
         adapter.UpdateCommand = employeeUpdateCommand;
         dataSet = new DataSet();
@@ -63,6 +62,63 @@ public static class DataAdapterTests
 
         // Close the connection
         connection.Close();
+    }
 
+    public static void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB(Func<FileConnection> createFileConnection)
+    {
+        // Arrange
+        var connection = createFileConnection(); ;
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
+        var adapter = command.CreateAdapter();
+        var dataSet = new DataSet();
+        // Act
+        adapter.Fill(dataSet);
+        // Assert
+        var table = dataSet.Tables[0];
+        Assert.True(table.Rows.Count > 0, "No records were returned in the INNER JOINs");
+
+        foreach (DataRow row in table.Rows)
+        {
+            Assert.NotNull(row[0]);
+            Assert.NotNull(row[1]);
+            Assert.NotNull(row[2]);
+            Assert.NotNull(row[3]);
+        }
+    }
+
+    public static void Adapter_ShouldFillDatasetWithInnerJoin(Func<FileConnection> createFileConnection)
+    {
+        // Arrange
+        string query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] " +
+            "FROM [Customers c] " +
+            "INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] " +
+            "INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] " +
+            "INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
+
+        // Act
+        using (FileConnection connection = createFileConnection())
+        {
+            connection.Open();
+            using (FileCommand command = connection.CreateCommand())
+            {
+                command.CommandText = query;
+                using (FileDataAdapter adapter = command.CreateAdapter())
+                {
+                    DataSet database = new DataSet();
+                    adapter.Fill(database);
+                    DataTable table = database.Tables[0];
+
+                    // Assert
+                    Assert.NotNull(table);
+                    Assert.Equal(40, table.Rows.Count);
+                    Assert.Equal(4, table.Columns.Count);
+                    Assert.Equal("John Doe", table.Rows[0]["CustomerName"].ToString());
+                    Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]!["OrderDate"].ToString()));
+                    Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
+                    Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
+                }
+            }
+        }
     }
 }

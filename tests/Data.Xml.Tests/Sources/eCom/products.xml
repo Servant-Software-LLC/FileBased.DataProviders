@@ -1,0 +1,104 @@
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="products" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="products">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Name" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Description" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Price" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <products>
+    <ID>1</ID>
+    <Name>Macbook Pro 13</Name>
+    <Description>10th Gen Intel Core i5 processor</Description>
+    <Price>1299.00</Price>
+  </products>
+  <products>
+    <ID>2</ID>
+    <Name>iPhone 13 6.1-inch Super Retina XDR display</Name>
+    <Description>128GB</Description>
+    <Price>799.00</Price>
+  </products>
+  <products>
+    <ID>3</ID>
+    <Name>iPad Air 10.9-inch Liquid Retina display</Name>
+    <Description>64GB</Description>
+    <Price>599.00</Price>
+  </products>
+  <products>
+    <ID>4</ID>
+    <Name>Apple Watch Series 7</Name>
+    <Description>Always-On Retina display</Description>
+    <Price>40mm</Price>
+  </products>
+  <products>
+    <ID>5</ID>
+    <Name>AirPods Pro Active Noise Cancellation</Name>
+    <Description>Bluetooth</Description>
+    <Price>249.00</Price>
+  </products>
+  <products>
+    <ID>6</ID>
+    <Name>iPad Mini 8.3-inch Liquid Retina display</Name>
+    <Description>64GB</Description>
+    <Price>499.00</Price>
+  </products>
+  <products>
+    <ID>7</ID>
+    <Name>iMac 24-inch 4.5K Retina display</Name>
+    <Description>8-core Apple M1 chip</Description>
+    <Price>1299.00</Price>
+  </products>
+  <products>
+    <ID>8</ID>
+    <Name>Apple TV 4K 4K HDR with Dolby Vision</Name>
+    <Description>32GB</Description>
+    <Price>179.00</Price>
+  </products>
+  <products>
+    <ID>9</ID>
+    <Name>HomePod mini Smart speaker</Name>
+    <Description>White</Description>
+    <Price>99.00</Price>
+  </products>
+  <products>
+    <ID>10</ID>
+    <Name>Beats Studio Buds</Name>
+    <Description>Black</Description>
+    <Price>149.99</Price>
+  </products>
+</NewDataSet>

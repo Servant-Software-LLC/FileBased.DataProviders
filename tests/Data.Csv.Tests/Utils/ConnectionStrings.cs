@@ -8,10 +8,14 @@ public class ConnectionStrings : ConnectionStringsBase
 
     public override ConnectionString FileAsDBConnectionString => throw new NotImplementedException();
 
-    //TODO:  This will be provided in a 'Folder as Database' style.
+    protected override string eComFolderDataBase
+        => Path.Combine(SourcesFolder, $"eCom");
 
-    protected override string eComDataBase => Path.Combine(SourcesFolder, $"eCom");
-    public override ConnectionString eComDBConnectionString => eComDataBase;
+    public override ConnectionString eComFileDBConnectionString
+        => throw new InvalidOperationException("File as database is not supported in csv provider");
+
+    public override ConnectionString eComFolderDBConnectionString
+        => eComFolderDataBase;
 
     public new static ConnectionStrings Instance => new ConnectionStrings();
 }

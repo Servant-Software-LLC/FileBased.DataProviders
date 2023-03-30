@@ -106,7 +106,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
         connection.Open();
 
         // Act - Query two columns from the locations table

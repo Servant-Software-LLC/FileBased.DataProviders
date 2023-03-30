@@ -4,7 +4,8 @@ public interface IConnectionStrings
 {
     ConnectionString FolderAsDBConnectionString { get; }
     ConnectionString FileAsDBConnectionString { get; }
-    ConnectionString eComDBConnectionString { get; }
+    ConnectionString eComFileDBConnectionString { get; }
+    ConnectionString eComFolderDBConnectionString { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

@@ -106,7 +106,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
         connection.Open();
 
         // Act - Query two columns from the locations table
@@ -129,7 +129,6 @@ public class JsonDataReaderTests
         }
 
         Assert.True(count > 0, "No records where returned in the INNER JOINs");
-
     }
 
     [Fact]
@@ -160,5 +159,4 @@ public class JsonDataReaderTests
         // Close the connection
         connection.Close();
     }
-
 }

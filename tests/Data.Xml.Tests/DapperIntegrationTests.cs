@@ -10,7 +10,7 @@ public class DapperIntegrationTests
     public void Query_StronglyTyped()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.eComDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
         connection.Open();
 
         // Act
@@ -21,9 +21,7 @@ public class DapperIntegrationTests
         foreach (var item in rows)
         {
         }
-
     }
-
 
     private class Records
     {
@@ -32,5 +30,4 @@ public class DapperIntegrationTests
         public string? Quantity { get; set; }
         public string? Name { get; set; }
     }
-
 }

@@ -1,0 +1,134 @@
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="orders" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="orders">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CustomerID" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="OrderDate" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="TotalAmount" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <orders>
+    <ID>1</ID>
+    <CustomerID>1</CustomerID>
+    <OrderDate>2022-03-20</OrderDate>
+    <TotalAmount>139.95</TotalAmount>
+  </orders>
+  <orders>
+    <ID>2</ID>
+    <CustomerID>1</CustomerID>
+    <OrderDate>2022-03-21</OrderDate>
+    <TotalAmount>189.95</TotalAmount>
+  </orders>
+  <orders>
+    <ID>3</ID>
+    <CustomerID>1</CustomerID>
+    <OrderDate>2022-03-22</OrderDate>
+    <TotalAmount>89.97</TotalAmount>
+  </orders>
+  <orders>
+    <ID>4</ID>
+    <CustomerID>1</CustomerID>
+    <OrderDate>2022-03-23</OrderDate>
+    <TotalAmount>259.96</TotalAmount>
+  </orders>
+  <orders>
+    <ID>5</ID>
+    <CustomerID>1</CustomerID>
+    <OrderDate>2022-03-24</OrderDate>
+    <TotalAmount>199.95</TotalAmount>
+  </orders>
+  <orders>
+    <ID>6</ID>
+    <CustomerID>2</CustomerID>
+    <OrderDate>2022-03-20</OrderDate>
+    <TotalAmount>119.96</TotalAmount>
+  </orders>
+  <orders>
+    <ID>7</ID>
+    <CustomerID>2</CustomerID>
+    <OrderDate>2022-03-21</OrderDate>
+    <TotalAmount>79.98</TotalAmount>
+  </orders>
+  <orders>
+    <ID>8</ID>
+    <CustomerID>2</CustomerID>
+    <OrderDate>2022-03-22</OrderDate>
+    <TotalAmount>159.97</TotalAmount>
+  </orders>
+  <orders>
+    <ID>9</ID>
+    <CustomerID>2</CustomerID>
+    <OrderDate>2022-03-23</OrderDate>
+    <TotalAmount>109.98</TotalAmount>
+  </orders>
+  <orders>
+    <ID>10</ID>
+    <CustomerID>2</CustomerID>
+    <OrderDate>2022-03-24</OrderDate>
+    <TotalAmount>249.95</TotalAmount>
+  </orders>
+  <orders>
+    <ID>11</ID>
+    <CustomerID>3</CustomerID>
+    <OrderDate>2022-03-20</OrderDate>
+    <TotalAmount>99.98</TotalAmount>
+  </orders>
+  <orders>
+    <ID>12</ID>
+    <CustomerID>3</CustomerID>
+    <OrderDate>2022-03-21</OrderDate>
+    <TotalAmount>209.97</TotalAmount>
+  </orders>
+  <orders>
+    <ID>13</ID>
+    <CustomerID>3</CustomerID>
+    <OrderDate>2022-03-22</OrderDate>
+    <TotalAmount>189.96</TotalAmount>
+  </orders>
+  <orders>
+    <ID>14</ID>
+    <CustomerID>3</CustomerID>
+    <OrderDate>2022-03-23</OrderDate>
+    <TotalAmount>159.97</TotalAmount>
+  </orders>
+  <orders>
+    <ID>15</ID>
+    <CustomerID>3</CustomerID>
+    <OrderDate>2022-03-24</OrderDate>
+    <TotalAmount>109.98</TotalAmount>
+  </orders>
+</NewDataSet>

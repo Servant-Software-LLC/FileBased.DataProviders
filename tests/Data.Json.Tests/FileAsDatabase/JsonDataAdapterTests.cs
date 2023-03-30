@@ -101,28 +101,10 @@ namespace Data.Json.Tests.FileAsDatabase
         }
 
         [Fact]
-        public void Adapter_ShouldFillDatasetWithInnerJoin()
+        public void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB()
         {
-            // Arrange
-            var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
-            var command = new JsonCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]", connection);
-            var adapter = new JsonDataAdapter(command);
-            var dataSet = new DataSet();
-
-            // Act
-            adapter.Fill(dataSet);
-
-            // Assert
-            var table = dataSet.Tables[0];
-            Assert.True(table.Rows.Count > 0, "No records were returned in the INNER JOINs");
-
-            foreach (DataRow row in table.Rows)
-            {
-                Assert.NotNull(row[0]);
-                Assert.NotNull(row[1]);
-                Assert.NotNull(row[2]);
-                Assert.NotNull(row[3]);
-            }
+            DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoinFileAsDB(
+                    () => new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString));
         }
 
         [Fact]
@@ -226,7 +208,7 @@ namespace Data.Json.Tests.FileAsDatabase
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
         {
             // Arrange
-            var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
+            var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
             var command = new JsonCommand("SELECT [Name], [Email] FROM [Customers]", connection);
             var adapter = new JsonDataAdapter(command);
 
@@ -242,7 +224,7 @@ namespace Data.Json.Tests.FileAsDatabase
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
         {
             // Arrange
-            var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
+            var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
             var command = new JsonCommand("SELECT [Name], [Email] FROM [Customers] WHERE [ID] = @ID", connection);
             command.Parameters.Add(new JsonParameter("@ID", 1));
             var adapter = new JsonDataAdapter(command);
@@ -261,7 +243,7 @@ namespace Data.Json.Tests.FileAsDatabase
         public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
         {
             // Arrange
-            var connection = new JsonConnection(ConnectionStrings.Instance.eComDBConnectionString);
+            var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
             var command = new JsonCommand("INSERT INTO [Customers] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
             var adapter = new JsonDataAdapter(command);
 
@@ -272,6 +254,5 @@ namespace Data.Json.Tests.FileAsDatabase
             Assert.NotNull(parameters);
             Assert.Empty(parameters);
         }
-
     }
 }

@@ -99,41 +99,12 @@ namespace Data.Csv.Tests.FolderAsDatabase
             connection.Close();
         }
 
-        //TODO: Once we have an eComDB then uncomment...
-
         [Fact]
-        public void Adapter_ShouldFillDatasetWithInnerJoin()
+        public void Adapter_ShouldFillDatasetWithInnerJoinFromFolderAsDB()
         {
-            // Arrange
-            string query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] " +
-                "FROM [Customers c] " +
-                "INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] " +
-                "INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] " +
-                "INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
-
-            // Act
-            using (CsvConnection connection = new CsvConnection(ConnectionStrings.Instance.eComDBConnectionString))
-            {
-                connection.Open();
-                using (CsvCommand command = new CsvCommand(query, connection))
-                {
-                    using (CsvDataAdapter adapter = new CsvDataAdapter(command))
-                    {
-                        DataSet database = new DataSet();
-                        adapter.Fill(database);
-                        DataTable table = database.Tables[0];
-
-                        // Assert
-                        Assert.NotNull(table);
-                        Assert.Equal(40, table.Rows.Count);
-                        Assert.Equal(4, table.Columns.Count);
-                        Assert.Equal("John Doe", table.Rows[0]["CustomerName"].ToString());
-                        Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]["OrderDate"].ToString()));
-                        Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
-                        Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
-                    }
-                }
-            }
+            DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
+                    () => new CsvConnection(ConnectionStrings.Instance
+                    .eComFolderDBConnectionString));
         }
 
         [Fact]
@@ -232,7 +203,6 @@ namespace Data.Csv.Tests.FolderAsDatabase
             Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
         }
 
-
         [Fact]
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
         {
@@ -267,11 +237,12 @@ namespace Data.Csv.Tests.FolderAsDatabase
             Assert.NotNull(parameters);
             Assert.Empty(parameters);
         }
+
         [Fact]
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.eComDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.eComFolderDBConnectionString);
             var command = new CsvCommand("SELECT [Name], [Email] FROM [Customers]", connection);
             var adapter = new CsvDataAdapter(command);
 
@@ -282,8 +253,5 @@ namespace Data.Csv.Tests.FolderAsDatabase
             Assert.NotNull(parameters);
             Assert.Empty(parameters);
         }
-
-
-
     }
 }
