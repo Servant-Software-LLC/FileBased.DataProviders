@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.CsvClient;
@@ -13,7 +13,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void DataAdapter_ShouldFillTheDataSet()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var adapter = new CsvDataAdapter("SELECT * FROM locations", connection);
 
             // Act
@@ -40,7 +40,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void Adapter_ShouldReturnData()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var adapter = new CsvDataAdapter("SELECT * FROM employees", connection);
 
             // Act
@@ -76,7 +76,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void DataAdapter_ShouldFillTheDataSet_WithFilter()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var selectCommand = new CsvCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
             var dataAdapter = new CsvDataAdapter(selectCommand);
             var dataSet = new DataSet();
@@ -104,14 +104,14 @@ namespace Data.Csv.Tests.FolderAsDatabase
         {
             DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
                     () => new CsvConnection(ConnectionStrings.Instance
-                    .eComFolderDBConnectionString));
+                    .eComFolderDB));
         }
 
         [Fact]
         public void Adapter_ShouldReadDataWithSelectedColumns()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var dataSet = new DataSet();
 
             // Act - Query two columns from the locations table
@@ -145,7 +145,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         {
             var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
             DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId)), true);
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), true);
         }
 
         [Fact]
@@ -154,7 +154,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
             // Arrange
             var dataSet = new DataSet();
             var adapter = new CsvDataAdapter();
-            adapter.SelectCommand = new CsvCommand("SELECT * FROM employees", new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+            adapter.SelectCommand = new CsvCommand("SELECT * FROM employees", new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
 
             // Act
             var tables = adapter.FillSchema(dataSet, SchemaType.Source);
@@ -197,7 +197,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
             // Arrange
             var dataSet = new DataSet();
             var adapter = new CsvDataAdapter();
-            adapter.SelectCommand = new CsvCommand("", new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+            adapter.SelectCommand = new CsvCommand("", new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
 
             // Act & Assert
             Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
@@ -207,7 +207,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var command = new CsvCommand("SELECT [Name], [Email] FROM [Employees] WHERE [married] = @married", connection);
             command.Parameters.Add(new CsvParameter("@married", true));
             var adapter = new CsvDataAdapter(command);
@@ -226,7 +226,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
             var command = new CsvCommand("INSERT INTO [Employees] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
             var adapter = new CsvDataAdapter(command);
 
@@ -242,7 +242,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
         {
             // Arrange
-            var connection = new CsvConnection(ConnectionStrings.Instance.eComFolderDBConnectionString);
+            var connection = new CsvConnection(ConnectionStrings.Instance.eComFolderDB);
             var command = new CsvCommand("SELECT [Name], [Email] FROM [Customers]", connection);
             var adapter = new CsvDataAdapter(command);
 

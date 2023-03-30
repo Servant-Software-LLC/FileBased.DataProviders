@@ -14,7 +14,7 @@ public class CsvCommandTests
         const string query = "SELECT city, state FROM locations";
 
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
         connection.Open();
         var command = new CsvCommand(query, connection);
         var reader = command.ExecuteReader();
@@ -40,7 +40,7 @@ public class CsvCommandTests
     public void ExecuteScalar_ShouldCountRecords()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
         connection.Open();
 
         // Act - Count the records in the locations table

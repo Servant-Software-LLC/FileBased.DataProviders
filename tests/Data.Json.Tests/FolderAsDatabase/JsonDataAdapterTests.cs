@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data;
 using System.Data.JsonClient;
 using System.Reflection;
@@ -12,7 +13,7 @@ public partial class JsonDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var adapter = new JsonDataAdapter("SELECT * FROM locations", connection);
 
         // Act
@@ -39,7 +40,7 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldReturnData()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var adapter = new JsonDataAdapter("SELECT * FROM employees", connection);
 
         // Act
@@ -77,7 +78,7 @@ public partial class JsonDataAdapterTests
     public void DataAdapter_ShouldFillTheDataSet_WithFilter()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var selectCommand = new JsonCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
         var dataAdapter = new JsonDataAdapter(selectCommand);
         var dataSet = new DataSet();
@@ -104,14 +105,14 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldFillDatasetWithInnerJoinFromFolderAsDB()
     {
         DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
-                () => new JsonConnection(ConnectionStrings.Instance.eComFolderDBConnectionString));
+                () => new JsonConnection(ConnectionStrings.Instance.eComFolderDB));
     }
 
     [Fact]
     public void Adapter_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var dataSet = new DataSet();
 
         // Act - Query two columns from the locations table
@@ -145,7 +146,7 @@ public partial class JsonDataAdapterTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -155,7 +156,7 @@ public partial class JsonDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new JsonDataAdapter();
-        adapter.SelectCommand = new JsonCommand("SELECT * FROM employees", new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+        adapter.SelectCommand = new JsonCommand("SELECT * FROM employees", new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
 
         // Act
         var tables = adapter.FillSchema(dataSet, SchemaType.Source);
@@ -198,7 +199,7 @@ public partial class JsonDataAdapterTests
         // Arrange
         var dataSet = new DataSet();
         var adapter = new JsonDataAdapter();
-        adapter.SelectCommand = new JsonCommand("", new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+        adapter.SelectCommand = new JsonCommand("", new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() => adapter.FillSchema(dataSet, SchemaType.Mapped));
@@ -208,7 +209,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.eComFileDB);
         var command = new JsonCommand("SELECT [Name], [Email] FROM [Customers]", connection);
         var adapter = new JsonDataAdapter(command);
 
@@ -224,7 +225,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var command = new JsonCommand("SELECT [Name], [Email] FROM [Employees] WHERE [married] = @married", connection);
         command.Parameters.Add(new JsonParameter("@married", true));
         var adapter = new JsonDataAdapter(command);
@@ -243,7 +244,7 @@ public partial class JsonDataAdapterTests
     public void GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery()
     {
         // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new JsonConnection(ConnectionStrings.Instance.FolderAsDB);
         var command = new JsonCommand("INSERT INTO [Employees] ([Name], [Email]) VALUES ('Test', 'test@test.com')", connection);
         var adapter = new JsonDataAdapter(command);
 

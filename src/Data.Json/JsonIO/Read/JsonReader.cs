@@ -34,6 +34,7 @@ public class JsonReader : FileReader
         }
 
     }
+
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
@@ -89,7 +90,11 @@ public class JsonReader : FileReader
 
     private IEnumerable<(string name, Type type)> GetFields(JsonElement table)
     {
-        var maxFieldElement = table.EnumerateArray().MaxBy(x =>
+        var arrayEnumerator = table.EnumerateArray();
+        if (!arrayEnumerator.Any())
+            return Enumerable.Empty<(string name, Type type)>();
+
+        var maxFieldElement = arrayEnumerator.MaxBy(x =>
         {
             return x.EnumerateObject().Count();
         });

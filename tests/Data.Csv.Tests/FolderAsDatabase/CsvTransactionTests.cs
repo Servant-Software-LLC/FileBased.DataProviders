@@ -14,7 +14,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldInsertDataIntoDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -23,7 +23,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldDeleteDataFromDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -32,7 +32,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldUpdateDataInDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -40,7 +40,7 @@ public partial class CsvTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString);
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB);
         connection.Open();
 
         // Start a transaction

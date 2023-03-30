@@ -90,11 +90,11 @@ public static class DataAdapterTests
     public static void Adapter_ShouldFillDatasetWithInnerJoin(Func<FileConnection> createFileConnection)
     {
         // Arrange
-        string query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] " +
-            "FROM [Customers c] " +
-            "INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] " +
-            "INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] " +
-            "INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
+        string query = @"SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
+            FROM [Customers c]
+            INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID]
+            INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID]
+            INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
 
         // Act
         using (FileConnection connection = createFileConnection())
@@ -113,10 +113,19 @@ public static class DataAdapterTests
                     Assert.NotNull(table);
                     Assert.Equal(40, table.Rows.Count);
                     Assert.Equal(4, table.Columns.Count);
+
                     Assert.Equal("John Doe", table.Rows[0]["CustomerName"].ToString());
                     Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]!["OrderDate"].ToString()));
                     Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
                     Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
+
+                    foreach (DataRow row in table.Rows)
+                    {
+                        Assert.NotNull(row[0]);
+                        Assert.NotNull(row[1]);
+                        Assert.NotNull(row[2]);
+                        Assert.NotNull(row[3]);
+                    }
                 }
             }
         }

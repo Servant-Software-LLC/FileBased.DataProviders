@@ -5,16 +5,35 @@ namespace Data.Common.Utils.ConnectionString;
 
 public class FileConnectionString : IConnectionStringProperties
 {
-    public string? ConnectionString { get; private set; }
-    public string? DataSource { get; private set; }
-    public bool Formatted { get; private set; } = false;
+    public FileConnectionString() { }
+    public FileConnectionString(string connectionString) => ConnectionString = connectionString;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="connectionString"></param>
-    /// <returns>Null if connection string was parsed successfully and contained all required properties.  Otherewise, an error message.</returns>
-    public void Parse(string? connectionString)
+    public static implicit operator string(FileConnectionString connectionString) => connectionString.ConnectionString;
+    public static implicit operator FileConnectionString(string connectionString) => new FileConnectionString(connectionString);
+
+    public string ConnectionString 
+    {
+        get =>
+            Formatted == null ?
+                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource};" :
+                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource}; {nameof(FileConnectionStringKeywords.Formatted)}={Formatted.Value};";
+
+        set => Parse(value); 
+    }
+
+    public string DataSource { get; set; }
+    public bool? Formatted { get; set; }
+
+    public FileConnectionString Clone() =>
+        new()
+        {
+            DataSource = DataSource,
+            Formatted = Formatted
+        };
+
+    public FileConnectionString AddFormatted(bool? formatted) => new(this) { Formatted = formatted };
+
+    private void Parse(string connectionString)
     {
         if (string.IsNullOrEmpty(connectionString))
             throw new ArgumentNullException(nameof(connectionString));
@@ -58,8 +77,6 @@ public class FileConnectionString : IConnectionStringProperties
 
             throw new ArgumentException($"Invalid connection string: Unknown keyword '{keyValuePair.Key}'", nameof(connectionString));
         }
-
-        ConnectionString = connectionString;
     }
 
     private static bool? ConvertToBoolean(object value)

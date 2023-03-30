@@ -1,11 +1,14 @@
-﻿namespace Data.Tests.Common.Utils;
+using Data.Common.Utils.ConnectionString;
+
+namespace Data.Tests.Common.Utils;
 
 public interface IConnectionStrings
 {
-    ConnectionString FolderAsDBConnectionString { get; }
-    ConnectionString FileAsDBConnectionString { get; }
-    ConnectionString eComFileDBConnectionString { get; }
-    ConnectionString eComFolderDBConnectionString { get; }
+    FileConnectionString FolderAsDB { get; }
+    FileConnectionString FileAsDB { get; }
+    FileConnectionString EmptyWithTablesFileAsDB { get; }
+    FileConnectionString eComFileDB { get; }
+    FileConnectionString eComFolderDB { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

@@ -10,4 +10,6 @@ internal class JsonInsert : FileInsert
     {
         dataSetWriter = new JsonDataSetWriter(jsonConnection, queryParser);
     }
+
+    public override bool SchemaUnknownWithoutData => true;
 }

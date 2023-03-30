@@ -1,4 +1,4 @@
-﻿using System.Data.XmlClient;
+using System.Data.XmlClient;
 using Xunit;
 
 namespace Data.Xml.Tests.FileAsDatabase;
@@ -9,7 +9,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB);
         connection.Open();
 
         // Act - Query the locations table
@@ -38,7 +38,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB);
         var command = new XmlCommand("SELECT * FROM [employees]", connection);
 
         // Act
@@ -80,7 +80,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData_WithFilter()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB);
         var command = new XmlCommand("SELECT * FROM [locations] WHERE zip = 78132", connection);
 
         // Act
@@ -106,7 +106,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.eComFileDB);
         connection.Open();
 
         // Act - Query two columns from the locations table
@@ -136,7 +136,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadDataWithSelectedColumns()
     {
         // Arrange
-        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString);
+        var connection = new XmlConnection(ConnectionStrings.Instance.FileAsDB);
         connection.Open();
 
         // Act - Query two columns from the locations table

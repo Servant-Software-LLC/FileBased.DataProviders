@@ -15,14 +15,14 @@ public class CsvInsertTests
     public void Insert_ShouldInsertData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId)));
+        InsertTests.Insert_ShouldInsertData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
         // Arrange
-        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.AddFormatted(true));
+        var connection = new CsvConnection(ConnectionStrings.Instance.FolderAsDB.AddFormatted(true));
         connection.Open();
 
         // Act - Insert a new record into the locations table

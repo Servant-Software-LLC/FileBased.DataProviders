@@ -68,7 +68,7 @@ internal class JsonDataSetWriter : IDataSetWriter
     private void SaveToFile(DataSet dataSet)
     {
         using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
-        using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted }))
+        using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false}))
         {
             jsonWriter.WriteStartObject();
             foreach (DataTable table in dataSet!.Tables)
@@ -89,7 +89,7 @@ internal class JsonDataSetWriter : IDataSetWriter
         {
             var path = fileConnection.GetTablePath(table.TableName);
             using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
-            using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted }))
+            using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
             {
                 WriteTable(jsonWriter, table, false);
             }
