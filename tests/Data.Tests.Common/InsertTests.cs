@@ -1,4 +1,5 @@
-﻿using System.Data.FileClient;
+﻿using Data.Common.Extension;
+using System.Data.FileClient;
 using Xunit;
 
 namespace Data.Tests.Common;
@@ -39,6 +40,21 @@ public static class InsertTests
             // Close the connection
             connection.Close();
         }
+    }
 
+    public static void Insert_ShouldBeFormatted(Func<FileConnection> createFileConnection)
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Insert a new record into the locations table
+        const string locationsTableName = "locations";
+        var command = connection.CreateCommand($"INSERT INTO {locationsTableName} (id, city, state, zip) VALUES (156, 'Seattle', 'Washington', 98101)");
+        var rowsAffected = command.ExecuteNonQuery();
+
+        // Assert
+        var jsonFileContents = File.ReadAllText(connection.GetTablePath(locationsTableName));
+        Assert.Contains("\n", jsonFileContents);
     }
 }
