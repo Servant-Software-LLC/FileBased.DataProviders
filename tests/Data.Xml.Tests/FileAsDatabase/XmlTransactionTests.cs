@@ -1,6 +1,5 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
-using System.Data;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;
@@ -41,6 +40,6 @@ public partial class XmlTransactionTests
     {
         TransactionTests.
                 Transaction_ShouldRollbackWhenExceptionIsThrown(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString));
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB));
     }
 }

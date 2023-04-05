@@ -20,6 +20,6 @@ public class XmlInsertTests
     {
         InsertTests.Insert_ShouldBeFormattedForFile(() =>
         new XmlConnection(ConnectionStrings.Instance
-        .FileAsDBConnectionString.AddFormatted(true)));
+        .FileAsDB.AddFormatted(true)));
     }
 }

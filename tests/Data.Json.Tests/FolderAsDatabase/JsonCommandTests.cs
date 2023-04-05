@@ -14,7 +14,7 @@ public class JsonCommandTests
     {
         CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
            () => new JsonConnection(ConnectionStrings.Instance.
-           FolderAsDBConnectionString));
+           FolderAsDB));
     }
 
     [Fact]
@@ -22,6 +22,6 @@ public class JsonCommandTests
     {
         CommandTests.ExecuteScalar_ShouldCountRecords(
           () => new JsonConnection(ConnectionStrings.Instance.
-          FolderAsDBConnectionString));
+          FolderAsDB));
     }
 }

@@ -10,7 +10,7 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
         new JsonConnection(ConnectionStrings.Instance
-        .FileAsDBConnectionString));
+        .FileAsDB));
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
        new JsonConnection(ConnectionStrings.Instance
-       .FileAsDBConnectionString));
+       .FileAsDB));
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData_WithFilter(() =>
        new JsonConnection(ConnectionStrings.Instance
-       .FileAsDBConnectionString));
+       .FileAsDB));
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithInnerJoin(() =>
        new JsonConnection(ConnectionStrings.Instance
-       .eComFileDBConnectionString));
+       .eComFileDB));
     }
 
     [Fact]
@@ -42,6 +42,6 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
      new JsonConnection(ConnectionStrings.Instance
-     .FileAsDBConnectionString));
+     .FileAsDB));
     }
 }

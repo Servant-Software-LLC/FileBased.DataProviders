@@ -1,6 +1,5 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
-using System.Data;
 using System.Data.CsvClient;
 using System.Reflection;
 using Xunit;
@@ -40,6 +39,6 @@ public partial class CsvTransactionTests
     public void Transaction_ShouldRollbackWhenExceptionIsThrown()
     {
         TransactionTests.
-                Transaction_ShouldRollbackWhenExceptionIsThrown(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
+                Transaction_ShouldRollbackWhenExceptionIsThrown(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 }

@@ -1,6 +1,5 @@
+using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
-using Data.Tests.Common;
-using System.Data;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;
@@ -14,7 +13,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.DataAdapter_ShouldFillTheDataSet(
            () => new XmlConnection(ConnectionStrings.Instance.
-           FileAsDBConnectionString));
+           FileAsDB));
     }
 
     [Fact]
@@ -22,7 +21,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.Adapter_ShouldReturnData(
             () => new XmlConnection(ConnectionStrings.Instance.
-            FileAsDBConnectionString));
+            FileAsDB));
     }
 
     [Fact]
@@ -30,7 +29,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.DataAdapter_ShouldFillTheDataSet_WithFilter(
                    () => new XmlConnection(ConnectionStrings.Instance.
-                   FileAsDBConnectionString));
+                   FileAsDB));
     }
 
     [Fact]
@@ -45,7 +44,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.Adapter_ShouldReadDataWithSelectedColumns(
               () => new XmlConnection(ConnectionStrings.Instance.
-              FileAsDBConnectionString));
+              FileAsDB));
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.FillSchema_ShouldReturnDataTableWithAllColumns(
              () => new XmlConnection(ConnectionStrings.Instance.
-             FileAsDBConnectionString));
+             FileAsDB));
     }
 
     [Fact]
@@ -77,7 +76,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandConnectionIsNull(
              () => new XmlConnection(ConnectionStrings.Instance.
-             FileAsDBConnectionString));
+             FileAsDB));
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.CreateAdapter_ShouldThrowArgumentException_WhenSelectCommandTextIsNullOrEmpty(
                () => new XmlConnection(ConnectionStrings.Instance.
-               FileAsDBConnectionString));
+               FileAsDB));
     }
 
     [Fact]
@@ -93,7 +92,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters(
               () => new XmlConnection(ConnectionStrings.Instance.
-              FileAsDBConnectionString));
+              FileAsDB));
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters(
                () => new XmlConnection(ConnectionStrings.Instance.
-               FileAsDBConnectionString));
+               FileAsDB));
     }
 
     [Fact]
@@ -109,6 +108,6 @@ public partial class XmlDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery(
                () => new XmlConnection(ConnectionStrings.Instance.
-               FileAsDBConnectionString));
+               FileAsDB));
     }
 }

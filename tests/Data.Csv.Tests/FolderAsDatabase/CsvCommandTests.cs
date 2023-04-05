@@ -13,7 +13,7 @@ public class CsvCommandTests
     {
         CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
             () => new CsvConnection(ConnectionStrings.Instance.
-            FolderAsDBConnectionString));
+            FolderAsDB));
     }
 
     [Fact]
@@ -21,6 +21,6 @@ public class CsvCommandTests
     {
         CommandTests.ExecuteScalar_ShouldCountRecords(
            () => new CsvConnection(ConnectionStrings.Instance.
-           FolderAsDBConnectionString));
+           FolderAsDB));
     }
 }

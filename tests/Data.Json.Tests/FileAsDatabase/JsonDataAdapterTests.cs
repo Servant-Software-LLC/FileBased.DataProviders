@@ -1,7 +1,4 @@
 using Data.Common.Extension;
-using Data.Tests.Common;
-using System.Data;
-using System.Data.FileClient;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -15,7 +12,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.DataAdapter_ShouldFillTheDataSet(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FileAsDBConnectionString));
+               FileAsDB));
         }
 
         [Fact]
@@ -23,7 +20,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.Adapter_ShouldReturnData(
                 () => new JsonConnection(ConnectionStrings.Instance.
-                FileAsDBConnectionString));
+                FileAsDB));
         }
 
         [Fact]
@@ -31,7 +28,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.DataAdapter_ShouldFillTheDataSet_WithFilter(
                        () => new JsonConnection(ConnectionStrings.Instance.
-                       FileAsDBConnectionString));
+                       FileAsDB));
         }
 
         [Fact]
@@ -46,7 +43,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.Adapter_ShouldReadDataWithSelectedColumns(
                   () => new JsonConnection(ConnectionStrings.Instance.
-                  FileAsDBConnectionString));
+                  FileAsDB));
         }
 
         [Fact]
@@ -63,7 +60,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.FillSchema_ShouldReturnDataTableWithAllColumns(
                  () => new JsonConnection(ConnectionStrings.Instance.
-                 FileAsDBConnectionString));
+                 FileAsDB));
         }
 
         [Fact]
@@ -78,7 +75,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandConnectionIsNull(
                  () => new JsonConnection(ConnectionStrings.Instance.
-                 FileAsDBConnectionString));
+                 FileAsDB));
         }
 
         [Fact]
@@ -86,7 +83,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.CreateAdapter_ShouldThrowArgumentException_WhenSelectCommandTextIsNullOrEmpty(
                    () => new JsonConnection(ConnectionStrings.Instance.
-                   FileAsDBConnectionString));
+                   FileAsDB));
         }
 
         [Fact]
@@ -94,7 +91,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters(
                   () => new JsonConnection(ConnectionStrings.Instance.
-                  FileAsDBConnectionString));
+                  FileAsDB));
         }
 
         [Fact]
@@ -102,7 +99,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters(
                    () => new JsonConnection(ConnectionStrings.Instance.
-                   FileAsDBConnectionString));
+                   FileAsDB));
         }
 
         [Fact]
@@ -110,7 +107,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             DataAdapterTests.GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery(
                    () => new JsonConnection(ConnectionStrings.Instance.
-                   FileAsDBConnectionString));
+                   FileAsDB));
         }
     }
 }

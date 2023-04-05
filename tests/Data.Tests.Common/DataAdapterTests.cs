@@ -1,7 +1,5 @@
-using Data.Tests.Common;
 using System.Data;
 using System.Data.FileClient;
-using System.Reflection;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase
@@ -127,8 +125,9 @@ namespace Data.Json.Tests.FileAsDatabase
                             Assert.NotNull(row[2]);
                             Assert.NotNull(row[3]);
                         }
-                        
+
                     }
+                }
             }
         }
 

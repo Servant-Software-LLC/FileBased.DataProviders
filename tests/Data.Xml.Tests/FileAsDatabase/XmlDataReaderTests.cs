@@ -11,7 +11,7 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
         new XmlConnection(ConnectionStrings.Instance
-        .FileAsDBConnectionString));
+        .FileAsDB));
     }
 
     [Fact]
@@ -19,7 +19,7 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
        new XmlConnection(ConnectionStrings.Instance
-       .FileAsDBConnectionString));
+       .FileAsDB));
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData_WithFilter(() =>
        new XmlConnection(ConnectionStrings.Instance
-       .FileAsDBConnectionString));
+       .FileAsDB));
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithInnerJoin(() =>
        new XmlConnection(ConnectionStrings.Instance
-       .eComFileDBConnectionString));
+       .eComFileDB));
     }
 
     [Fact]
@@ -43,6 +43,6 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
      new XmlConnection(ConnectionStrings.Instance
-     .FileAsDBConnectionString));
+     .FileAsDB));
     }
 }

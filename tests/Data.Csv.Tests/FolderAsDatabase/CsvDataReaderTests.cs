@@ -14,7 +14,7 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
         new CsvConnection(ConnectionStrings.Instance
-        .FolderAsDBConnectionString));
+        .FolderAsDB));
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
        new CsvConnection(ConnectionStrings.Instance
-       .FolderAsDBConnectionString), true);
+       .FolderAsDB), true);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReturnData_WithFilter(() =>
        new CsvConnection(ConnectionStrings.Instance
-       .FolderAsDBConnectionString));
+       .FolderAsDB));
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithInnerJoin(() =>
        new CsvConnection(ConnectionStrings.Instance
-       .eComFolderDBConnectionString));
+       .eComFolderDB));
     }
 
     [Fact]
@@ -46,6 +46,6 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
      new CsvConnection(ConnectionStrings.Instance
-     .FolderAsDBConnectionString));
+     .FolderAsDB));
     }
 }

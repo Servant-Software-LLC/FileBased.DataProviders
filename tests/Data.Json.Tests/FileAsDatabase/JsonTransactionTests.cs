@@ -1,6 +1,5 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
-using System.Data;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -41,6 +40,6 @@ public partial class JsonTransactionTests
     {
         var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB);
         TransactionTests.
-            Transaction_ShouldRollbackWhenExceptionIsThrown(() => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString));
+            Transaction_ShouldRollbackWhenExceptionIsThrown(() => new JsonConnection(ConnectionStrings.Instance.FileAsDB));
     }
 }

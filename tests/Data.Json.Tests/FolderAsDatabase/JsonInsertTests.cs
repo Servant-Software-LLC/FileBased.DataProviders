@@ -23,6 +23,6 @@ public class JsonInsertTests
     {
         InsertTests.Insert_ShouldBeFormatted(() =>
         new JsonConnection(ConnectionStrings.Instance
-        .FolderAsDBConnectionString.AddFormatted(true)));
+        .FolderAsDB.AddFormatted(true)));
     }
 }

@@ -1,6 +1,5 @@
 using Data.Json.Tests.FileAsDatabase;
-using Data.Tests.Common;
-using System.Data;
+using Data.Common.Extension;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -14,7 +13,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.DataAdapter_ShouldFillTheDataSet(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FolderAsDBConnectionString));
+               FolderAsDB));
     }
 
     [Fact]
@@ -22,7 +21,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.Adapter_ShouldReturnData(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FolderAsDBConnectionString));
+               FolderAsDB));
     }
 
     [Fact]
@@ -30,7 +29,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.DataAdapter_ShouldFillTheDataSet_WithFilter(
                        () => new JsonConnection(ConnectionStrings.Instance.
-                       FolderAsDBConnectionString));
+                       FolderAsDB));
     }
 
     [Fact]
@@ -45,7 +44,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.Adapter_ShouldReadDataWithSelectedColumns(
                      () => new JsonConnection(ConnectionStrings.Instance.
-                     FolderAsDBConnectionString));
+                     FolderAsDB));
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.FillSchema_ShouldReturnDataTableWithAllColumns(
              () => new JsonConnection(ConnectionStrings.Instance.
-             FolderAsDBConnectionString));
+             FolderAsDB));
     }
 
     [Fact]
@@ -77,7 +76,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.FillSchema_ShouldThrowInvalidOperationException_WhenSelectCommandConnectionIsNull(
              () => new JsonConnection(ConnectionStrings.Instance.
-             FolderAsDBConnectionString));
+             FolderAsDB));
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.CreateAdapter_ShouldThrowArgumentException_WhenSelectCommandTextIsNullOrEmpty(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FolderAsDBConnectionString));
+               FolderAsDB));
     }
 
     [Fact]
@@ -93,7 +92,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithoutParameters(
               () => new JsonConnection(ConnectionStrings.Instance.
-              FolderAsDBConnectionString));
+              FolderAsDB));
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnCorrectParametersForQueryWithParameters(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FolderAsDBConnectionString));
+               FolderAsDB));
     }
 
     [Fact]
@@ -109,6 +108,6 @@ public partial class JsonDataAdapterTests
     {
         DataAdapterTests.GetFillParameters_ShouldReturnEmptyParametersForNonSelectQuery(
                () => new JsonConnection(ConnectionStrings.Instance.
-               FolderAsDBConnectionString));
+               FolderAsDB));
     }
 }

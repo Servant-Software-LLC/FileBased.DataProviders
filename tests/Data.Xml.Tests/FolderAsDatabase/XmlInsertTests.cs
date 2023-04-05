@@ -22,6 +22,6 @@ public class XmlInsertTests
     public void Insert_JsonShouldBeFormatted()
     {
         InsertTests.Insert_ShouldBeFormatted(() =>
-        new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.AddFormatted(true)));
+        new XmlConnection(ConnectionStrings.Instance.FolderAsDB.AddFormatted(true)));
     }
 }

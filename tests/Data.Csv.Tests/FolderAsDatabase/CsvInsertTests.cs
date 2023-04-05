@@ -23,6 +23,6 @@ public class CsvInsertTests
     {
         InsertTests.Insert_ShouldBeFormatted(() =>
         new CsvConnection(ConnectionStrings.Instance
-        .FolderAsDBConnectionString.AddFormatted(true)));
+        .FolderAsDB.AddFormatted(true)));
     }
 }

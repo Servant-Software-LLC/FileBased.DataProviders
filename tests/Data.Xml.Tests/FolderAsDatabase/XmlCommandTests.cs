@@ -14,7 +14,7 @@ public class XmlCommandTests
     {
         CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
            () => new XmlConnection(ConnectionStrings.Instance.
-           FolderAsDBConnectionString));
+           FolderAsDB));
     }
 
     [Fact]
@@ -22,6 +22,6 @@ public class XmlCommandTests
     {
         CommandTests.ExecuteScalar_ShouldCountRecords(
           () => new XmlConnection(ConnectionStrings.Instance.
-          FolderAsDBConnectionString));
+          FolderAsDB));
     }
 }
