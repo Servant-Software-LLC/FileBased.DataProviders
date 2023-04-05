@@ -1,4 +1,5 @@
-﻿using System.Data.JsonClient;
+using Data.Csv.Tests.FolderAsDatabase;
+using System.Data.JsonClient;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -11,55 +12,16 @@ public class JsonCommandTests
     [Fact]
     public void ExecuteScalar_ShouldReturnFirstRowFirstColumn()
     {
-        const string query = "SELECT city, state FROM locations";
-
-        // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB);
-        connection.Open();
-        var command = new JsonCommand(query, connection);
-        var reader = command.ExecuteReader();
-        Assert.True(reader.Read());
-        var fieldCount = reader.FieldCount;
-        Assert.Equal(2, fieldCount);
-        var expectedValue = reader[0];
-
-        // Act - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
-        //       "Executes the query, and returns the first column of the first row in the resultset returned
-        //       by the query. Extra columns or rows are ignored."
-        var scalarCommand = new JsonCommand(query, connection);
-        var value = scalarCommand.ExecuteScalar();
-
-        // Assert
-        Assert.Equal(expectedValue, value);
-
-        // Close the connection
-        connection.Close();
+        CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
+          () => new JsonConnection(ConnectionStrings.Instance.
+          FileAsDB));
     }
 
     [Fact]
     public void ExecuteScalar_ShouldCountRecords()
     {
-        // Arrange
-        var connection = new JsonConnection(ConnectionStrings.Instance.FileAsDB);
-        connection.Open();
-
-        // Act - Count the records in the locations table
-        var command = new JsonCommand("SELECT COUNT(*) FROM locations where id=1 or id=2", connection);
-
-        var count = (int)command.ExecuteScalar()!;
-
-        // Assert
-        Assert.Equal(2, count);
-
-        // Act - Count the records in the employees table
-        command = new JsonCommand("SELECT COUNT(*) FROM employees where name='Joe' OR name='Bob' OR name='Jim' OR name='Mike'", connection);
-        count = (int)command.ExecuteScalar()!;
-
-        // Assert
-        Assert.Equal(4, count);
-
-        // Close the connection
-        connection.Close();
+        CommandTests.ExecuteScalar_ShouldCountRecords(
+           () => new JsonConnection(ConnectionStrings.Instance.
+           FileAsDB));
     }
-
 }

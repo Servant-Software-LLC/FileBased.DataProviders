@@ -32,6 +32,7 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
             throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection)}");
 
         connection = selectConnection;
+
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
         {
             throw new ArgumentException($"'{nameof(FileCommand.CommandText)}' cannot be null or empty.", nameof(SelectCommand.CommandText));
@@ -79,6 +80,7 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         dataSet.Tables.Add(dataTable);
         return dataTable.Rows.Count;
     }
+
     public DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
     {
         if (SelectCommand == null)
