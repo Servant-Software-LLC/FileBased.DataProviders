@@ -40,6 +40,6 @@ public partial class XmlTransactionTests
     {
         TransactionTests.
                 Transaction_ShouldRollbackWhenExceptionIsThrown(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString));
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString));
     }
 }
