@@ -1,4 +1,4 @@
-﻿using Data.Tests.Common;
+using Data.Tests.Common;
 using System.Data;
 using System.Data.FileClient;
 using System.Reflection;
@@ -119,8 +119,16 @@ namespace Data.Json.Tests.FileAsDatabase
                         Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]!["OrderDate"].ToString()));
                         Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
                         Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
+
+                        foreach (DataRow row in table.Rows)
+                        {
+                            Assert.NotNull(row[0]);
+                            Assert.NotNull(row[1]);
+                            Assert.NotNull(row[2]);
+                            Assert.NotNull(row[3]);
+                        }
+                        
                     }
-                }
             }
         }
 

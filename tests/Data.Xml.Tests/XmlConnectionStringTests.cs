@@ -10,7 +10,7 @@ public class XmlConnectionStringTests
     {
         FileConnectionString connectionString = new();
         
-        Assert.Throws<ArgumentNullException>("connectionString", () => connectionString.Parse(null));
+        Assert.Throws<ArgumentNullException>("connectionString", () => connectionString.ConnectionString = null);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public class XmlConnectionStringTests
     {
         FileConnectionString connectionString = new();
 
-        var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString.Parse("tree=oak;"));
+        var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString = "tree=oak;");
         Assert.Contains(nameof(FileConnectionStringKeywords.DataSource), exception.Message);
     }
 
@@ -31,7 +31,7 @@ public class XmlConnectionStringTests
 
         FileConnectionString connectionString = new();
 
-        var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString.Parse(connectionStringValue));
+        var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString = connectionStringValue);
         Assert.Contains(unknownKeyword, exception.Message);
     }
 
@@ -44,7 +44,7 @@ public class XmlConnectionStringTests
         FileConnectionString connectionString = new();
 
         
-        connectionString.Parse(connectionStringValue);
+        connectionString = connectionStringValue;
 
         Assert.Equal(connectionStringValue, connectionString.ConnectionString);
         Assert.Equal(dataSourceValue, connectionString.DataSource);
@@ -59,9 +59,9 @@ public class XmlConnectionStringTests
         FileConnectionString connectionString = new();
 
 
-        connectionString.Parse(connectionStringValue);
+        connectionString = connectionStringValue;
 
-        Assert.Equal(connectionStringValue, connectionString.ConnectionString);
+        Assert.Equal($"DataSource={dataSourceValue};", connectionString.ConnectionString);
         Assert.Equal(dataSourceValue, connectionString.DataSource);
     }
 

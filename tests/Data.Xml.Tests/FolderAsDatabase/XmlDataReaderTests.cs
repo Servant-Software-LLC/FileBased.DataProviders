@@ -1,4 +1,4 @@
-﻿using Data.Json.Tests.FileAsDatabase;
+using Data.Json.Tests.FileAsDatabase;
 using System.Data.XmlClient;
 using Xunit;
 

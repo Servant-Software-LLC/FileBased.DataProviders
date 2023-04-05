@@ -1,4 +1,4 @@
-﻿using Data.Json.Tests.FileAsDatabase;
+using Data.Json.Tests.FileAsDatabase;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.XmlClient;
@@ -37,7 +37,7 @@ public partial class XmlDataAdapterTests
     public void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB()
     {
         DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoinFileAsDB(
-                () => new XmlConnection(ConnectionStrings.Instance.eComFileDBConnectionString));
+                () => new XmlConnection(ConnectionStrings.Instance.eComFileDB));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public partial class XmlDataAdapterTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

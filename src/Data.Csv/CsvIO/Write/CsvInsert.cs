@@ -7,4 +7,6 @@ internal class CsvInsert : FileInsert
     {
         dataSetWriter = new CsvDataSetWriter(jsonConnection, queryParser);
     }
+
+    public override bool SchemaUnknownWithoutData => false;
 }

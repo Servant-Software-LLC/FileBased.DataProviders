@@ -1,4 +1,4 @@
-﻿using Data.Csv.Tests.FolderAsDatabase;
+using Data.Csv.Tests.FolderAsDatabase;
 using System.Data.JsonClient;
 using Xunit;
 

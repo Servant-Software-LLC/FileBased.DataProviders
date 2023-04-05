@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+﻿using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;
@@ -12,7 +13,7 @@ public class XmlUpdateTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         UpdateTests.Update_ShouldUpdateData(
-            () => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

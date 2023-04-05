@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	  <TargetFramework>net7.0</TargetFramework>
@@ -38,16 +38,19 @@
     <None Update="Sources\ecommerce.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\customers.json">
+    <None Update="Sources\emptyDatabase.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orderitems.json">
+    <None Update="Sources\eCom\Customers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\orders.json">
+    <None Update="Sources\eCom\OrderItems.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\eCom\products.json">
+    <None Update="Sources\eCom\Orders.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\eCom\Products.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Sources\Folder\employees.json">

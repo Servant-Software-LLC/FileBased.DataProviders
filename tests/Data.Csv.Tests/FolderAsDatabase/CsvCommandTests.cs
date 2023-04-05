@@ -1,4 +1,4 @@
-﻿using System.Data.CsvClient;
+using System.Data.CsvClient;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;

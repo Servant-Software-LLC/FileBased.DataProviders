@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
 using Data.Tests.Common;
 using System.Data;

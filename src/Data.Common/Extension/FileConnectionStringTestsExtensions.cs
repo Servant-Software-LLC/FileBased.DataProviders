@@ -1,22 +1,11 @@
-﻿namespace Data.Tests.Common.Utils;
+﻿namespace Data.Common.Extension;
 
-public class ConnectionString
+public static class FileConnectionStringTestsExtensions
 {
-    private const string dataSource = "Data Source";
+    public const string SourcesFolder = "Sources";
+    public const string SourcesPristineCopy = "Sources.Pristine";
 
-    readonly string dataSourceValue;
-    public ConnectionString(string dataSourceValue) => this.dataSourceValue = dataSourceValue;
-
-    public static implicit operator string(ConnectionString connectionString) => connectionString.Formatted == null ?
-                                                                                    $"{dataSource}={connectionString.dataSourceValue}" :
-                                                                                    $"{dataSource}={connectionString.dataSourceValue}; Formatted={connectionString.Formatted.Value}";
-    public static implicit operator ConnectionString(string dataSourceValue) => new ConnectionString(dataSourceValue);
-
-    public bool? Formatted { get; set; }
-
-    public ConnectionString AddFormatted(bool formatted) => new(dataSourceValue) { Formatted = formatted };
-
-    public ConnectionString Sandbox(string sandboxRootPath, string sandboxId)
+    public static FileConnectionString Sandbox(this FileConnectionString fileConnectionString, string sandboxRootPath, string sandboxId)
     {
         //Make sure that the sandbox root folder exists.
         if (!Directory.Exists(sandboxRootPath))
@@ -26,9 +15,10 @@ public class ConnectionString
 
         //TODO: This approach isn't 'clean', in that it assumes that the Sources folder is the base of each Data Source.  Anyhow
         //      for now, this will work because this is all in only the Unit Test projects.
-        if (!dataSourceValue.StartsWith(ConnectionStringsBase.SourcesFolder))
-            throw new Exception($"Expected the data source value to begin with a path in the {ConnectionStringsBase.SourcesFolder} folder.  dataSourceValue: {dataSourceValue}");
-        string pristineDataSourceValue = ConnectionStringsBase.SourcesPristineCopy + dataSourceValue.Substring(ConnectionStringsBase.SourcesFolder.Length);
+        var dataSourceValue = fileConnectionString.DataSource;
+        if (!dataSourceValue.StartsWith(SourcesFolder))
+            throw new Exception($"Expected the data source value to begin with a path in the {SourcesFolder} folder.  dataSourceValue: {dataSourceValue}");
+        string pristineDataSourceValue = SourcesPristineCopy + dataSourceValue.Substring(SourcesFolder.Length);
 
 
         var folderAsDatabase = Directory.Exists(pristineDataSourceValue);
@@ -54,7 +44,7 @@ public class ConnectionString
                 File.Copy(sourcePath, Path.Combine(fullSandboxPath, fileName), true);
             }
 
-            return new(fullSandboxPath) { Formatted = Formatted };
+            return new() { DataSource = fullSandboxPath, Formatted = fileConnectionString.Formatted };
         }
 
         //This is a file as database option.  
@@ -65,6 +55,7 @@ public class ConnectionString
         var sandboxDatabaseFile = Path.Combine(fullSandboxPath, databaseFileName);
         File.Copy(pristineDataSourceValue, sandboxDatabaseFile, true);
 
-        return new(sandboxDatabaseFile) { Formatted = Formatted };
+        return new() { DataSource = sandboxDatabaseFile, Formatted = fileConnectionString.Formatted };
     }
+
 }

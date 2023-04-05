@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Tests.Common;
 using System.Data.CsvClient;
 using System.Reflection;
@@ -15,7 +15,7 @@ public class CsvInsertTests
     public void Insert_ShouldInsertData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId)));
+        InsertTests.Insert_ShouldInsertData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]

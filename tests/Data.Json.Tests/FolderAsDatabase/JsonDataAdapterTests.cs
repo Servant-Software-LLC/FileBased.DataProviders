@@ -1,4 +1,4 @@
-﻿using Data.Json.Tests.FileAsDatabase;
+using Data.Json.Tests.FileAsDatabase;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.JsonClient;
@@ -37,7 +37,7 @@ public partial class JsonDataAdapterTests
     public void Adapter_ShouldFillDatasetWithInnerJoinFromFolderAsDB()
     {
         DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
-                () => new JsonConnection(ConnectionStrings.Instance.eComFolderDBConnectionString));
+                () => new JsonConnection(ConnectionStrings.Instance.eComFolderDB));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public partial class JsonDataAdapterTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

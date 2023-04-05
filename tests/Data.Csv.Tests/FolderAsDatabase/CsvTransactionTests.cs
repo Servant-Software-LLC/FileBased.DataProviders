@@ -1,4 +1,4 @@
-﻿using Data.Common.Extension;
+using Data.Common.Extension;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.CsvClient;
@@ -14,7 +14,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldInsertDataIntoDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -23,7 +23,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldDeleteDataFromDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 
@@ -32,7 +32,7 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.Transaction_ShouldUpdateDataInDatabase(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

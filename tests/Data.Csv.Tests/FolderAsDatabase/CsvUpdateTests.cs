@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+﻿using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data.CsvClient;
 using System.Reflection;
 using Xunit;
@@ -15,7 +16,7 @@ public class CsvUpdateTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         UpdateTests.Update_ShouldUpdateData(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

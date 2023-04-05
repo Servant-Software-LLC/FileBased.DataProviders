@@ -1,25 +1,26 @@
-﻿namespace Data.Tests.Common.Utils;
+using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
+
+namespace Data.Tests.Common.Utils;
 
 public abstract class ConnectionStringsBase : IConnectionStrings
 {
-    public const string SourcesFolder = "Sources";
-    public const string SourcesPristineCopy = "Sources.Pristine";
-
     public abstract string Extension { get; }
 
-    protected virtual string Folder => Path.Combine(SourcesFolder, "Folder");
-    protected virtual string File => Path.Combine(SourcesFolder, $"database.{Extension}");
-    protected virtual string eComFileDataBase => Path.Combine(SourcesFolder, $"ecommerce.{Extension}");
-    protected virtual string eComFolderDataBase => Path.Combine(SourcesFolder, $"eCom");
+    protected virtual string Folder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder");
+    protected virtual string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{Extension}");
+    protected virtual string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{Extension}");
+    protected virtual string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
+    protected virtual string FileEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyDatabase.{Extension}");
 
-    public virtual ConnectionString FolderAsDBConnectionString => Folder;
+    public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
 
-    public virtual ConnectionString FileAsDBConnectionString => File;
+    public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = File };
+    public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = FileEmptyWithTables };
 
-    public virtual ConnectionString eComFileDBConnectionString => eComFileDataBase;
+    public virtual FileConnectionString eComFileDB => new FileConnectionString() { DataSource = eComFileDataBase };
+
+    public virtual FileConnectionString eComFolderDB => new FileConnectionString() { DataSource = eComFolderDataBase };
 
     public static ConnectionStringsBase Instance => throw new NotImplementedException();
-
-    public virtual ConnectionString eComFolderDBConnectionString
-        => eComFolderDataBase;
 }

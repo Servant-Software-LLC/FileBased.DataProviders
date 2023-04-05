@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data;
 using System.Data.FileClient;
 using System.Data.JsonClient;
@@ -37,7 +38,7 @@ namespace Data.Json.Tests.FileAsDatabase
         public void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB()
         {
             DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoinFileAsDB(
-                    () => new JsonConnection(ConnectionStrings.Instance.eComFileDBConnectionString));
+                    () => new JsonConnection(ConnectionStrings.Instance.eComFileDB));
         }
 
         [Fact]
@@ -53,7 +54,7 @@ namespace Data.Json.Tests.FileAsDatabase
         {
             var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
             DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-                () => new JsonConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+                () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
             );
         }
 

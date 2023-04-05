@@ -40,7 +40,7 @@ public abstract class FileReader : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileQuery.FileQuery jsonQueryParser, bool shouldLock = false)
+    public DataTable ReadFile(FileQuery.FileQuery queryParser, bool shouldLock = false)
     {
         DataTable returnValue;
 
@@ -54,7 +54,7 @@ public abstract class FileReader : IDisposable
             if (fileConnection.PathType == PathType.Directory)
             {
                 DataSet ??= new DataSet();
-                var newTables = GetTableNames(jsonQueryParser);
+                var newTables = GetTableNames(queryParser);
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
 
             }
@@ -65,7 +65,7 @@ public abstract class FileReader : IDisposable
             //Reload any of the tables from disk?
             CheckForTableReload();
 
-            returnValue = CheckIfSelect(jsonQueryParser);
+            returnValue = CheckIfSelect(queryParser);
         }
         finally
         {

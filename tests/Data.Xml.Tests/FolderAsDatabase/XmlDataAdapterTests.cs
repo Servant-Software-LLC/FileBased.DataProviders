@@ -1,4 +1,4 @@
-﻿using Data.Json.Tests.FileAsDatabase;
+using Data.Json.Tests.FileAsDatabase;
 using Data.Tests.Common;
 using System.Data;
 using System.Data.XmlClient;
@@ -53,7 +53,7 @@ public partial class JsonDataAdapterTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDBConnectionString.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
         );
     }
 

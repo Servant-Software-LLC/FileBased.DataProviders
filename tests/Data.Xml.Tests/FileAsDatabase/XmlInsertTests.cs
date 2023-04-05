@@ -1,4 +1,5 @@
-﻿using Data.Tests.Common;
+using Data.Common.Extension;
+using Data.Tests.Common;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;
@@ -11,7 +12,7 @@ public class XmlInsertTests
     public void Insert_ShouldInsertData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDBConnectionString.Sandbox("Sandbox", sandboxId)));
+        InsertTests.Insert_ShouldInsertData(() => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
