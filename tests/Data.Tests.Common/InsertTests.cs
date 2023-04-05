@@ -57,4 +57,20 @@ public static class InsertTests
         var jsonFileContents = File.ReadAllText(connection.GetTablePath(locationsTableName));
         Assert.Contains("\n", jsonFileContents);
     }
+
+    public static void Insert_ShouldBeFormattedForFile(Func<FileConnection> createFileConnection)
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Insert a new record into the locations table
+        const string locationsTableName = "locations";
+        var command = connection.CreateCommand($"INSERT INTO {locationsTableName} (id, city, state, zip) VALUES (156, 'Seattle', 'Washington', 98101)");
+        var rowsAffected = command.ExecuteNonQuery();
+
+        // Assert
+        var jsonFileContents = File.ReadAllText(connection.Database);
+        Assert.Contains("\n", jsonFileContents);
+    }
 }

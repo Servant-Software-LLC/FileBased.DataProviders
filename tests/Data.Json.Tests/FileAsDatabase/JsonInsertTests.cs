@@ -17,8 +17,8 @@ public class JsonInsertTests
     [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
-        InsertTests.Insert_ShouldBeFormatted(() =>
+        InsertTests.Insert_ShouldBeFormattedForFile(() =>
         new JsonConnection(ConnectionStrings.Instance
-        .FileAsDBConnectionString));
+        .FileAsDBConnectionString.AddFormatted(true)));
     }
 }
