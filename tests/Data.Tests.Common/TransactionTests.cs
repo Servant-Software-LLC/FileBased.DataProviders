@@ -27,7 +27,6 @@ public static class TransactionTests
         // Execute the command
         int rowsAffected = command.ExecuteNonQuery();
 
-
         // Create a command to insert data into the employees table
         command = transaction.CreateCommand("INSERT INTO employees (name, salary) VALUES (@Name, @Salary)");
         command.Parameters.Add(command.CreateParameter("Name", "Smith Kline"));
@@ -59,7 +58,6 @@ public static class TransactionTests
 
         // Close the connection
         connection.Close();
-
     }
 
     public static void Transaction_ShouldDeleteDataFromDatabase(Func<FileConnection> createFileConnection)
@@ -127,7 +125,6 @@ public static class TransactionTests
 
         transaction.Commit();
 
-
         // Query the employees table to verify the data was updated
         var adapter = connection.CreateDataAdapter("SELECT * FROM employees WHERE name = 'Shahid Khan'");
         var dataSet = new DataSet();
@@ -138,6 +135,53 @@ public static class TransactionTests
 
         // Close the connection
         connection.Close();
+    }
 
+    public static void Transaction_ShouldRollbackWhenExceptionIsThrown(Func<FileConnection> createFileConnection)
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Start a transaction
+        var transaction = connection.BeginTransaction();
+
+        try
+        {
+            // Create a command to insert data into the locations table
+            var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = "INSERT INTO locations (city, state) VALUES (@City, @State)";
+
+            command.Parameters.Add(command.CreateParameter("City", "Bannu"));
+            command.Parameters.Add(command.CreateParameter("State", "MA"));
+
+            // Execute the command
+            int rowsAffected = command.ExecuteNonQuery();
+
+            // Simulate an exception by dividing by zero
+            int x = 0;
+            int y = 1 / x;
+
+            // If an exception is not thrown, the test will fail
+            Assert.True(false, "Exception was not thrown");
+
+            // Commit the transaction
+            transaction.Commit();
+        }
+        catch (Exception)
+        {
+            // Rollback the transaction
+            transaction.Rollback();
+
+            // Query the locations table to verify that the data was not inserted
+            var adapter = connection.CreateDataAdapter("SELECT * FROM locations WHERE city = 'Bannu'");
+            var dataSet = new DataSet();
+            adapter.Fill(dataSet);
+            Assert.Equal(0, dataSet.Tables[0].Rows.Count);
+        }
+
+        // Close the connection
+        connection.Close();
     }
 }
