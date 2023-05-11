@@ -5,7 +5,8 @@ namespace Data.Tests.Common;
 
 public static class DeleteTests
 {
-    public static void Delete_ShouldDeleteData(Func<FileConnection> createFileConnection)
+    public static void Delete_ShouldDeleteData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();

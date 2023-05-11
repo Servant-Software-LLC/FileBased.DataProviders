@@ -1,6 +1,6 @@
 ﻿namespace System.Data.CsvClient;
 
-public class CsvParameter : FileParameter
+public class CsvParameter : FileParameter<CsvParameter>
 {
     public CsvParameter()
     {
@@ -18,4 +18,6 @@ public class CsvParameter : FileParameter
         : base(parameterName, dbType, sourceColumn)
     {
     }
+
+    public override CsvParameter Clone() => new(ParameterName, DbType, SourceColumn);
 }

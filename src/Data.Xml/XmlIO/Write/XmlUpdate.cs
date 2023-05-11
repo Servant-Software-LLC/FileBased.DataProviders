@@ -1,8 +1,10 @@
-﻿namespace Data.Xml.XmlIO.Write;
+﻿using System.Data.XmlClient;
 
-internal class XmlUpdate : FileUpdate
+namespace Data.Xml.XmlIO.Write;
+
+internal class XmlUpdate : FileUpdate<XmlParameter>
 {
-    public XmlUpdate(FileUpdateQuery queryParser, FileConnection FileConnection, FileCommand FileCommand) 
+    public XmlUpdate(FileUpdateQuery<XmlParameter> queryParser, FileConnection<XmlParameter> FileConnection, FileCommand<XmlParameter> FileCommand) 
         : base(queryParser, FileConnection, FileCommand)
     {
         dataSetWriter = new XmlDataSetWriter(FileConnection, queryParser);

@@ -1,11 +1,13 @@
-﻿namespace Data.Csv.CsvIO.Delete;
+﻿using System.Data.CsvClient;
 
-internal class CsvDelete : FileDelete
+namespace Data.Csv.CsvIO.Delete;
+
+internal class CsvDelete : FileDelete<CsvParameter>
 {
-    public CsvDelete(FileDeleteQuery queryParser, FileConnection connection, FileCommand jsonCommand) 
-        : base(queryParser, connection, jsonCommand)
+    public CsvDelete(FileDeleteQuery<CsvParameter> queryParser, FileConnection<CsvParameter> connection, FileCommand<CsvParameter> command) 
+        : base(queryParser, connection, command)
     {
-        this.dataSetWriter = new CsvDataSetWriter(connection,queryParser);
+        this.dataSetWriter = new CsvDataSetWriter(connection, queryParser);
     }
 }
 

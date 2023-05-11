@@ -1,6 +1,6 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlDataAdapter : FileDataAdapter
+public class XmlDataAdapter : FileDataAdapter<XmlParameter>
 {
     public XmlDataAdapter()
     {
@@ -14,14 +14,11 @@ public class XmlDataAdapter : FileDataAdapter
     {
     }
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
+    protected override FileWriter<XmlParameter> CreateWriter(FileQuery<XmlParameter> queryParser) => queryParser switch
     {
-        FileDeleteQuery deleteQuery =>
-            new XmlDelete(deleteQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
-        FileInsertQuery insertQuery =>
-            new XmlInsert(insertQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
-        FileUpdateQuery updateQuery =>
-            new XmlUpdate(updateQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+        FileDeleteQuery<XmlParameter> deleteQuery => new XmlDelete(deleteQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand<XmlParameter>)UpdateCommand),
+        FileInsertQuery<XmlParameter> insertQuery => new XmlInsert(insertQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand<XmlParameter>)UpdateCommand),
+        FileUpdateQuery<XmlParameter> updateQuery => new XmlUpdate(updateQuery, (XmlConnection)UpdateCommand!.Connection!, (FileCommand<XmlParameter>)UpdateCommand),
 
         _ => throw new InvalidOperationException("query not supported")
     };

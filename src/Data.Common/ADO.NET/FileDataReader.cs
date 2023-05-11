@@ -2,13 +2,14 @@
 
 namespace System.Data.FileClient;
 
-public class FileDataReader : IDataReader
+public class FileDataReader<TFileParameter> : DbDataReader
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileEnumerator FileEnumerator;
     private readonly DataTable workingResultSet;
     private object?[]? currentDataRow = null;
 
-    public FileDataReader(FileQuery queryParser, FileReader FileReader)
+    public FileDataReader(FileQuery<TFileParameter> queryParser, FileReader<TFileParameter> FileReader)
     {
         if (queryParser == null)
             throw new ArgumentNullException(nameof(queryParser));
@@ -23,13 +24,24 @@ public class FileDataReader : IDataReader
         FileEnumerator = new FileEnumerator(queryParser.GetColumnNames(), workingResultSet, filter);
     }
 
-    public int Depth => 0;
-    public bool IsClosed => FileEnumerator == null;
-    public int RecordsAffected => -1;
+    public override int Depth => 0;
+    public override bool IsClosed => FileEnumerator == null;
+    public override int RecordsAffected => -1;
 
-    public void Close() => Dispose();
+    /// <summary>
+    /// Returns an <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.
+    /// </summary>
+    /// <returns>An <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.</returns>
+    public override IEnumerator GetEnumerator() => new DbEnumerator(this);
 
-    public DataTable GetSchemaTable()
+    /// <summary>
+    /// Gets a value that indicates whether this DbDataReader contains one or more rows.
+    /// </summary>
+    public override bool HasRows => throw new NotImplementedException();
+
+    public override void Close() => Dispose();
+
+    public override DataTable GetSchemaTable()
     {
         DataTable tempSchemaTable = new DataTable("SchemaTable");
         tempSchemaTable.Locale = Globalization.CultureInfo.InvariantCulture;
@@ -158,9 +170,9 @@ public class FileDataReader : IDataReader
         return tempSchemaTable;
     }
 
-    public bool NextResult() => false;
+    public override bool NextResult() => false;
 
-    public bool Read()
+    public override bool Read()
     {
         if (FileEnumerator.MoveNext())
         {
@@ -171,13 +183,13 @@ public class FileDataReader : IDataReader
         return false;
     }
 
-    public int FieldCount => FileEnumerator.FieldCount;
+    public override int FieldCount => FileEnumerator.FieldCount;
 
-    public bool GetBoolean(int i) => GetValueAsType<bool>(i);
+    public override bool GetBoolean(int i) => GetValueAsType<bool>(i);
 
-    public byte GetByte(int i) => GetValueAsType<byte>(i);
+    public override byte GetByte(int i) => GetValueAsType<byte>(i);
 
-    public long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
+    public override long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
     {
         byte[] tempBuffer;
         tempBuffer = (byte[])currentDataRow![ordinal]!;
@@ -214,9 +226,9 @@ public class FileDataReader : IDataReader
 
     }
 
-    public char GetChar(int i) => GetValueAsType<char>(i);
+    public override char GetChar(int i) => GetValueAsType<char>(i);
 
-    public long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
+    public override long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
     {
         char[] tempBuffer;
             tempBuffer = (char[])currentDataRow![ordinal]!;
@@ -255,26 +267,24 @@ public class FileDataReader : IDataReader
     }
 
 
-    public IDataReader GetData(int i) => throw new NotSupportedException();
+    public override string GetDataTypeName(int i) => GetValueAsType<string>(i).GetType().Name;
+    public override DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
+    public override decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
+    public override double GetDouble(int i) => GetValueAsType<double>(i);
+    public override Type GetFieldType(int i) => FileEnumerator.GetType(i);
+    public override float GetFloat(int i) => GetValueAsType<float>(i);
+    public override Guid GetGuid(int i) => GetValueAsType<Guid>(i);
+    public override short GetInt16(int i) => GetValueAsType<short>(i);
+    public override int GetInt32(int i) => GetValueAsType<int>(i);
+    public override long GetInt64(int i) => GetValueAsType<long>(i);
+    public override string GetName(int i) => FileEnumerator.GetName(i);
+    public override int GetOrdinal(string name) => FileEnumerator.GetOrdinal(name);
+    public override string GetString(int i) => GetValueAsType<string>(i);
 
-    public string GetDataTypeName(int i) => GetValueAsType<string>(i).GetType().Name;
-    public DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
-    public decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
-    public double GetDouble(int i) => GetValueAsType<double>(i);
-    public Type GetFieldType(int i) => FileEnumerator.GetType(i);
-    public float GetFloat(int i) => GetValueAsType<float>(i);
-    public Guid GetGuid(int i) => GetValueAsType<Guid>(i);
-    public short GetInt16(int i) => GetValueAsType<short>(i);
-    public int GetInt32(int i) => GetValueAsType<int>(i);
-    public long GetInt64(int i) => GetValueAsType<long>(i);
-    public string GetName(int i) => FileEnumerator.GetName(i);
-    public int GetOrdinal(string name) => FileEnumerator.GetOrdinal(name);
-    public string GetString(int i) => GetValueAsType<string>(i);
-
-    public object GetValue(int i) => currentDataRow != null ? currentDataRow[i]!
+    public override object GetValue(int i) => currentDataRow != null ? currentDataRow[i]!
                                         : throw new ArgumentNullException(nameof(currentDataRow));
 
-    public int GetValues(object[] values)
+    public override int GetValues(object[] values)
     {
         if (currentDataRow == null)
             return 0;
@@ -283,12 +293,17 @@ public class FileDataReader : IDataReader
         return (currentDataRow.Length > values.Length ? values.Length : currentDataRow.Length);
     }
 
-    public bool IsDBNull(int i) => currentDataRow is not null ? currentDataRow[i] == null
+    public override bool IsDBNull(int i) => currentDataRow is not null ? currentDataRow[i] == null
                                         : throw new ArgumentNullException(nameof(currentDataRow));
 
-    public void Dispose() => currentDataRow = null;
+    protected new void Dispose() => currentDataRow = null;
 
-    public object this[string name]
+    /// <summary>
+    /// Gets the value of the specified column as an instance of <see cref="object"/>.
+    /// </summary>
+    /// <param name="name">The name of the column.</param>
+    /// <returns>The value of the specified column.</returns>
+    public override object this[string name]
     {
         get
         {
@@ -300,5 +315,10 @@ public class FileDataReader : IDataReader
     public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(currentDataRow![index], typeof(T))!;
 
 
-    public object this[int i] => GetValue(i);
+    /// <summary>
+    /// Gets the value of the specified column as an instance of <see cref="object"/>.
+    /// </summary>
+    /// <param name="ordinal">The zero-based column ordinal.</param>
+    /// <returns>The value of the specified column.</returns>
+    public override object this[int ordinal] => GetValue(ordinal);
 }

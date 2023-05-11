@@ -1,6 +1,7 @@
 ﻿namespace System.Data.FileClient;
 
-public class FileParameter : IDbDataParameter
+public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParameter, ICloneable
+    where TFileParameter : FileParameter<TFileParameter>
 {
     object? m_value;
 
@@ -28,19 +29,25 @@ public class FileParameter : IDbDataParameter
         SourceColumn = sourceColumn;
     }
 
-    public DbType DbType { get; set; } = DbType.Object;
+    public override DbType DbType { get; set; } = DbType.Object;
 
-    public ParameterDirection Direction { get; set; } = ParameterDirection.Input;
+    public override ParameterDirection Direction { get; set; } = ParameterDirection.Input;
 
-    public bool IsNullable => false;
+    public override bool IsNullable
+    {
+        get => false;
+        set => throw new NotImplementedException("Support for nullable parameters needs to be considered and/or implemented.");
+    }
 
-    public string ParameterName { get; set; }
+    public override string ParameterName { get; set; }
 
-    public string SourceColumn { get; set; } = string.Empty;
+    public override string SourceColumn { get; set; } = string.Empty;
 
-    public DataRowVersion SourceVersion { get; set; } = DataRowVersion.Current;
+    public override bool SourceColumnNullMapping { get; set; }
 
-    public object Value
+    public override DataRowVersion SourceVersion { get; set; } = DataRowVersion.Current;
+
+    public override object Value
     {
         get
         {
@@ -53,9 +60,11 @@ public class FileParameter : IDbDataParameter
         }
     }
 
-    public byte Precision { get; set; }
-    public byte Scale { get ; set; }
-    public int Size { get ; set; }
+    public override byte Precision { get; set; }
+    public override byte Scale { get ; set; }
+    public override int Size { get ; set; }
+
+    public override void ResetDbType() => DbType = DbType.Object;
 
     private static DbType InferType(object value)
     {
@@ -110,4 +119,7 @@ public class FileParameter : IDbDataParameter
                 throw new SystemException("Value is of unknown data type");
         }
     }
+
+    public abstract TFileParameter Clone();
+    object ICloneable.Clone() => Clone();
 }

@@ -7,7 +7,8 @@ namespace Data.Tests.Common;
 
 public static class TransactionTests
 {
-    public static void Transaction_ShouldInsertDataIntoDatabase(Func<FileConnection> createFileConnection)
+    public static void Transaction_ShouldInsertDataIntoDatabase<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -60,7 +61,8 @@ public static class TransactionTests
         connection.Close();
     }
 
-    public static void Transaction_ShouldDeleteDataFromDatabase(Func<FileConnection> createFileConnection)
+    public static void Transaction_ShouldDeleteDataFromDatabase<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -99,7 +101,8 @@ public static class TransactionTests
         connection.Close();
     }
 
-    public static void Transaction_ShouldUpdateDataInDatabase(Func<FileConnection> createFileConnection)
+    public static void Transaction_ShouldUpdateDataInDatabase<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -137,7 +140,8 @@ public static class TransactionTests
         connection.Close();
     }
 
-    public static void Transaction_ShouldRollbackWhenExceptionIsThrown(Func<FileConnection> createFileConnection)
+    public static void Transaction_ShouldRollbackWhenExceptionIsThrown<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();

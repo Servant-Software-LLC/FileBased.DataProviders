@@ -1,8 +1,8 @@
 ﻿namespace System.Data.JsonClient;
 
-public class JsonDataReader : FileDataReader
+public class JsonDataReader : FileDataReader<JsonParameter>
 {
-    public JsonDataReader(FileQuery queryParser, FileReader FileReader) 
+    internal JsonDataReader(FileQuery<JsonParameter> queryParser, FileReader<JsonParameter> FileReader) 
         : base(queryParser, FileReader)
     {
     }

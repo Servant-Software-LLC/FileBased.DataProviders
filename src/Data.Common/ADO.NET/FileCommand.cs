@@ -1,16 +1,19 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileCommand : IDbCommand
+public abstract class FileCommand<TFileParameter> : DbCommand
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    public string? CommandText { get; set; } = string.Empty;
-    public int CommandTimeout { get; set; }
-    public CommandType CommandType { get; set; }
-    public IDbConnection? Connection { get; set; }
+    public override string? CommandText { get; set; } = string.Empty;
+    public override int CommandTimeout { get; set; }
+    public override CommandType CommandType { get; set; }
 
-    public IDataParameterCollection Parameters { get; } = new FileParameterCollection();
-    public IDbTransaction? Transaction { get; set; }
-    public UpdateRowSource UpdatedRowSource { get; set; }
-        
+    public override UpdateRowSource UpdatedRowSource { get; set; }
+
+    protected override DbParameterCollection DbParameterCollection { get; } = new FileParameterCollection<TFileParameter>();
+    protected override DbConnection DbConnection { get; set; }
+    protected override DbTransaction DbTransaction { get; set; }
+
+
     public FileCommand()
     {
     }
@@ -20,34 +23,45 @@ public abstract class FileCommand : IDbCommand
         CommandText = command;
     }
 
-    public FileCommand(FileConnection connection)
+    public FileCommand(FileConnection<TFileParameter> connection)
     {
         Connection = connection;
     }
 
-    public FileCommand(string cmdText, FileConnection connection)
+    public FileCommand(string cmdText, FileConnection<TFileParameter> connection)
     {
         CommandText = cmdText;
         Connection = connection;
     }
 
-    public FileCommand(string cmdText, FileConnection connection, FileTransaction transaction)
+    public FileCommand(string cmdText, FileConnection<TFileParameter> connection, FileTransaction<TFileParameter> transaction)
     {
         CommandText = cmdText;
         Connection = connection;
         Transaction = transaction;
     }
 
-    public void Cancel()
+    public override void Cancel()
     {
 
     }
 
-    public abstract FileParameter CreateParameter();
-    public abstract FileParameter CreateParameter(string parameterName, object value);
-    IDbDataParameter IDbCommand.CreateParameter() => CreateParameter();
+    /// <summary>
+    /// Design time visible.
+    /// </summary>
+    public override bool DesignTimeVisible { get; set; }
 
-    public abstract FileDataAdapter CreateAdapter();
+
+    public abstract TFileParameter CreateParameter();
+    public abstract TFileParameter CreateParameter(string parameterName, object value);
+
+    /// <summary>
+    /// Creates a new instance of an <see cref="System.Data.Common.DbParameter"/> object.
+    /// </summary>
+    /// <returns>A <see cref="System.Data.Common.DbParameter"/> object.</returns>
+    protected override DbParameter CreateDbParameter() => CreateParameter();
+
+    public abstract FileDataAdapter<TFileParameter> CreateAdapter();
 
 
     public void Dispose()
@@ -57,28 +71,32 @@ public abstract class FileCommand : IDbCommand
         Parameters.Clear();
     }
 
-    public int ExecuteNonQuery()
+    public override int ExecuteNonQuery()
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = FileQuery.Create(this);
+        var queryParser = FileQuery<TFileParameter>.Create(this);
         if (Connection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
-        FileWriter jsonWriter = CreateWriter(queryParser);
+        FileWriter<TFileParameter> fileWriter = CreateWriter(queryParser);
 
-        return jsonWriter.Execute();
+        return fileWriter.Execute();
     }
 
-    protected abstract FileWriter CreateWriter(FileQuery queryParser);
-    protected abstract FileDataReader CreateDataReader(FileQuery queryParser);
+    protected abstract FileWriter<TFileParameter> CreateWriter(FileQuery<TFileParameter> queryParser);
+    protected abstract FileDataReader<TFileParameter> CreateDataReader(FileQuery<TFileParameter> queryParser);
 
-    public  IDataReader ExecuteReader(CommandBehavior behavior)
+    /// <summary>
+    /// Executes the command text against the connection.
+    /// </summary>
+    /// <returns>A task representing the operation.</returns>
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = FileQuery.Create(this);
+        var queryParser = FileQuery<TFileParameter>.Create(this);
 
         if (Connection!.State != ConnectionState.Open)
         {
@@ -87,18 +105,18 @@ public abstract class FileCommand : IDbCommand
         return CreateDataReader(queryParser);
     }
 
-    public void Prepare() => throw new NotImplementedException();
+    public override void Prepare() => throw new NotImplementedException();
 
-    public object? ExecuteScalar()
+    public override object? ExecuteScalar()
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = FileQuery.Create(this);
-        if (queryParser is not FileSelectQuery selectQuery)
+        var queryParser = FileQuery<TFileParameter>.Create(this);
+        if (queryParser is not FileSelectQuery<TFileParameter> selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
         var columns = selectQuery.GetColumnNames();
-        var reader = ((FileConnection)Connection!).FileReader ;
+        var reader = ((FileConnection<TFileParameter>)Connection!).FileReader ;
 
         var dataTable = reader.ReadFile(queryParser, true);
         var dataView = new DataView(dataTable);
@@ -129,8 +147,6 @@ public abstract class FileCommand : IDbCommand
 
         return result;
     }
-
-    public IDataReader ExecuteReader() => ExecuteReader(default);
 
     private void ThrowOnInvalidExecutionState()
     {

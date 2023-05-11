@@ -1,8 +1,10 @@
-﻿namespace Data.Json.JsonIO.Read;
+﻿using System.Data.JsonClient;
 
-public class JsonReader : FileReader
+namespace Data.Json.JsonIO.Read;
+
+internal class JsonReader : FileReader<JsonParameter>
 {
-    public JsonReader(FileConnection jsonConnection) 
+    public JsonReader(JsonConnection jsonConnection) 
         : 
         base(jsonConnection)
     {

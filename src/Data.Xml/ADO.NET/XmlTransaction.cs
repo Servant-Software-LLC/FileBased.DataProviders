@@ -1,6 +1,6 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlTransaction : FileTransaction
+public class XmlTransaction : FileTransaction<XmlParameter>
 {
     private readonly XmlConnection connection;
 

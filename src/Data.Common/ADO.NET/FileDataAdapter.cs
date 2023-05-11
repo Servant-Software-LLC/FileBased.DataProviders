@@ -1,15 +1,16 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileDataAdapter : IDataAdapter, IDisposable
+public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposable
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private DataRow? lastDataRowChanged;
-    private FileConnection? connection;
+    private FileConnection<TFileParameter>? connection;
 
     public FileDataAdapter()
     {
     }
 
-    public FileDataAdapter(string query, FileConnection connection)
+    public FileDataAdapter(string query, FileConnection<TFileParameter> connection)
     {
         if (string.IsNullOrEmpty(query))
         {
@@ -21,21 +22,21 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         SelectCommand.CommandText = query;
     }
 
-    public FileDataAdapter(FileCommand selectCommand)
+    public FileDataAdapter(FileCommand<TFileParameter> selectCommand)
     {
         SelectCommand = selectCommand ?? throw new ArgumentNullException(nameof(selectCommand));
 
         if (SelectCommand.Connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        if (SelectCommand.Connection is not FileConnection selectConnection)
-            throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection)}");
+        if (SelectCommand.Connection is not FileConnection<TFileParameter> selectConnection)
+            throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection<TFileParameter>)}");
 
         connection = selectConnection;
 
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
         {
-            throw new ArgumentException($"'{nameof(FileCommand.CommandText)}' cannot be null or empty.", nameof(SelectCommand.CommandText));
+            throw new ArgumentException($"'{nameof(FileCommand<TFileParameter>.CommandText)}' cannot be null or empty.", nameof(SelectCommand.CommandText));
         }
     }
 
@@ -60,9 +61,9 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        var selectQuery = FileQuery.Create((FileCommand)SelectCommand);
-        var jsonReader = connection.FileReader;
-        var dataTable = jsonReader.ReadFile(selectQuery, true);
+        var selectQuery = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)SelectCommand);
+        var fileReader = connection.FileReader;
+        var dataTable = fileReader.ReadFile(selectQuery, true);
         dataTable = GetTable(dataTable, selectQuery);
 
         var cols = GetColumns(dataTable, selectQuery);
@@ -92,11 +93,11 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        connection = (FileConnection)SelectCommand.Connection;
+        connection = (FileConnection<TFileParameter>)SelectCommand.Connection;
 
-        var selectQuery = FileQuery.Create((FileCommand)SelectCommand);
-        var jsonReader = connection.FileReader;
-        var dataTable = jsonReader.ReadFile(selectQuery, true);
+        var selectQuery = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)SelectCommand);
+        var fileReader = connection.FileReader;
+        var dataTable = fileReader.ReadFile(selectQuery, true);
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()
@@ -147,10 +148,10 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         if (string.IsNullOrEmpty(UpdateCommand.CommandText))
             throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
 
-        connection = (FileConnection)UpdateCommand!.Connection!;
+        connection = (FileConnection<TFileParameter>)UpdateCommand!.Connection!;
 
-        var query = FileQuery.Create((FileCommand)UpdateCommand);
-        if (query is not FileUpdateQuery updateQuery)
+        var query = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)UpdateCommand);
+        if (query is not FileUpdateQuery<TFileParameter> updateQuery)
         {
             throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
         }
@@ -175,7 +176,7 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         return updater.Execute();
     }
 
-    protected abstract FileWriter CreateWriter(FileQuery fileQuery);
+    protected abstract FileWriter<TFileParameter> CreateWriter(FileQuery<TFileParameter> fileQuery);
 
     private void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
     {
@@ -185,7 +186,7 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         }
     }
 
-    private DataTable GetTable(DataTable dataTable, FileQuery query)
+    private DataTable GetTable(DataTable dataTable, FileQuery<TFileParameter> query)
     {
         var filters = query.GetFilters();
         var view = new DataView(dataTable);
@@ -196,7 +197,7 @@ public abstract class FileDataAdapter : IDataAdapter, IDisposable
         return view.ToTable();
     }
 
-    private IEnumerable<string> GetColumns(DataTable dataTable, FileQuery query)
+    private IEnumerable<string> GetColumns(DataTable dataTable, FileQuery<TFileParameter> query)
     {
         var cols = query.GetColumnNames()
             .ToList();

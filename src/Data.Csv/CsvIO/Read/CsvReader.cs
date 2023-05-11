@@ -1,11 +1,12 @@
 ﻿using CsvHelper.Configuration;
+using System.Data.CsvClient;
 using System.Globalization;
 
 namespace Data.Csv.CsvIO.Read;
 
-public class CsvReader : FileReader
+internal class CsvReader : FileReader<CsvParameter>
 {    
-    public CsvReader(FileConnection connection) 
+    public CsvReader(CsvConnection connection) 
         : base(connection)
     {
     }

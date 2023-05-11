@@ -1,6 +1,6 @@
 ﻿namespace System.Data.JsonClient;
 
-public class JsonDataAdapter : FileDataAdapter
+public class JsonDataAdapter : FileDataAdapter<JsonParameter>
 {
     public JsonDataAdapter()
     {
@@ -14,14 +14,11 @@ public class JsonDataAdapter : FileDataAdapter
     {
     }
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
+    protected override FileWriter<JsonParameter> CreateWriter(FileQuery<JsonParameter> queryParser) => queryParser switch
     {
-        FileDeleteQuery deleteQuery =>
-            new JsonDelete(deleteQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
-        FileInsertQuery insertQuery =>
-            new JsonInsert(insertQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
-        FileUpdateQuery updateQuery =>
-            new JsonUpdate(updateQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand)UpdateCommand),
+        FileDeleteQuery<JsonParameter> deleteQuery => new JsonDelete(deleteQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        FileInsertQuery<JsonParameter> insertQuery => new JsonInsert(insertQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        FileUpdateQuery<JsonParameter> updateQuery => new JsonUpdate(updateQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
 
         _ => throw new InvalidOperationException("query not supported")
     };

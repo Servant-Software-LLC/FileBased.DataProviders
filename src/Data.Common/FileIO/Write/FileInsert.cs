@@ -1,11 +1,12 @@
 ﻿namespace Data.Common.FileIO.Write;
 
-public abstract class FileInsert : FileWriter
+public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    private readonly FileInsertQuery queryParser;
+    private readonly FileInsertQuery<TFileParameter> queryParser;
 
-    public FileInsert(FileInsertQuery queryParser, FileConnection jsonConnection, FileCommand jsonCommand)
-        : base(jsonConnection, jsonCommand,(FileQuery.FileQuery)queryParser)
+    public FileInsert(FileInsertQuery<TFileParameter> queryParser, FileConnection<TFileParameter> fileConnection, FileCommand<TFileParameter> fileCommand)
+        : base(fileConnection, fileCommand,(FileQuery.FileQuery<TFileParameter>)queryParser)
     {
         this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }

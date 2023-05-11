@@ -1,6 +1,6 @@
 ﻿namespace System.Data.JsonClient;
 
-public class JsonCommand : FileCommand
+public class JsonCommand : FileCommand<JsonParameter>
 {
     public JsonCommand()
     {
@@ -28,18 +28,15 @@ public class JsonCommand : FileCommand
 
     public override JsonDataAdapter CreateAdapter() => new(this);
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
+    protected override FileWriter<JsonParameter> CreateWriter(FileQuery<JsonParameter> queryParser) => queryParser switch
     {
-        FileDeleteQuery deleteQuery =>
-            new JsonDelete(deleteQuery, (JsonConnection)Connection!, this),
-        FileInsertQuery insertQuery =>
-            new JsonInsert(insertQuery, (JsonConnection)Connection!, this),
-        FileUpdateQuery updateQuery =>
-            new JsonUpdate(updateQuery, (JsonConnection)Connection!, this),
+        FileDeleteQuery<JsonParameter> deleteQuery => new JsonDelete(deleteQuery, (JsonConnection)Connection!, this),
+        FileInsertQuery<JsonParameter> insertQuery => new JsonInsert(insertQuery, (JsonConnection)Connection!, this),
+        FileUpdateQuery<JsonParameter> updateQuery => new JsonUpdate(updateQuery, (JsonConnection)Connection!, this),
 
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override JsonDataReader CreateDataReader(FileQuery queryParser) => new(queryParser, ((JsonConnection)Connection!).FileReader);
+    protected override JsonDataReader CreateDataReader(FileQuery<JsonParameter> queryParser) => new(queryParser, ((JsonConnection)Connection!).FileReader);
 
 }

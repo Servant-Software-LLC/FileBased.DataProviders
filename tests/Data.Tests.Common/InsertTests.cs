@@ -6,7 +6,8 @@ namespace Data.Tests.Common;
 
 public static class InsertTests
 {
-    public static void Insert_ShouldInsertData(Func<FileConnection> createFileConnection)
+    public static void Insert_ShouldInsertData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         const int id = 123054;
 
@@ -42,7 +43,8 @@ public static class InsertTests
         }
     }
 
-    public static void Insert_ShouldBeFormatted(Func<FileConnection> createFileConnection)
+    public static void Insert_ShouldBeFormatted<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -58,7 +60,8 @@ public static class InsertTests
         Assert.Contains("\n", jsonFileContents);
     }
 
-    public static void Insert_ShouldBeFormattedForFile(Func<FileConnection> createFileConnection)
+    public static void Insert_ShouldBeFormattedForFile<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();

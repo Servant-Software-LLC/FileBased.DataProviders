@@ -1,5 +1,5 @@
 ﻿namespace System.Data.JsonClient;
-public class JsonTransaction : FileTransaction
+public class JsonTransaction : FileTransaction<JsonParameter>
 {
     private readonly JsonConnection connection;
 

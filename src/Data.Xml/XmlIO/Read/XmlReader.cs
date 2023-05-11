@@ -1,8 +1,10 @@
-﻿namespace Data.Xml.XmlIO.Read;
+﻿using System.Data.XmlClient;
 
-public class XmlReader : FileReader
+namespace Data.Xml.XmlIO.Read;
+
+internal class XmlReader : FileReader<XmlParameter>
 {
-    public XmlReader(FileConnection connection) 
+    public XmlReader(XmlConnection connection) 
         : 
         base(connection)
     {

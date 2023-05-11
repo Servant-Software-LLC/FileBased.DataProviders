@@ -1,13 +1,14 @@
 ﻿namespace Data.Common.FileIO.Read;
-public abstract class FileReader : IDisposable
+public abstract class FileReader<TFileParameter> : IDisposable
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    private FileSystemWatcher? jsonWatcher;
-    protected readonly FileConnection fileConnection;
+    private FileSystemWatcher? fileWatcher;
+    protected readonly FileConnection<TFileParameter> fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
     public DataSet? DataSet { get; protected set; }
 
-    public FileReader(FileConnection fileConnection)
+    public FileReader(FileConnection<TFileParameter> fileConnection)
     {
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
 
@@ -16,17 +17,17 @@ public abstract class FileReader : IDisposable
 
     public void StartWatching()
     {
-        if (jsonWatcher != null)
+        if (fileWatcher != null)
         {
 
-            jsonWatcher.Changed -= JsonWatcher_Changed;
-            jsonWatcher.Changed += JsonWatcher_Changed;
+            fileWatcher.Changed -= JsonWatcher_Changed;
+            fileWatcher.Changed += JsonWatcher_Changed;
         }
     }
     public void StopWatching()
     {
-        if (jsonWatcher != null)
-            jsonWatcher.Changed -= JsonWatcher_Changed;
+        if (fileWatcher != null)
+            fileWatcher.Changed -= JsonWatcher_Changed;
     }
 
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
@@ -40,12 +41,12 @@ public abstract class FileReader : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileQuery.FileQuery queryParser, bool shouldLock = false)
+    public DataTable ReadFile(FileQuery.FileQuery<TFileParameter> queryParser, bool shouldLock = false)
     {
         DataTable returnValue;
 
         if (shouldLock)
-            FileWriter._rwLock.EnterReadLock();
+            FileWriter<TFileParameter>._rwLock.EnterReadLock();
 
         try
         {
@@ -70,7 +71,7 @@ public abstract class FileReader : IDisposable
         finally
         {
             if (shouldLock)
-                FileWriter._rwLock.ExitReadLock();
+                FileWriter<TFileParameter>._rwLock.ExitReadLock();
         }
         return returnValue;
     }
@@ -96,9 +97,9 @@ public abstract class FileReader : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileQuery.FileQuery jsonQueryParser)
+    private DataTable CheckIfSelect(FileQuery.FileQuery<TFileParameter> jsonQueryParser)
     {
-        if (jsonQueryParser is FileSelectQuery jsonSelectQuery)
+        if (jsonQueryParser is FileSelectQuery<TFileParameter> jsonSelectQuery)
         {
             var dataTableJoin = jsonSelectQuery.GetFileJoin();
             if (dataTableJoin == null)
@@ -116,33 +117,33 @@ public abstract class FileReader : IDisposable
 
     private void EnsureFileSystemWatcher()
     {
-        if (jsonWatcher == null)
+        if (fileWatcher == null)
         {
-            jsonWatcher = new FileSystemWatcher();
-            jsonWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            fileWatcher = new FileSystemWatcher();
+            fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
             if (fileConnection.PathType == PathType.Directory)
             {
-                jsonWatcher.Path = fileConnection.Database;
-                jsonWatcher.Filter = $"*.{fileConnection.FileExtension}";
+                fileWatcher.Path = fileConnection.Database;
+                fileWatcher.Filter = $"*.{fileConnection.FileExtension}";
             }
             else
             {
                 var file = new FileInfo(fileConnection.Database);
-                jsonWatcher.Path = file.DirectoryName!;
-                jsonWatcher.Filter = file.Name;
+                fileWatcher.Path = file.DirectoryName!;
+                fileWatcher.Filter = file.Name;
             }
-            jsonWatcher.EnableRaisingEvents = true;
+            fileWatcher.EnableRaisingEvents = true;
         }
     }
   
 
-    private HashSet<string> GetTableNames(FileQuery.FileQuery jsonQueryParser)
+    private HashSet<string> GetTableNames(FileQuery.FileQuery<TFileParameter> jsonQueryParser)
     {
         //Start with the name of the first table in the JOIN
         var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
-        if (jsonQueryParser is FileSelectQuery FileSelectQuery && FileSelectQuery.GetFileJoin() != null && fileConnection.PathType == PathType.Directory)
+        if (jsonQueryParser is FileSelectQuery<TFileParameter> FileSelectQuery && FileSelectQuery.GetFileJoin() != null && fileConnection.PathType == PathType.Directory)
         {
             string[] jsonFiles = Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}");
 
@@ -162,7 +163,7 @@ public abstract class FileReader : IDisposable
    
     public void Dispose()
     {
-        //_jsonWatcher.Dispose();
+        //_fileWatcher.Dispose();
         //DataSet.Dispose();
     }
 }

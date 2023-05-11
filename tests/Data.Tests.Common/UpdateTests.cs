@@ -5,7 +5,8 @@ namespace Data.Tests.Common;
 
 public static class UpdateTests
 {
-    public static void Update_ShouldUpdateData(Func<FileConnection> createFileConnection)
+    public static void Update_ShouldUpdateData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         using (var connection = createFileConnection())

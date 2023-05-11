@@ -5,7 +5,8 @@ namespace Data.Json.Tests.FileAsDatabase;
 
 public static class DataReaderTests
 {
-    public static void Reader_ShouldReadData(Func<FileConnection> createFileConnection)
+    public static void Reader_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -33,7 +34,8 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnData(Func<FileConnection> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -80,7 +82,8 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnData_WithFilter(Func<FileConnection> createFileConnection)
+    public static void Reader_ShouldReturnData_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -105,7 +108,8 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReadDataWithInnerJoin(Func<FileConnection> createFileConnection)
+    public static void Reader_ShouldReadDataWithInnerJoin<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
@@ -133,7 +137,8 @@ public static class DataReaderTests
         Assert.True(count > 0, "No records where returned in the INNER JOINs");
     }
 
-    public static void Reader_ShouldReadDataWithSelectedColumns(Func<FileConnection> createFileConnection)
+    public static void Reader_ShouldReadDataWithSelectedColumns<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();

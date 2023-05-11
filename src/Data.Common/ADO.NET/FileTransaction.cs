@@ -1,20 +1,22 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileTransaction : IDbTransaction
+public abstract class FileTransaction<TFileParameter> : DbTransaction
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    private readonly FileConnection connection;
+    private readonly FileConnection<TFileParameter> connection;
     private readonly IsolationLevel isolationLevel;
     internal bool TransactionDone { get; private set; } = false;
 
-    public FileTransaction(FileConnection connection, IsolationLevel isolationLevel = default)
+    public FileTransaction(FileConnection<TFileParameter> connection, IsolationLevel isolationLevel = default)
     {
         this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
         this.isolationLevel = isolationLevel;
     }
 
-    public readonly List<FileWriter> Writers = new List<FileWriter>();
+    public readonly List<FileWriter<TFileParameter>> Writers = new();
 
-    public void Commit()
+    public override IsolationLevel IsolationLevel => isolationLevel;
+    public override void Commit()
     {
         if (TransactionDone)
         {
@@ -22,7 +24,7 @@ public abstract class FileTransaction : IDbTransaction
         }
         TransactionDone = true;
 
-        FileWriter._rwLock.EnterWriteLock();
+        FileWriter<TFileParameter>._rwLock.EnterWriteLock();
         try
         {
             Writers.ForEach(writer =>
@@ -32,12 +34,12 @@ public abstract class FileTransaction : IDbTransaction
         }
         finally
         {
-            FileWriter._rwLock.ExitWriteLock();
+            FileWriter<TFileParameter>._rwLock.ExitWriteLock();
         }
 
     }
 
-    public void Rollback()
+    public override void Rollback()
     {
         //We don't need to do anything as we haven't saved the data to database
         if (TransactionDone)
@@ -47,14 +49,12 @@ public abstract class FileTransaction : IDbTransaction
         TransactionDone = true;
     }
 
-    public void Dispose()
+    protected new void Dispose()
     {
+        base.Dispose();
         Writers.Clear();
     }
 
-    public IDbConnection Connection => connection;
-
-    public IsolationLevel IsolationLevel => isolationLevel;
-
-    public abstract FileCommand CreateCommand(string cmdText);
+    protected override DbConnection DbConnection => connection;
+    public abstract FileCommand<TFileParameter> CreateCommand(string cmdText);
 }

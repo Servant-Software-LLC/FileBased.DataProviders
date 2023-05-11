@@ -1,21 +1,22 @@
 ﻿namespace Data.Common.FileIO;
 
-public abstract class FileWriter
+public abstract class FileWriter<TFileParameter>
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    protected readonly FileCommand jsonCommand;
-    protected readonly FileQuery.FileQuery jsonQuery;
-    protected readonly FileReader fileReader;
-    protected readonly FileTransaction? fileTransaction;
+    protected readonly FileCommand<TFileParameter> fileCommand;
+    protected readonly FileQuery.FileQuery<TFileParameter> fileQuery;
+    protected readonly FileReader<TFileParameter> fileReader;
+    protected readonly FileTransaction<TFileParameter>? fileTransaction;
     protected IDataSetWriter? dataSetWriter { get; set; }
 
-    public FileWriter(FileConnection jsonConnection,
-                      FileCommand jsonCommand,
-                      FileQuery.FileQuery jsonQuery)
+    public FileWriter(FileConnection<TFileParameter> fileConnection,
+                      FileCommand<TFileParameter> fileCommand,
+                      FileQuery.FileQuery<TFileParameter> fileQuery)
     {
-        this.jsonCommand = jsonCommand;
-        this.jsonQuery = jsonQuery;
-        fileReader = jsonConnection.FileReader;
-        fileTransaction = jsonCommand.Transaction as FileTransaction;
+        this.fileCommand = fileCommand;
+        this.fileQuery = fileQuery;
+        fileReader = fileConnection.FileReader;
+        fileTransaction = fileCommand.Transaction as FileTransaction<TFileParameter>;
     }
 
     public abstract int Execute();    

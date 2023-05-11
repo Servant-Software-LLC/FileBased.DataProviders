@@ -1,6 +1,6 @@
 ﻿namespace System.Data.CsvClient;
 
-public class CsvTransaction : FileTransaction
+public class CsvTransaction : FileTransaction<CsvParameter>
 {
     private readonly CsvConnection connection;
 

@@ -2,15 +2,16 @@
 using Irony.Parsing;
 namespace Data.Common.FileQuery;
 
-public abstract class FileQuery
+public abstract class FileQuery<TFileParameter>
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
     protected readonly ParseTreeNode node;
-    private readonly FileCommand jsonCommand;
+    private readonly FileCommand<TFileParameter> fileCommand;
 
-    protected FileQuery(ParseTreeNode node, FileCommand jsonCommand)
+    protected FileQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
     {
         this.node = node;
-        this.jsonCommand = jsonCommand;
+        this.fileCommand = fileCommand;
         Filter = GetFilters();
         TableName = GetTable();
     }
@@ -100,11 +101,12 @@ public abstract class FileQuery
         {
             object? value;
             string paramName = GetParamName(x);
-            if (!jsonCommand.Parameters.Contains(paramName))
+            if (!fileCommand.Parameters.Contains(paramName))
             {
                 throw new InvalidOperationException($"Must declare the scalar variable \"@{paramName}\"");
             }
-            var parameter = jsonCommand.Parameters[paramName].Convert<IDbDataParameter>();
+
+            var parameter = fileCommand.Parameters[paramName].Convert<IDbDataParameter>();
             value = parameter.Value;
             return value;
 
@@ -119,10 +121,10 @@ public abstract class FileQuery
         }
     }
 
-    public static FileQuery Create(FileCommand jsonCommand)
+    public static FileQuery<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
     {
         var parser = new Parser(new SqlGrammar());
-        var parseTree = parser.Parse(jsonCommand.CommandText);
+        var parseTree = parser.Parse(fileCommand.CommandText);
         if (parseTree.HasErrors())
         {
             ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
@@ -131,14 +133,14 @@ public abstract class FileQuery
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new FileInsertQuery(mainNode,
-                                           jsonCommand);
+                return new FileInsertQuery<TFileParameter>(mainNode,
+                                           fileCommand);
             case "deleteStmt":
-                return new FileDeleteQuery(mainNode, jsonCommand);
+                return new FileDeleteQuery<TFileParameter>(mainNode, fileCommand);
             case "updateStmt":
-                return new FileUpdateQuery(mainNode, jsonCommand);
+                return new FileUpdateQuery<TFileParameter>(mainNode, fileCommand);
             case "selectStmt":
-                return new FileSelectQuery(mainNode, jsonCommand);
+                return new FileSelectQuery<TFileParameter>(mainNode, fileCommand);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();

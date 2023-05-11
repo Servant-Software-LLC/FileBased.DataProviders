@@ -1,6 +1,8 @@
-﻿namespace System.Data.XmlClient;
+﻿using System.Data.Common;
 
-public class XmlConnection : FileConnection
+namespace System.Data.XmlClient;
+
+public class XmlConnection : FileConnection<XmlParameter>
 {
     public XmlConnection(string connectionString) : 
         base(connectionString)
@@ -14,6 +16,8 @@ public class XmlConnection : FileConnection
     public override XmlTransaction BeginTransaction() => new(this, default);
 
     public override XmlTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+
     public override XmlDataAdapter CreateDataAdapter(string query) => new(query, this);
 
     public override XmlCommand CreateCommand() => new(this);

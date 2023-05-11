@@ -1,8 +1,8 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlDataReader : FileDataReader
+public class XmlDataReader : FileDataReader<XmlParameter>
 {
-    public XmlDataReader(FileQuery queryParser, FileReader fileReader) 
+    internal XmlDataReader(FileQuery<XmlParameter> queryParser, FileReader<XmlParameter> fileReader) 
         : base(queryParser, fileReader)
     {
     }

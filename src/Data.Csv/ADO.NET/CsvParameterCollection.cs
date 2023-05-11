@@ -1,5 +1,5 @@
 ﻿namespace System.Data.CsvClient;
 
-public class CsvParameterCollection : FileParameterCollection
+public class CsvParameterCollection : FileParameterCollection<CsvParameter>
 {
 }

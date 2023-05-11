@@ -1,11 +1,13 @@
-﻿namespace Data.Xml.XmlIO.Delete;
+﻿using System.Data.XmlClient;
 
-internal class XmlDelete : FileDelete
+namespace Data.Xml.XmlIO.Delete;
+
+internal class XmlDelete : FileDelete<XmlParameter>
 {
-    public XmlDelete(FileDeleteQuery queryParser, FileConnection connection, FileCommand jsonCommand) 
-        : base(queryParser, connection, jsonCommand)
+    public XmlDelete(FileDeleteQuery<XmlParameter> queryParser, FileConnection<XmlParameter> connection, FileCommand<XmlParameter> command) 
+        : base(queryParser, connection, command)
     {
-        dataSetWriter = new XmlDataSetWriter(connection,queryParser);
+        dataSetWriter = new XmlDataSetWriter(connection, queryParser);
     }
 }
 

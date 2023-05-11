@@ -1,10 +1,12 @@
-﻿namespace Data.Json.JsonException;
+﻿using System.Data.JsonClient;
+
+namespace Data.Json.JsonException;
 
 internal static class ThrowHelper
 {
     private const string INVALID_JSON = "The json file is not valid";
  
-    public static void ThrowIfInvalidJson(JsonElement jsonElement, FileConnection jsonConnection)
+    public static void ThrowIfInvalidJson(JsonElement jsonElement, FileConnection<JsonParameter> jsonConnection)
     {
         if (!(jsonElement.ValueKind == JsonValueKind.Object &&
              jsonConnection.PathType == PathType.File)

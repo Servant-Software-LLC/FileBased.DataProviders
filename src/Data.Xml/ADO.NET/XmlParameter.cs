@@ -1,6 +1,6 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlParameter : FileParameter
+public class XmlParameter : FileParameter<XmlParameter>
 {
     public XmlParameter()
     {
@@ -18,4 +18,7 @@ public class XmlParameter : FileParameter
         : base(parameterName, dbType, sourceColumn)
     {
     }
+
+    public override XmlParameter Clone() => new(ParameterName, DbType, SourceColumn);
+
 }

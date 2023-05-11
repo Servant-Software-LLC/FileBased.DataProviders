@@ -1,5 +1,5 @@
 ﻿namespace System.Data.JsonClient;
-public class JsonParameter : FileParameter
+public class JsonParameter : FileParameter<JsonParameter>
 {
     public JsonParameter()
     {
@@ -17,4 +17,6 @@ public class JsonParameter : FileParameter
         : base(parameterName, dbType, sourceColumn)
     {
     }
+
+    public override JsonParameter Clone() => new(ParameterName, DbType, SourceColumn);
 }

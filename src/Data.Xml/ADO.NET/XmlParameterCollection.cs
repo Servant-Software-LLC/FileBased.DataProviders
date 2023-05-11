@@ -1,5 +1,5 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlParameterCollection : FileParameterCollection
+public class XmlParameterCollection : FileParameterCollection<XmlParameter>
 {
 }

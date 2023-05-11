@@ -1,11 +1,13 @@
-﻿namespace Data.Xml.XmlIO;
+﻿using System.Data.XmlClient;
+
+namespace Data.Xml.XmlIO;
 
 internal class XmlDataSetWriter : IDataSetWriter
 {
-    private readonly FileConnection fileConnection;
-    private readonly FileQuery fileQuery;
+    private readonly FileConnection<XmlParameter> fileConnection;
+    private readonly FileQuery<XmlParameter> fileQuery;
 
-    public XmlDataSetWriter(FileConnection fileConnection, FileQuery fileQuery)
+    public XmlDataSetWriter(FileConnection<XmlParameter> fileConnection, FileQuery<XmlParameter> fileQuery)
     {
         this.fileConnection = fileConnection;
         this.fileQuery = fileQuery;

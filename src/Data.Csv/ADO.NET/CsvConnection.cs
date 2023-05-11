@@ -1,6 +1,8 @@
-﻿namespace System.Data.CsvClient;
+﻿using System.Data.Common;
 
-public class CsvConnection : FileConnection
+namespace System.Data.CsvClient;
+
+public class CsvConnection : FileConnection<CsvParameter>
 {
     public CsvConnection(string connectionString) : 
         base(connectionString)

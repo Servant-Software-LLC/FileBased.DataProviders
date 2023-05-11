@@ -1,8 +1,10 @@
-﻿namespace Data.Csv.CsvIO.Write;
+﻿using System.Data.CsvClient;
 
-internal class CsvUpdate : FileUpdate
+namespace Data.Csv.CsvIO.Write;
+
+internal class CsvUpdate : FileUpdate<CsvParameter>
 {
-    public CsvUpdate(FileUpdateQuery queryParser, FileConnection FileConnection, FileCommand FileCommand) 
+    public CsvUpdate(FileUpdateQuery<CsvParameter> queryParser, FileConnection<CsvParameter> FileConnection, FileCommand<CsvParameter> FileCommand) 
         : base(queryParser, FileConnection, FileCommand)
     {
         dataSetWriter = new CsvDataSetWriter(FileConnection, queryParser);

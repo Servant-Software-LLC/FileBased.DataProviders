@@ -8,7 +8,8 @@ namespace Data.Csv.Tests.FolderAsDatabase;
 /// </summary>
 public static class CommandTests
 {
-    public static void ExecuteScalar_ShouldReturnFirstRowFirstColumn(Func<FileConnection> createConnection)
+    public static void ExecuteScalar_ShouldReturnFirstRowFirstColumn<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         const string query = "SELECT city, state FROM locations";
 
@@ -37,7 +38,8 @@ public static class CommandTests
         connection.Close();
     }
 
-    public static void ExecuteScalar_ShouldCountRecords(Func<FileConnection> createConnection)
+    public static void ExecuteScalar_ShouldCountRecords<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createConnection();

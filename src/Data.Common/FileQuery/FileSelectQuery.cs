@@ -3,11 +3,12 @@ using Irony.Parsing;
 
 namespace Data.Common.FileQuery;
 
-public class FileSelectQuery : FileQuery
+public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
 
-    public FileSelectQuery(ParseTreeNode tree, FileCommand jsonCommand)
-        : base(tree, jsonCommand)
+    public FileSelectQuery(ParseTreeNode tree, FileCommand<TFileParameter> fileCommand)
+        : base(tree, fileCommand)
     {
     }
 
@@ -120,15 +121,15 @@ public class FileSelectQuery : FileQuery
             joinColumn = sourceColumn;
             sourceColumn = join;
         }
-        var jsonJoin = new Join(table, joinColumn, sourceColumn);
+        var fileJoin = new Join(table, joinColumn, sourceColumn);
         
-        var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(jsonJoin.SourceColumn).alias);
+        var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(fileJoin.SourceColumn).alias);
         if (hasAlreayJoin!=null)
         {
-            hasAlreayJoin.InnerJoin.Add(jsonJoin);
+            hasAlreayJoin.InnerJoin.Add(fileJoin);
         }
         else
-        list.Add(jsonJoin);
+        list.Add(fileJoin);
         if (joinNode.ChildNodes[2].ChildNodes.Count>0)
         {
             AddJoin(list,joinNode.ChildNodes[2]);

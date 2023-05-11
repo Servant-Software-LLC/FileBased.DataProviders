@@ -1,64 +1,79 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileConnection : IDbConnection, IConnectionStringProperties
+public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnection, IConnectionStringProperties
+    where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
+    private ConnectionState state;
 
     public abstract string FileExtension { get; }
-    public string ConnectionString { get => connectionString.ConnectionString!; set => connectionString.ConnectionString = value; }
-    public string DataSource => connectionString.DataSource;
+    public override string ConnectionString { get => connectionString.ConnectionString!; set => connectionString.ConnectionString = value; }
+    public override string DataSource => connectionString.DataSource;
     public bool? Formatted => connectionString.Formatted;
 
-    public int ConnectionTimeout { get; }
-    public string Database => connectionString.DataSource ?? string.Empty;
-    public ConnectionState State { get; private set; }
- 
+    public override string Database => connectionString.DataSource ?? string.Empty;
+    public override ConnectionState State => state;
+
+
     protected FileConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
         this.connectionString = connectionString;
-        State = ConnectionState.Closed;
+        state = ConnectionState.Closed;
     }
 
+    public override string ServerVersion
+    {
+        get
+        {
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            string version = fvi.FileVersion;
+            return version;
+        }
+    }
 
- 
     public PathType PathType => this.GetPathType();
 
-    public FileReader FileReader { get; protected set; }
+    public FileReader<TFileParameter> FileReader { get; protected set; }
 
-    public abstract FileTransaction BeginTransaction();
+    public new abstract FileTransaction<TFileParameter> BeginTransaction();
 
-    public abstract FileTransaction BeginTransaction(IsolationLevel il);
+    public new abstract FileTransaction<TFileParameter> BeginTransaction(IsolationLevel il);
 
     IDbTransaction IDbConnection.BeginTransaction() => BeginTransaction();
 
     IDbTransaction IDbConnection.BeginTransaction(IsolationLevel il) => BeginTransaction(il);
 
-    public abstract FileDataAdapter CreateDataAdapter(string query);
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
-    public virtual void ChangeDatabase(string databaseName)
+    public abstract FileDataAdapter<TFileParameter> CreateDataAdapter(string query);
+
+    public override void ChangeDatabase(string databaseName)
     {
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
         ThrowHelper.ThrowIfInvalidPath(PathType);
         
     }
 
-    public void Close() => State = ConnectionState.Closed;
+    public override void Close() => state = ConnectionState.Closed;
 
-    public abstract FileCommand CreateCommand();
-    public abstract FileCommand CreateCommand(string cmdText);
+    public new abstract FileCommand<TFileParameter> CreateCommand();
+    public abstract FileCommand<TFileParameter> CreateCommand(string cmdText);
     IDbCommand IDbConnection.CreateCommand() => CreateCommand();
 
+    protected override DbCommand CreateDbCommand() => CreateCommand();
 
-    public virtual void Open()
+    public override void Open()
     {
         ThrowHelper.ThrowIfInvalidPath(PathType);
-        State = ConnectionState.Open;
+        state = ConnectionState.Open;
     }
 
-    public virtual void Dispose()
+    protected new void Dispose()
     {
-        State = ConnectionState.Closed;
+        base.Dispose();
+        state = ConnectionState.Closed;
     }
 
 }

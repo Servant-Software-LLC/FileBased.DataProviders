@@ -1,6 +1,6 @@
 ﻿namespace System.Data.XmlClient;
 
-public class XmlCommand : FileCommand
+public class XmlCommand : FileCommand<XmlParameter>
 {
     public XmlCommand()
     {
@@ -23,22 +23,20 @@ public class XmlCommand : FileCommand
     {
     }
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
-    {
-        FileDeleteQuery deleteQuery =>
-            new XmlDelete(deleteQuery, (XmlConnection)Connection!, this),
-        FileInsertQuery insertQuery =>
-            new XmlInsert(insertQuery, (XmlConnection)Connection!, this),
-        FileUpdateQuery updateQuery =>
-            new XmlUpdate(updateQuery, (XmlConnection)Connection!, this),
-
-        _ => throw new InvalidOperationException("query not supported")
-    };
-
-    protected override XmlDataReader CreateDataReader(FileQuery queryParser) => new(queryParser, ((XmlConnection)Connection!).FileReader);
-
     public override XmlParameter CreateParameter() => new();
     public override XmlParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
     public override XmlDataAdapter CreateAdapter() => new(this);
+
+    protected override FileWriter<XmlParameter> CreateWriter(FileQuery<XmlParameter> queryParser) => queryParser switch
+    {
+        FileDeleteQuery<XmlParameter> deleteQuery => new XmlDelete(deleteQuery, (XmlConnection)Connection!, this),
+        FileInsertQuery<XmlParameter> insertQuery => new XmlInsert(insertQuery, (XmlConnection)Connection!, this),
+        FileUpdateQuery<XmlParameter> updateQuery => new XmlUpdate(updateQuery, (XmlConnection)Connection!, this),
+
+        _ => throw new InvalidOperationException("query not supported")
+    };
+
+    protected override XmlDataReader CreateDataReader(FileQuery<XmlParameter> queryParser) => new(queryParser, ((XmlConnection)Connection!).FileReader);
+
 }
