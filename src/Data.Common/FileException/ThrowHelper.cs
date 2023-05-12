@@ -2,18 +2,17 @@
 
 internal static class ThrowHelper
 {
-    private const string FILE_NOT_FOUND = "Database or directory not found";
     private const string QUERY_NOT_SUPPORTED = "The query is not supported";
     private const string SYNTAX_ERROR = "Syntax error";
     //private const string TABLE_NOT_FOUND = "{0} Not found";
     //private const string COLUMN_NOT_FOUND = "{0} Not found";
     //private const string INVALID_CON_STRING = "The connection string is not a valid connection string. It should be like 'DataSource=<FilePath>;'";
 
-    public static void ThrowIfInvalidPath(PathType pathType)
+    public static void ThrowIfInvalidPath(PathType pathType, string pathToDatabase)
     {
         if (pathType==PathType.None)
         {
-            throw new InvalidConnectionStringException(FILE_NOT_FOUND);
+            throw new InvalidConnectionStringException(pathToDatabase);
         }
     }
     

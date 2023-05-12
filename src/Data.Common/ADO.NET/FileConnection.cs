@@ -52,8 +52,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
     public override void ChangeDatabase(string databaseName)
     {
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
-        ThrowHelper.ThrowIfInvalidPath(PathType);
-        
+        connectionString.DataSource = databaseName;
+        ThrowHelper.ThrowIfInvalidPath(PathType, databaseName);        
     }
 
     public override void Close() => state = ConnectionState.Closed;
@@ -66,7 +66,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
 
     public override void Open()
     {
-        ThrowHelper.ThrowIfInvalidPath(PathType);
+        ThrowHelper.ThrowIfInvalidPath(PathType, Database);
         state = ConnectionState.Open;
     }
 
