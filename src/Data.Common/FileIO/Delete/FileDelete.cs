@@ -29,12 +29,14 @@ public abstract class FileDelete<TFileParameter> : FileWriter<TFileParameter>
             dataView.RowFilter = query.Filter?.ToString();
 
             var rowsAffected = dataView.Count;
+
             //don't update now if it is a transaction
             if (IsTransactedLater)
             {
                 fileTransaction!.Writers.Add(this);
                 return rowsAffected;
             }
+
             foreach (DataRowView dataRow in dataView)
             {
                 dataTable!.Rows.Remove(dataRow.Row);
