@@ -49,10 +49,10 @@ jobs:
         sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Common.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Csv.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Xml.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings
 
     - name: Test
-      run: dotnet test DataProviders.sln --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      run: dotnet test --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
       
     - name: Create nuget packages
-      run: dotnet pack DataProviders.sln --configuration $BuildConfiguration --no-build 
+      run: dotnet pack --configuration $BuildConfiguration --no-build 
 
     - uses: actions/upload-artifact@v3
       with:
