@@ -32,4 +32,8 @@
     <ProjectReference Include="..\EFCore.Common.Tests\EFCore.Common.Tests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Sources\" />
+  </ItemGroup>
+
 </Project>

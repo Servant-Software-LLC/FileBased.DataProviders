@@ -1,65 +1,60 @@
-﻿using EFCore.Json.Extensions;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Json.Infrastructure.Internal;
 
 public class JsonOptionsExtension : RelationalOptionsExtension
 {
-    private DbContextOptionsExtensionInfo? _info;
+    private MyCustomOptionsExtensionInfo? _info;
 
-    public JsonOptionsExtension()
+    public JsonOptionsExtension() { }
+    protected internal JsonOptionsExtension(JsonOptionsExtension copyFrom)
+        : base(copyFrom)
     {
+
     }
 
-    public JsonOptionsExtension(JsonOptionsExtension copyFrom) : base(copyFrom)
-    {
-        //TODO: Copy all option properties of copyFrom into the properties of this class.
-    }
-
-    //TODO: Provide readonly properties for each option needed for this provider
-
-    //TODO: Provider a fluent style method to set option property.  Example: WithPostgresVersion() method at https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Infrastructure/Internal/NpgsqlOptionsExtension.cs#L186
-
-    public override DbContextOptionsExtensionInfo Info => _info ??= new ExtensionInfo(this);
+    public override DbContextOptionsExtensionInfo Info => _info ??= new MyCustomOptionsExtensionInfo(this);
 
     public override void ApplyServices(IServiceCollection services)
-        => services.AddEntityFrameworkJson();
+    {
+        services.AddEntityFrameworkMyCustom();
+    }
+
+
+
+    public override void Validate(IDbContextOptions options)
+    {
+        // You can add any validation logic here, if necessary.
+    }
 
     protected override RelationalOptionsExtension Clone() => new JsonOptionsExtension(this);
 
-    private sealed class ExtensionInfo : RelationalExtensionInfo
-    {
-        private int? _serviceProviderHash;
 
-        public ExtensionInfo(IDbContextOptionsExtension extension)
+    public class MyCustomOptionsExtensionInfo : DbContextOptionsExtensionInfo
+    {
+        public MyCustomOptionsExtensionInfo(JsonOptionsExtension extension)
             : base(extension)
         {
         }
 
-        public override int GetServiceProviderHashCode()
-        {
-            if (_serviceProviderHash == null)
-            {
-                var hashCode = new HashCode();
-                hashCode.Add(base.GetServiceProviderHashCode());
+        public override bool IsDatabaseProvider => true;
 
-                //TODO: Add to hashCode each option property.  Example: https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Infrastructure/Internal/NpgsqlOptionsExtension.cs#L414
-                //  hashCode.Add(Extension.PostgresVersion);
+        public override string LogFragment => $"Using Custom SQLite Provider - ConnectionString: {ConnectionString}";
 
-                _serviceProviderHash = hashCode.ToHashCode();
-            }
+        public override int GetServiceProviderHashCode() => ConnectionString.GetHashCode();
 
-            return _serviceProviderHash.Value;
-
-        }
+        public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => other is MyCustomOptionsExtensionInfo;
 
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
         {
-            //TODO: Add to debugInfo each option property as a string of its GetHashCode() value.  Example: https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Infrastructure/Internal/NpgsqlOptionsExtension.cs#L433
-            //  debugInfo["ServantSoftware.EntityFrameworkCore.Json:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
-            //    = (Extension.PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+            debugInfo["MyCustom:ConnectionString"] = ConnectionString;
         }
+
+        public override JsonOptionsExtension Extension => (JsonOptionsExtension)base.Extension;
+        private string? ConnectionString => Extension.Connection == null ?
+                                                ConnectionString :
+                                                Extension.Connection.ConnectionString;
     }
 
 }
