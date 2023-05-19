@@ -63,9 +63,11 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
           .ChildNodes
           .First(item => item.Term.Name == "fromClauseOpt");
 
-        var table= fromClauseOpt
-        .ChildNodes[1]
-        .ChildNodes[0]
+        var tableId = fromClauseOpt.ChildNodes[1].ChildNodes[0];
+        if (tableId.ChildNodes.Count == 2)
+            return $"{tableId.ChildNodes[0].Token.ValueString}.{tableId.ChildNodes[1].Token.ValueString}";
+
+        var table= tableId
         .ChildNodes[0]
         .Token
         .ValueString;
@@ -166,21 +168,36 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
         return null;
     }
 
-    public static (string tableName,string alias) GetNameWithAlias(string name)
+    public static (string tableName, string alias) GetNameWithAlias(string name)
     {
-        if (name.Contains('.')||name.Contains(' '))
+        string alias = string.Empty;
+        string tableName = name;
+        if (!FileReader<TFileParameter>.IsSchemaTable(name))
         {
-            var data = name.Split(' ');
-
-            if (data.Count() == 1)
+            if (tableName.Contains(' '))
             {
-                data = name.Split('.');
-                return (data[1], data[0]);
-
+                var data = tableName.Split(' ');
+                if (data.Length > 1)
+                {
+                    tableName = data[0];
+                    alias = data[1];
+                }
             }
-            return (data[0], data[1]);
+            else if (tableName.Contains('.'))
+            {
+                var data = tableName.Split('.');
+                if (data.Length > 2)
+                    throw new ArgumentException($"The identifier {name} has too many periods in it.");
+
+                if (data.Length == 2)
+                {
+                    tableName = data[1];
+                    alias = data[0];
+                }
+            }
         }
-        return (name,"");
+
+        return (tableName, alias);
     }
 
     private static string GetColumnWithAlias(ParseTreeNode sourceColumnNode) => 

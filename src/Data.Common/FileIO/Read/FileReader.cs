@@ -2,6 +2,7 @@
 public abstract class FileReader<TFileParameter> : IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+    private const string SchemaTable = "INFORMATION_SCHEMA.TABLES";
     private FileSystemWatcher? fileWatcher;
     protected readonly FileConnection<TFileParameter> fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
@@ -30,6 +31,9 @@ public abstract class FileReader<TFileParameter> : IDisposable
             fileWatcher.Changed -= JsonWatcher_Changed;
     }
 
+    public static bool IsSchemaTable(string tableName) => 
+        string.Compare(tableName, SchemaTable, StringComparison.OrdinalIgnoreCase) == 0;
+
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         //we dont need to update anything if dataset is null
@@ -52,10 +56,18 @@ public abstract class FileReader<TFileParameter> : IDisposable
         {
             EnsureFileSystemWatcher();
 
-            if (fileConnection.PathType == PathType.Directory)
+            if (fileConnection.FolderAsDatabase)
             {
                 DataSet ??= new DataSet();
                 var newTables = GetTableNames(queryParser);
+
+                if (newTables.Count == 1 && IsSchemaTable(newTables.First()))
+                    return GenerateInformationSchemaTable();
+
+                //Be explicit about not supporting INFORMATION_SCHEMA.TABLES in JOINs yet.
+                if (newTables.Any(tableName => IsSchemaTable(tableName)))
+                    throw new ArgumentException($"This provider does not support using the {SchemaTable} table in a JOIN.");
+
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
 
             }
@@ -63,6 +75,7 @@ public abstract class FileReader<TFileParameter> : IDisposable
             {
                 ReadFromFile();
             }
+
             //Reload any of the tables from disk?
             CheckForTableReload();
 
@@ -75,6 +88,7 @@ public abstract class FileReader<TFileParameter> : IDisposable
         }
         return returnValue;
     }
+
 
     private void CheckForTableReload()
     {
@@ -101,19 +115,64 @@ public abstract class FileReader<TFileParameter> : IDisposable
     {
         if (jsonQueryParser is FileSelectQuery<TFileParameter> jsonSelectQuery)
         {
+            //Parser is JsonSelectQuery
+
             var dataTableJoin = jsonSelectQuery.GetFileJoin();
             if (dataTableJoin == null)
             {
-                return DataSet!.Tables[jsonQueryParser.TableName]!;
+                //No table join.
+                return GetDataTable(jsonQueryParser.TableName)!;
             }
 
-            //No table join.
+            //NOTE:  No support yet for INFORMATION_SCHEMA.TABLES table in SQL queries that have JOIN
             return dataTableJoin.Join(DataSet!);
         }
 
         //Parser is not a JsonSelectQuery
-        return DataSet!.Tables[jsonQueryParser!.TableName]!;
+        return GetDataTable(jsonQueryParser!.TableName)!;
     }
+
+    private DataTable GenerateInformationSchemaTable()
+    {
+        var informationSchemaTable = new DataTable(SchemaTable);
+
+        // Add columns to the DataTable
+        informationSchemaTable.Columns.Add("TABLE_CATALOG", typeof(string));
+        informationSchemaTable.Columns.Add("TABLE_NAME", typeof(string));
+        informationSchemaTable.Columns.Add("TABLE_TYPE", typeof(string));
+
+        IEnumerable<string> allTableNames;
+        if (fileConnection.FolderAsDatabase)
+        {
+            //For FolderAsDatabase, we didn't want to force the costly operation of loading 
+            //all files in the directory, when just trying to get a list of the tables.
+            allTableNames = GetTableNamesFromFolderAsDatabase();
+        }
+        else
+        {
+            // If FileAsDatabase, then we've already loaded all the tables into the DataSet
+            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
+        }
+
+        foreach (string tableName in allTableNames)
+        {
+            AddRowToSchemaTable(informationSchemaTable, tableName);
+        }
+
+        return informationSchemaTable;
+    }
+
+    private void AddRowToSchemaTable(DataTable schemaTable, string tableName)
+    {
+        var row = schemaTable.NewRow();
+        row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);
+        row["TABLE_NAME"] = tableName;
+        row["TABLE_TYPE"] = "BASE TABLE";
+        schemaTable.Rows.Add(row);
+    }
+
+    private DataTable GetDataTable(string tableName) =>  
+        IsSchemaTable(tableName) ? GenerateInformationSchemaTable() : DataSet!.Tables[tableName]!;
 
     private void EnsureFileSystemWatcher()
     {
@@ -121,7 +180,7 @@ public abstract class FileReader<TFileParameter> : IDisposable
         {
             fileWatcher = new FileSystemWatcher();
             fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            if (fileConnection.PathType == PathType.Directory)
+            if (fileConnection.FolderAsDatabase)
             {
                 fileWatcher.Path = fileConnection.Database;
                 fileWatcher.Filter = $"*.{fileConnection.FileExtension}";
@@ -143,11 +202,9 @@ public abstract class FileReader<TFileParameter> : IDisposable
         var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
-        if (jsonQueryParser is FileSelectQuery<TFileParameter> FileSelectQuery && FileSelectQuery.GetFileJoin() != null && fileConnection.PathType == PathType.Directory)
+        if (jsonQueryParser is FileSelectQuery<TFileParameter> FileSelectQuery && FileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
         {
-            string[] jsonFiles = Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}");
-
-            foreach (string jsonFile in jsonFiles.Select(x => Path.GetFileNameWithoutExtension(x)).Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
+            foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
             {
                 tableNames.Add(jsonFile);
             }
@@ -156,8 +213,22 @@ public abstract class FileReader<TFileParameter> : IDisposable
         return tableNames;
     }
 
+    private IEnumerable<string> GetFilesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
+        Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}") :
+        throw new ArgumentException($"The file connection for {GetType()} doesn't have a DataSource which is a folder.");
+
+    private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
+
+    /// <summary>
+    /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>
+    /// </summary>
+    /// <param name="tableNames"></param>
     protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
     protected abstract void UpdateFromFolder(string tableName);
+    
+    /// <summary>
+    /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
+    /// </summary>
     protected abstract void ReadFromFile();
     protected abstract void UpdateFromFile();
    

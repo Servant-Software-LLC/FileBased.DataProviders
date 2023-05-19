@@ -82,6 +82,46 @@ public static class DataReaderTests
         connection.Close();
     }
 
+    public static void Reader_ShouldReturnSchemaData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var databaseName = Path.GetFileNameWithoutExtension(connection.Database);
+        var command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.TABLES");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(3, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            var firstTableName = reader["TABLE_NAME"].ToString();
+            Assert.True(string.Compare(firstTableName, "employees", true) == 0 || 
+                        string.Compare(firstTableName, "locations", true) == 0);
+            Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
+
+            //second row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            var secondTableName = reader["TABLE_NAME"].ToString();
+            Assert.True(string.Compare(secondTableName, "employees", true) == 0 || 
+                        string.Compare(secondTableName, "locations", true) == 0);
+            Assert.NotEqual(firstTableName, secondTableName);
+            Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
+
+            //There is no third row.
+            Assert.False(reader.Read());
+        }
+
+        connection.Close();
+    }
+
     public static void Reader_ShouldReturnData_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

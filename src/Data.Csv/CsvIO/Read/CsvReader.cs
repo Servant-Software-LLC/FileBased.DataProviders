@@ -11,7 +11,7 @@ internal class CsvReader : FileReader<CsvParameter>
     {
     }
 
-    void FillDataTable(string path,DataTable dataTable)
+    void FillDataTable(string path, DataTable dataTable)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {

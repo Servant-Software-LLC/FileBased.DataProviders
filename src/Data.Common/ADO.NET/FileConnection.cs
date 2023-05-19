@@ -34,6 +34,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
     }
 
     public PathType PathType => this.GetPathType();
+    public bool FolderAsDatabase => PathType == PathType.Directory;
 
     public FileReader<TFileParameter> FileReader { get; protected set; }
 
