@@ -11,12 +11,14 @@ using EFCore.Csv.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Csv.Query.Internal;
 using EFCore.Csv.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using EFCore.Csv.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class CsvServiceCollectionExtensions
 {
-    public static IServiceCollection AddEntityFrameworkMyCustom([NotNull] this IServiceCollection serviceCollection)
+    public static IServiceCollection AddEntityFrameworkCsv([NotNull] this IServiceCollection serviceCollection)
     {
         var builder = new EntityFrameworkRelationalServicesBuilder(serviceCollection)
             .TryAdd<IRelationalTypeMappingSource, CsvTypeMappingSource>()
@@ -34,6 +36,7 @@ public static class CsvServiceCollectionExtensions
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<ICsvRelationalConnection, CsvRelationalConnection>()
+                    .TryAddSingleton<IDatabaseModelFactory, CsvDatabaseModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<ICsvRelationalConnection>())

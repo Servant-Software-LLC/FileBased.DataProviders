@@ -11,12 +11,14 @@ using EFCore.Json.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Json.Query.Internal;
 using EFCore.Json.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using EFCore.Json.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class JsonServiceCollectionExtensions
 {
-    public static IServiceCollection AddEntityFrameworkMyCustom([NotNull] this IServiceCollection serviceCollection)
+    public static IServiceCollection AddEntityFrameworkJson([NotNull] this IServiceCollection serviceCollection)
     {
         var builder = new EntityFrameworkRelationalServicesBuilder(serviceCollection)
             .TryAdd<IRelationalTypeMappingSource, JsonTypeMappingSource>()
@@ -34,6 +36,7 @@ public static class JsonServiceCollectionExtensions
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IJsonRelationalConnection, JsonRelationalConnection>()
+                    .TryAddSingleton<IDatabaseModelFactory, JsonDatabaseModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<IJsonRelationalConnection>())

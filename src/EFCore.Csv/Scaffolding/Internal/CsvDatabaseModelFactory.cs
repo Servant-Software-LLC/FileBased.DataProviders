@@ -1,23 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Scaffolding;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Data.CsvClient;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using EFCore.Common.Scaffolding.Internal;
 
 namespace EFCore.Csv.Scaffolding.Internal;
 
-public class CsvDatabaseModelFactory : IDatabaseModelFactory
+public class CsvDatabaseModelFactory : FileDatabaseModelFactory
 {
-    public DatabaseModel Create(string connectionString, DatabaseModelFactoryOptions options)
+    public CsvDatabaseModelFactory(IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        : base(logger)
     {
-        // Implementation goes here
     }
 
-    public DatabaseModel Create(DbConnection connection, DatabaseModelFactoryOptions options)
+    public override DatabaseModel Create(string connectionString, DatabaseModelFactoryOptions options)
     {
-        // Implementation goes here
+        using var connection = new CsvConnection(connectionString);
+        return Create(connection, options);
     }
+
 }

@@ -18,7 +18,7 @@ public class JsonOptionsExtension : RelationalOptionsExtension
 
     public override void ApplyServices(IServiceCollection services)
     {
-        services.AddEntityFrameworkMyCustom();
+        services.AddEntityFrameworkJson();
     }
 
 
