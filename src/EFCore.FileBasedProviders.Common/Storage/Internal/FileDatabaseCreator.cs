@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace EFCore.Common;
+namespace EFCore.Common.Storage.Internal;
 
 public abstract class FileDatabaseCreator : RelationalDatabaseCreator
 {
