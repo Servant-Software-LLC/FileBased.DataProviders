@@ -1,4 +1,4 @@
-﻿using EFCore.Common;
+﻿using EFCore.Common.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
