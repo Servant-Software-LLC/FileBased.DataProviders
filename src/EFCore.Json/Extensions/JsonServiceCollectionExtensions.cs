@@ -13,6 +13,7 @@ using EFCore.Json.Query.Internal;
 using EFCore.Json.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using EFCore.Json.Scaffolding.Internal;
+using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,7 @@ public static class JsonServiceCollectionExtensions
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IJsonRelationalConnection, JsonRelationalConnection>()
                     .TryAddSingleton<IDatabaseModelFactory, JsonDatabaseModelFactory>()
+                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<IJsonRelationalConnection>())

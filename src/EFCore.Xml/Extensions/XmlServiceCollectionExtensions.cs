@@ -13,6 +13,7 @@ using EFCore.Xml.Query.Internal;
 using EFCore.Xml.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using EFCore.Xml.Scaffolding.Internal;
+using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,7 @@ public static class XmlServiceCollectionExtensions
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IXmlRelationalConnection, XmlRelationalConnection>()
                     .TryAddSingleton<IDatabaseModelFactory, XmlDatabaseModelFactory>()
+                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<IXmlRelationalConnection>())

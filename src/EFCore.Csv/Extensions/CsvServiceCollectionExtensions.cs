@@ -13,6 +13,7 @@ using EFCore.Csv.Query.Internal;
 using EFCore.Csv.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using EFCore.Csv.Scaffolding.Internal;
+using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,7 @@ public static class CsvServiceCollectionExtensions
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<ICsvRelationalConnection, CsvRelationalConnection>()
                     .TryAddSingleton<IDatabaseModelFactory, CsvDatabaseModelFactory>()
+                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<ICsvRelationalConnection>())
