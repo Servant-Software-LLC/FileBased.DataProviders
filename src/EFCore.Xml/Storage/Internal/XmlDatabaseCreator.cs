@@ -7,7 +7,8 @@ namespace EFCore.Xml.Storage.Internal;
 
 public class XmlDatabaseCreator : FileDatabaseCreator
 {
-    //TODO: Remove if not used after implementation is fully complete.
+    //TODO: Remove if not used after implementation is fully complete.  It may be that we don't even need all these derived classes and can 
+    //      make FileDatabaseCreator non-abstract and register it.
     private readonly IXmlRelationalConnection connection;
 
     public XmlDatabaseCreator(

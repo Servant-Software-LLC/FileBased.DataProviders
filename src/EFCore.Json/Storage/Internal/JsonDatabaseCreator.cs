@@ -7,7 +7,8 @@ namespace EFCore.Json.Storage.Internal;
 
 public class JsonDatabaseCreator : FileDatabaseCreator
 {
-    //TODO: Remove if not used after implementation is fully complete.
+    //TODO: Remove if not used after implementation is fully complete.  It may be that we don't even need all these derived classes and can 
+    //      make FileDatabaseCreator non-abstract and register it.
     private readonly IJsonRelationalConnection connection;
 
     public JsonDatabaseCreator(
