@@ -23,4 +23,13 @@ public class CsvCommandTests
            () => new CsvConnection(ConnectionStrings.Instance.
            FolderAsDB));
     }
+
+    [Fact]
+    public void ExecuteScalar_ShouldCountSchemaTableRecords()
+    {
+        CommandTests.ExecuteScalar_ShouldCountSchemaTableRecords(
+           () => new CsvConnection(ConnectionStrings.Instance.
+           FolderAsDB));
+    }
+
 }

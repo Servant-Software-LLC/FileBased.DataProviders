@@ -65,4 +65,25 @@ public static class CommandTests
         // Close the connection
         connection.Close();
     }
+
+    public static void ExecuteScalar_ShouldCountSchemaTableRecords<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection();
+        connection.Open();
+
+        // Act - Count the records in the locations table
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES";
+
+        var count = (int)command.ExecuteScalar()!;
+
+        // Assert
+        Assert.Equal(2, count);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }

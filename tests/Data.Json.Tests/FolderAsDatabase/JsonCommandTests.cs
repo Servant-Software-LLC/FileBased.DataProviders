@@ -18,10 +18,11 @@ public class JsonCommandTests
     }
 
     [Fact]
-    public void ExecuteScalar_ShouldCountRecords()
+    public void ExecuteScalar_ShouldCountSchemaTableRecords()
     {
-        CommandTests.ExecuteScalar_ShouldCountRecords(
+        CommandTests.ExecuteScalar_ShouldCountSchemaTableRecords(
           () => new JsonConnection(ConnectionStrings.Instance.
           FolderAsDB));
     }
+
 }

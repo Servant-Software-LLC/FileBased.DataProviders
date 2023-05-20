@@ -26,7 +26,7 @@ public class JsonDataReaderTests
     [Fact]
     public void Reader_ShouldReturnSchemaData()
     {
-        DataReaderTests.Reader_ShouldReturnSchemaData(() =>
+        DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>
             new JsonConnection(ConnectionStrings.Instance.FolderAsDB), true);
     }
 

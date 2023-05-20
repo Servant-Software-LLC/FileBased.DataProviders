@@ -82,7 +82,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnSchemaData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange

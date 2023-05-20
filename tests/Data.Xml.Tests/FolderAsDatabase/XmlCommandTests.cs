@@ -24,4 +24,12 @@ public class XmlCommandTests
           () => new XmlConnection(ConnectionStrings.Instance.
           FolderAsDB));
     }
+
+    [Fact]
+    public void ExecuteScalar_ShouldCountSchemaTableRecords()
+    {
+        CommandTests.ExecuteScalar_ShouldCountSchemaTableRecords(
+          () => new XmlConnection(ConnectionStrings.Instance.
+          FolderAsDB));
+    }
 }

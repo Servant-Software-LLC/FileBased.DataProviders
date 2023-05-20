@@ -24,4 +24,12 @@ public class JsonCommandTests
            () => new JsonConnection(ConnectionStrings.Instance.
            FileAsDB));
     }
+
+    [Fact]
+    public void ExecuteScalar_ShouldCountSchemaTableRecords()
+    {
+        CommandTests.ExecuteScalar_ShouldCountSchemaTableRecords(
+           () => new JsonConnection(ConnectionStrings.Instance.
+           FileAsDB));
+    }
 }
