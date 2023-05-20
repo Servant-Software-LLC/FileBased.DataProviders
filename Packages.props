@@ -2,10 +2,10 @@
   <ItemGroup>
 	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="6.0.10" />
 
-	<PackageReference Update="ServantSoftware.Data.Common" Version="1.0.0.108" />
-	<PackageReference Update="ServantSoftware.Data.Json" Version="1.0.0.108" />
-	<PackageReference Update="ServantSoftware.Data.Csv" Version="1.0.0.108" />
-	<PackageReference Update="ServantSoftware.Data.Xml" Version="1.0.0.108" />
+	<PackageReference Update="ServantSoftware.Data.Common" Version="1.0.0.115" />
+	<PackageReference Update="ServantSoftware.Data.Json" Version="1.0.0.115" />
+	<PackageReference Update="ServantSoftware.Data.Csv" Version="1.0.0.115" />
+	<PackageReference Update="ServantSoftware.Data.Xml" Version="1.0.0.115" />
 
 	<!-- Unit Tests -->
 	<PackageReference Update="Moq" Version="4.16.1" />
