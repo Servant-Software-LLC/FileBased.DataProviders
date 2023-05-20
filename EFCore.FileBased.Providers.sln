@@ -20,11 +20,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Json.Tests", "tests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Xml.Tests", "tests\EFCore.Xml.Tests\EFCore.Xml.Tests.csproj", "{026A2A7A-1BC1-4E3B-AE1A-10750B972392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.Common.Tests", "tests\EFCore.Common.Tests\EFCore.Common.Tests.csproj", "{A1E4CE1F-645E-43FF-9653-C1E3C6C8046D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common.Tests", "tests\EFCore.Common.Tests\EFCore.Common.Tests.csproj", "{A1E4CE1F-645E-43FF-9653-C1E3C6C8046D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{57DBF22F-675D-4C64-BCBF-B27B5751AB9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.FileBasedProviders.Common", "src\EFCore.FileBasedProviders.Common\EFCore.FileBasedProviders.Common.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common", "src\EFCore.FileBasedProviders.Common\EFCore.Common.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

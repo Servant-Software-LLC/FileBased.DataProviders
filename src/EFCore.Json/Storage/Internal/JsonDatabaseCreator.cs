@@ -1,23 +1,22 @@
-﻿using Data.Common.FileException;
+﻿using EFCore.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFCore.Json.Storage.Internal;
 
 
-public class JsonDatabaseCreator : RelationalDatabaseCreator
+public class JsonDatabaseCreator : FileDatabaseCreator
 {
-    private readonly IRawSqlCommandBuilder rawSqlCommandBuilder;
+    //TODO: Remove if not used after implementation is fully complete.
     private readonly IJsonRelationalConnection connection;
 
     public JsonDatabaseCreator(
         RelationalDatabaseCreatorDependencies dependencies,
         IJsonRelationalConnection connection,
         IRawSqlCommandBuilder rawSqlCommandBuilder)
-        : base(dependencies)
+        : base(dependencies, rawSqlCommandBuilder)
     {
-        this.rawSqlCommandBuilder = rawSqlCommandBuilder;
-        this.connection = connection;
+        this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
     }
 
     public override void Create()
@@ -59,36 +58,4 @@ public class JsonDatabaseCreator : RelationalDatabaseCreator
         }
     }
 
-    public override bool Exists()
-    {
-        var dbConnection = connection.DbConnection;
-
-        try
-        {
-            dbConnection.Open();
-        }
-        catch (InvalidConnectionStringException)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public override bool HasTables()
-    {
-#error Waiting on https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/26 to be complete
-
-        var count = (long)rawSqlCommandBuilder
-            .Build("SELECT COUNT(*) FROM \"sqlite_master\" WHERE \"type\" = 'table' AND \"rootpage\" IS NOT NULL;")
-            .ExecuteScalar(
-                new RelationalCommandParameterObject(
-                    Dependencies.Connection,
-                    null,
-                    null,
-                    null,
-                    Dependencies.CommandLogger, CommandSource.Migrations))!;
-
-        return count != 0;
-    }
 }

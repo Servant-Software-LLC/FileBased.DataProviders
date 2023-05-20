@@ -9,6 +9,6 @@
 	<ItemGroup>
 	  <PackageReference Include="ServantSoftware.Data.Csv" />
 
-	  <ProjectReference Include="..\EFCore.FileBasedProviders.Common\EFCore.FileBasedProviders.Common.csproj" />
+	  <ProjectReference Include="..\EFCore.FileBasedProviders.Common\EFCore.Common.csproj" />
 	</ItemGroup>
 </Project>
