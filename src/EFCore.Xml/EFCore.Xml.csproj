@@ -12,6 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EFCore.FileBasedProviders.Common\EFCore.Common.csproj" />
+    <ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
   </ItemGroup>
 </Project>

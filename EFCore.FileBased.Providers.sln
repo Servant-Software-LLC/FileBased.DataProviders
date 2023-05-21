@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common.Tests", "test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{57DBF22F-675D-4C64-BCBF-B27B5751AB9E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common", "src\EFCore.FileBasedProviders.Common\EFCore.Common.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common", "src\EFCore.Common\EFCore.Common.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
