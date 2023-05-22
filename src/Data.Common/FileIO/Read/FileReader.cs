@@ -1,8 +1,12 @@
-﻿namespace Data.Common.FileIO.Read;
+﻿using System.Data.Common;
+
+namespace Data.Common.FileIO.Read;
+
 public abstract class FileReader<TFileParameter> : IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private const string SchemaTable = "INFORMATION_SCHEMA.TABLES";
+    private const string SchemaColumn = "INFORMATION_SCHEMA.COLUMNS";
     private FileSystemWatcher? fileWatcher;
     protected readonly FileConnection<TFileParameter> fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
@@ -31,8 +35,11 @@ public abstract class FileReader<TFileParameter> : IDisposable
             fileWatcher.Changed -= JsonWatcher_Changed;
     }
 
-    public static bool IsSchemaTable(string tableName) => 
+    public static bool IsSchemaTable(string tableName) =>
         string.Compare(tableName, SchemaTable, StringComparison.OrdinalIgnoreCase) == 0;
+
+    public static bool IsSchemaColumn(string tableName) =>
+        string.Compare(tableName, SchemaColumn, StringComparison.OrdinalIgnoreCase) == 0;
 
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
     {
@@ -61,12 +68,28 @@ public abstract class FileReader<TFileParameter> : IDisposable
                 DataSet ??= new DataSet();
                 var newTables = GetTableNames(queryParser);
 
-                if (newTables.Count == 1 && IsSchemaTable(newTables.First()))
-                    return GenerateInformationSchemaTable();
+                if (newTables.Count == 1)
+                {
+                    //If table is INFORMATION_SCHEMA.TABLES, we don't need to load all the tables, because the
+                    //names of the tables are just files on disk and we can just do a Directory.GetFiles() to
+                    //get their names.
+                    var newTableName = newTables.First();
+                    if (IsSchemaTable(newTableName))
+                        return GenerateInformationSchemaTable();
+
+                    //If table is INFORMATION_SCHEMA.COLUMNS, we need to load all tables, because the column
+                    //information is within each table file.
+                    if (IsSchemaColumn(newTableName))
+                        newTables = GetTableNamesFromFolderAsDatabase().ToHashSet();
+                }
 
                 //Be explicit about not supporting INFORMATION_SCHEMA.TABLES in JOINs yet.
                 if (newTables.Any(tableName => IsSchemaTable(tableName)))
                     throw new ArgumentException($"This provider does not support using the {SchemaTable} table in a JOIN.");
+
+                //Be explicit about not supporting INFORMATION_SCHEMA.COLUMNS in JOINs yet.
+                if (newTables.Any(tableName => IsSchemaColumn(tableName)))
+                    throw new ArgumentException($"This provider does not support using the {SchemaColumn} table in a JOIN.");
 
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
 
@@ -171,8 +194,54 @@ public abstract class FileReader<TFileParameter> : IDisposable
         schemaTable.Rows.Add(row);
     }
 
-    private DataTable GetDataTable(string tableName) =>  
-        IsSchemaTable(tableName) ? GenerateInformationSchemaTable() : DataSet!.Tables[tableName]!;
+
+    private DataTable GenerateInformationSchemaColumn()
+    {
+        var databaseName = Path.GetFileNameWithoutExtension(fileConnection.Database);
+        var informationSchemaColumn = new DataTable(SchemaColumn);
+
+        // Add columns to the DataTable
+        informationSchemaColumn.Columns.Add("TABLE_CATALOG", typeof(string));
+        informationSchemaColumn.Columns.Add("TABLE_NAME", typeof(string));
+        informationSchemaColumn.Columns.Add("COLUMN_NAME", typeof(string));
+        informationSchemaColumn.Columns.Add("DATA_TYPE", typeof(string));
+
+        //Get all table colums sorted in order of the primary key (database, table, column)
+        var allTableColumns = DataSet.Tables.Cast<DataTable>()
+            .SelectMany(table => table.Columns.Cast<DataColumn>().Select(column => (Table: table, Column: column)))
+            .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).ToList();
+
+        //TODO: When we upgrade to C# 12, use specify an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
+        foreach ((DataTable Table, DataColumn Column) columnTuple in allTableColumns)
+        {
+
+            AddRowToSchemaColumn(informationSchemaColumn, columnTuple.Table, columnTuple.Column);
+        }
+
+        return informationSchemaColumn;
+    }
+
+    private void AddRowToSchemaColumn(DataTable schemaTable, DataTable table, DataColumn column)
+    {
+        var row = schemaTable.NewRow();
+        row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);
+        row["TABLE_NAME"] = table.TableName;
+        row["COLUMN_NAME"] = column.ColumnName;
+        row["DATA_TYPE"] = column.DataType.FullName;
+        schemaTable.Rows.Add(row);
+    }
+
+
+    private DataTable GetDataTable(string tableName)
+    {
+        if (IsSchemaTable(tableName))
+            return GenerateInformationSchemaTable();
+
+        if (IsSchemaColumn(tableName))
+            return GenerateInformationSchemaColumn();
+
+        return DataSet!.Tables[tableName]!;
+    }
 
     private void EnsureFileSystemWatcher()
     {

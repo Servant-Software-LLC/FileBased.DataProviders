@@ -27,6 +27,13 @@ public class CsvDataReaderTests
     public void Reader_ShouldReturnSchemaTablesData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReturnSchemaColumnsData()
+    {
+        DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
     }
 

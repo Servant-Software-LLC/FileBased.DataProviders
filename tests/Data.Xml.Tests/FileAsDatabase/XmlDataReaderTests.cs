@@ -24,7 +24,14 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnSchemaTablesData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>
-            new XmlConnection(ConnectionStrings.Instance.FileAsDB), true);
+            new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReturnSchemaColumnsData()
+    {
+        DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
+            new XmlConnection(ConnectionStrings.Instance.FileAsDB));
     }
 
     [Fact]

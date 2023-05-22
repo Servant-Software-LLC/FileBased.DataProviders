@@ -172,7 +172,7 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
     {
         string alias = string.Empty;
         string tableName = name;
-        if (!FileReader<TFileParameter>.IsSchemaTable(name))
+        if (!FileReader<TFileParameter>.IsSchemaTable(name) && !FileReader<TFileParameter>.IsSchemaColumn(name))
         {
             if (tableName.Contains(' '))
             {
