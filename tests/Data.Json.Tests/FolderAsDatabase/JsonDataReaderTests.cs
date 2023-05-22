@@ -24,10 +24,17 @@ public class JsonDataReaderTests
     }
 
     [Fact]
-    public void Reader_ShouldReturnSchemaData()
+    public void Reader_ShouldReturnSchemaTablesData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>
-            new JsonConnection(ConnectionStrings.Instance.FolderAsDB), true);
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReturnSchemaColumnsData()
+    {
+        DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
     [Fact]

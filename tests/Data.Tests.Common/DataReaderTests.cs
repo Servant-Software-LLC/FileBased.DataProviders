@@ -82,7 +82,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -116,6 +116,85 @@ public static class DataReaderTests
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
 
             //There is no third row.
+            Assert.False(reader.Read());
+        }
+
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReturnSchemaColumnsData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var databaseName = Path.GetFileNameWithoutExtension(connection.Database);
+        var command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.COLUMNS");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(4, reader.FieldCount);
+
+            //First Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("email", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
+
+            //Second Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("married", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal((dataTypeAlwaysString ? typeof(string) : typeof(bool)).FullName, reader["DATA_TYPE"]);
+
+            //Third Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("name", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
+
+            //Fourth Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("salary", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal((dataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+
+            //Fifth Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("city", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
+
+            //Sixth Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("id", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal((dataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+
+            //Seventh Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("state", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
+
+            //Eighth Row
+            Assert.True(reader.Read());
+            Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("zip", reader["COLUMN_NAME"].ToString(), true) == 0);
+            Assert.Equal((dataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+
+            //There is no ninth row.
             Assert.False(reader.Read());
         }
 
