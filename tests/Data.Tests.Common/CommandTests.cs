@@ -102,14 +102,14 @@ public static class CommandTests
         var command = connection.CreateCommand();
         command.CommandText = $"CREATE DATABASE '{databaseName}'";
 
-        var withExistingFolderResult = command.ExecuteNonQuery()!;
+        var executeResult = command.ExecuteNonQuery()!;
 
         command = connection.CreateCommand();
 
         // Assert
 
         //Make sure that it indicated whether the database was created or not.
-        Assert.Equal(expectedExecuteResult, withExistingFolderResult);
+        Assert.Equal(expectedExecuteResult, executeResult);
 
         //Verify that we can open a connection against this database.
         var verificationConnection = createConnection(connString =>
