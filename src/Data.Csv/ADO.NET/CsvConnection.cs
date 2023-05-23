@@ -1,13 +1,11 @@
-﻿using System.Data.Common;
-
-namespace System.Data.CsvClient;
+﻿namespace System.Data.CsvClient;
 
 public class CsvConnection : FileConnection<CsvParameter>
 {
     public CsvConnection(string connectionString) : 
         base(connectionString)
     {
-        FileReader = new CsvReader(this);
+        FileReader = !AdminMode ? new CsvReader(this) : null;
     }
 
 
@@ -20,11 +18,12 @@ public class CsvConnection : FileConnection<CsvParameter>
         EnsureNotFileAsDatabase();
     }
 
-    public override void ChangeDatabase(string constring)
+    public override void ChangeDatabase(string connString)
     {
-        base.ChangeDatabase(constring);
+        base.ChangeDatabase(connString);
         EnsureNotFileAsDatabase();
     }
+
     private void EnsureNotFileAsDatabase()
     {
         if (PathType == PathType.File)
@@ -42,4 +41,8 @@ public class CsvConnection : FileConnection<CsvParameter>
 
     public override CsvCommand CreateCommand() => new(this);
     public override CsvCommand CreateCommand(string cmdText) => new(cmdText, this);
+
+    protected override void CreateFileAsDatabase(string databaseFileName) =>
+        File.WriteAllText(databaseFileName, string.Empty);
+
 }

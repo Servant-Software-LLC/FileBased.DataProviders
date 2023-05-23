@@ -123,18 +123,21 @@ public abstract class FileQuery<TFileParameter>
 
     public static FileQuery<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
     {
+        if (((FileConnection<TFileParameter>)fileCommand.Connection).AdminMode)
+            throw new ArgumentException($"The {nameof(FileQuery<TFileParameter>)}.{nameof(Create)} method cannot be used with an admin connection.");
+
         var parser = new Parser(new SqlGrammar());
         var parseTree = parser.Parse(fileCommand.CommandText);
         if (parseTree.HasErrors())
         {
             ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
         }
+
         var mainNode = parseTree.Root.ChildNodes[0];
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new FileInsertQuery<TFileParameter>(mainNode,
-                                           fileCommand);
+                return new FileInsertQuery<TFileParameter>(mainNode, fileCommand);
             case "deleteStmt":
                 return new FileDeleteQuery<TFileParameter>(mainNode, fileCommand);
             case "updateStmt":

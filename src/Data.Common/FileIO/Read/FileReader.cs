@@ -1,6 +1,4 @@
-﻿using System.Data.Common;
-
-namespace Data.Common.FileIO.Read;
+﻿namespace Data.Common.FileIO.Read;
 
 public abstract class FileReader<TFileParameter> : IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()

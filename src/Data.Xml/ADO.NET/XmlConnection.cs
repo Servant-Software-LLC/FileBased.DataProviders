@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.Xml.Linq;
 
 namespace System.Data.XmlClient;
 
@@ -22,5 +23,12 @@ public class XmlConnection : FileConnection<XmlParameter>
 
     public override XmlCommand CreateCommand() => new(this);
     public override XmlCommand CreateCommand(string cmdText) => new(cmdText, this);
+
+    protected override void CreateFileAsDatabase(string databaseFileName)
+    {
+        var doc = new XDocument(new XElement("DataSet"));
+        doc.Save(databaseFileName);
+    }
+
 
 }
