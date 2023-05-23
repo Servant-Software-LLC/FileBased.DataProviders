@@ -1,3 +1,4 @@
+using Data.Tests.Common.Utils;
 using System.Data.CsvClient;
 using Xunit;
 
@@ -30,6 +31,34 @@ public class CsvCommandTests
         CommandTests.ExecuteScalar_ShouldCountSchemaTableRecords(
            () => new CsvConnection(ConnectionStrings.Instance.
            FolderAsDB));
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_WithExisting()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new CsvConnection(connectionString);
+        }, tempFolder, 0);
+
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_NewDatabase()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var myNewDatabase = $"{tempFolder}\\MyNewDatabase";
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new CsvConnection(connectionString);
+        }, myNewDatabase, 1);
+
+
     }
 
 }

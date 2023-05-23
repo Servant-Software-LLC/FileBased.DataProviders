@@ -1,4 +1,5 @@
 using Data.Csv.Tests.FolderAsDatabase;
+using Data.Tests.Common.Utils;
 using System.Data.XmlClient;
 using Xunit;
 
@@ -32,4 +33,32 @@ public class XmlCommandTests
           () => new XmlConnection(ConnectionStrings.Instance.
           FileAsDB));
     }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_WithExisting()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = $"{tempFolder}\\MyDatabase.xml";
+        File.Create(databaseName);
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, databaseName, 0);
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_NewDatabase()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = $"{tempFolder}\\MyDatabase.xml";
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, databaseName, 1);
+    }
+
 }

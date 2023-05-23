@@ -32,6 +32,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (SelectCommand.Connection is not FileConnection<TFileParameter> selectConnection)
             throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection<TFileParameter>)}");
 
+        if (selectConnection.AdminMode)
+            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
+
         connection = selectConnection;
 
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
@@ -51,6 +54,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     {
         if (connection == null)
             throw new InvalidOperationException($"A connection cannot be inferred when calling the {nameof(Fill)} method");
+
+        if (connection.AdminMode)
+            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         if (SelectCommand == null)
             throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
@@ -94,6 +100,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
         connection = (FileConnection<TFileParameter>)SelectCommand.Connection;
+
+        if (connection.AdminMode)
+            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         var selectQuery = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)SelectCommand);
         var fileReader = connection.FileReader;
@@ -139,6 +148,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         // dataSet.Tables.Clear();
         if (dataSet == null)
             throw new ArgumentNullException($"{nameof(dataSet)} cannot be null");
+
         if (UpdateCommand == null)
             throw new InvalidOperationException($"Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
 
@@ -149,6 +159,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
             throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
 
         connection = (FileConnection<TFileParameter>)UpdateCommand!.Connection!;
+
+        if (connection.AdminMode)
+            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         var query = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)UpdateCommand);
         if (query is not FileUpdateQuery<TFileParameter> updateQuery)

@@ -12,6 +12,7 @@ public class CsvDataAdapter : FileDataAdapter<CsvParameter>
     public CsvDataAdapter(string query, CsvConnection connection) : base(query, connection)
     {
     }
+
     protected override FileWriter<CsvParameter> CreateWriter(FileQuery<CsvParameter> queryParser) => queryParser switch
     {
         FileDeleteQuery<CsvParameter> deleteQuery =>

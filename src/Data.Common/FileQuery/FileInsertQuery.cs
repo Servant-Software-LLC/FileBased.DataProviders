@@ -4,7 +4,8 @@ namespace Data.Common.FileQuery;
 public class FileInsertQuery<TFileParameter> : FileQuery<TFileParameter>
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    public FileInsertQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand) : base(node, fileCommand)
+    public FileInsertQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand) 
+        : base(node, fileCommand)
     {
     }
 

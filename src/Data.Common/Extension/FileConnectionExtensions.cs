@@ -15,16 +15,17 @@ public static class FileConnectionExtensions
     internal static PathType GetPathType<TFileParameter>(this FileConnection<TFileParameter> fileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
+        if (IsAdmin(fileConnection.Database))
+            return PathType.Admin;
+
         if (File.Exists(fileConnection.Database))
-        {
             return PathType.File;
-        }
-        else if (Directory.Exists(fileConnection.Database))
-        {
+        
+        if (Directory.Exists(fileConnection.Database))
             return PathType.Directory;
-        }
 
         return PathType.None;
     }
 
+    internal static bool IsAdmin(string database) => string.Compare(database, $":{nameof(PathType.Admin)}:", true) == 0;
 }

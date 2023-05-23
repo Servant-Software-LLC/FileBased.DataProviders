@@ -1,4 +1,5 @@
 using Data.Csv.Tests.FolderAsDatabase;
+using Data.Tests.Common.Utils;
 using System.Data.JsonClient;
 using Xunit;
 
@@ -32,4 +33,32 @@ public class JsonCommandTests
            () => new JsonConnection(ConnectionStrings.Instance.
            FileAsDB));
     }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_WithExisting()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = $"{tempFolder}\\MyDatabase.json";
+        File.Create(databaseName);
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new JsonConnection(connectionString);
+        }, databaseName, 0);
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateDatabase_NewDatabase()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = $"{tempFolder}\\MyDatabase.json";
+
+        CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new JsonConnection(connectionString);
+        }, databaseName, 1);
+    }
+
 }

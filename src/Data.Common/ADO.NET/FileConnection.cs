@@ -35,6 +35,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
 
     public PathType PathType => this.GetPathType();
     public bool FolderAsDatabase => PathType == PathType.Directory;
+    public bool AdminMode => PathType == PathType.Admin;
 
     public FileReader<TFileParameter> FileReader { get; protected set; }
 
@@ -65,6 +66,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
 
     protected override DbCommand CreateDbCommand() => CreateCommand();
 
+    protected internal abstract void CreateFileAsDatabase(string databaseFileName);
+
     public override void Open()
     {
         ThrowHelper.ThrowIfInvalidPath(PathType, Database);
@@ -75,6 +78,21 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
     {
         base.Dispose();
         state = ConnectionState.Closed;
+    }
+
+
+    internal static PathType GetPathType(string database, string providerFileExtension)
+    {
+        if (FileConnectionExtensions.IsAdmin(database))
+            return PathType.Admin;
+
+        //Does this look like a file with the appropriate file extension?
+        var fileExtension = Path.GetExtension(database);
+        if (!string.IsNullOrEmpty(fileExtension) && string.Compare(fileExtension, $".{providerFileExtension}", true) == 0)
+            return PathType.File;
+
+        //Assume that this is referring to FolderAsDatabase
+        return PathType.Directory;
     }
 
 }

@@ -1,4 +1,6 @@
-﻿using System.Data.FileClient;
+﻿using Data.Common.Utils.ConnectionString;
+using Data.Tests.Common.Utils;
+using System.Data.FileClient;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;
@@ -86,4 +88,43 @@ public static class CommandTests
         connection.Close();
     }
 
+
+    public static void ExecuteNonQuery_Admin_CreateDatabase<TFileParameter>(
+        Func<Func<ConnectionStringsBase, FileConnectionString>, FileConnection<TFileParameter>> createConnection,
+        string databaseName, int expectedExecuteResult)
+    where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection(connString => connString.Admin);
+        connection.Open();
+
+        // Act
+        var command = connection.CreateCommand();
+        command.CommandText = $"CREATE DATABASE '{databaseName}'";
+
+        var withExistingFolderResult = command.ExecuteNonQuery()!;
+
+        command = connection.CreateCommand();
+
+        // Assert
+
+        //Make sure that it indicated whether the database was created or not.
+        Assert.Equal(expectedExecuteResult, withExistingFolderResult);
+
+        //Verify that we can open a connection against this database.
+        var verificationConnection = createConnection(connString =>
+        {
+            var fileConnectionString = new FileConnectionString();
+            fileConnectionString.DataSource = databaseName;
+
+            return fileConnectionString;
+        });
+        verificationConnection.Open();
+
+
+        // Close the connection
+        connection.Close();
+    }
+
+    
 }

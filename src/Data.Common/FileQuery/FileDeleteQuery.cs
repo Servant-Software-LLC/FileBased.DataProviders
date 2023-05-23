@@ -8,6 +8,7 @@ public class FileDeleteQuery<TFileParameter> : FileQuery<TFileParameter>
     public FileDeleteQuery(ParseTreeNode tree, FileCommand<TFileParameter> fileCommand) : base(tree,fileCommand)
     {
     }
+
     public override IEnumerable<string> GetColumnNames()
     {
         throw new NotImplementedException();

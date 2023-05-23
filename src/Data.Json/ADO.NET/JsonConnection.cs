@@ -22,4 +22,7 @@ public class JsonConnection : FileConnection<JsonParameter>
     public override JsonCommand CreateCommand() => new(this);
     public override JsonCommand CreateCommand(string cmdText) => new(cmdText, this);
 
+    protected override void CreateFileAsDatabase(string databaseFileName) =>
+        File.WriteAllText(databaseFileName, "{}");
+
 }

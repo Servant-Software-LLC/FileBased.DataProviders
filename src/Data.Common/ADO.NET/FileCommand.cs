@@ -3,6 +3,7 @@
 public abstract class FileCommand<TFileParameter> : DbCommand
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+
     public override string? CommandText { get; set; } = string.Empty;
     public override int CommandTimeout { get; set; }
     public override CommandType CommandType { get; set; }
@@ -10,7 +11,19 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     public override UpdateRowSource UpdatedRowSource { get; set; }
 
     protected override DbParameterCollection DbParameterCollection { get; } = new FileParameterCollection<TFileParameter>();
-    protected override DbConnection DbConnection { get; set; }
+
+    public FileConnection<TFileParameter> FileConnection { get; private set; }
+    protected override DbConnection DbConnection 
+    { 
+        get => FileConnection;
+        set
+        {
+            if (value is not null && value is not FileConnection<TFileParameter> fileConnection)
+                throw new ArgumentOutOfRangeException(nameof(value), $"{GetType()} must be a type that inherits {typeof(FileConnection<TFileParameter>)}");
+            FileConnection = (FileConnection<TFileParameter>)value;
+        }
+    }
+
     protected override DbTransaction DbTransaction { get; set; }
 
 
@@ -25,19 +38,19 @@ public abstract class FileCommand<TFileParameter> : DbCommand
 
     public FileCommand(FileConnection<TFileParameter> connection)
     {
-        Connection = connection;
+        FileConnection = connection;
     }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection)
     {
         CommandText = cmdText;
-        Connection = connection;
+        FileConnection = connection;
     }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection, FileTransaction<TFileParameter> transaction)
     {
         CommandText = cmdText;
-        Connection = connection;
+        FileConnection = connection;
         Transaction = transaction;
     }
 
@@ -66,7 +79,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand
 
     public void Dispose()
     {
-        Connection?.Close();
+        FileConnection?.Close();
         CommandText = string.Empty;
         Parameters.Clear();
     }
@@ -75,14 +88,25 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     {
         ThrowOnInvalidExecutionState();
 
-        var queryParser = FileQuery<TFileParameter>.Create(this);
-        if (Connection!.State != ConnectionState.Open)
+        if (FileConnection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
+
+        if (FileConnection.AdminMode)
+            return ExecuteAdminNonQuery();
+
+        var queryParser = FileQuery<TFileParameter>.Create(this);
+
         FileWriter<TFileParameter> fileWriter = CreateWriter(queryParser);
 
         return fileWriter.Execute();
+    }
+
+    private int ExecuteAdminNonQuery()
+    {
+        var queryParser = FileAdminQuery<TFileParameter>.Create(this);
+        return queryParser.Execute() ? 1 : 0;
     }
 
     protected abstract FileWriter<TFileParameter> CreateWriter(FileQuery<TFileParameter> queryParser);
@@ -96,9 +120,12 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     {
         ThrowOnInvalidExecutionState();
 
+        if (FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(ExecuteDbDataReader)} method cannot be used with an admin connection.");
+
         var queryParser = FileQuery<TFileParameter>.Create(this);
 
-        if (Connection!.State != ConnectionState.Open)
+        if (FileConnection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
@@ -111,12 +138,15 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     {
         ThrowOnInvalidExecutionState();
 
+        if (FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(ExecuteScalar)} method cannot be used with an admin connection.");
+
         var queryParser = FileQuery<TFileParameter>.Create(this);
         if (queryParser is not FileSelectQuery<TFileParameter> selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
         var columns = selectQuery.GetColumnNames();
-        var reader = ((FileConnection<TFileParameter>)Connection!).FileReader ;
+        var reader = FileConnection!.FileReader ;
 
         var dataTable = reader.ReadFile(queryParser, true);
         var dataView = new DataView(dataTable);
@@ -153,7 +183,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand
         if (string.IsNullOrEmpty(CommandText))
             throw new ArgumentNullException(nameof(CommandText), $"The {nameof(CommandText)} property of {GetType().FullName} must be set prior to execution.");
 
-        if (Connection == null)
+        if (FileConnection == null)
             throw new ArgumentNullException(nameof(Connection), $"The {nameof(Connection)} property of {GetType().FullName} must be set prior to execution.");
     }
 

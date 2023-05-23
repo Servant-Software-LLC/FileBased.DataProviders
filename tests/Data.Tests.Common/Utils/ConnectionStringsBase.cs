@@ -1,3 +1,4 @@
+using Data.Common.Enum;
 using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
 
@@ -13,6 +14,7 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
     protected virtual string FileEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyDatabase.{Extension}");
 
+    public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(PathType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = File };

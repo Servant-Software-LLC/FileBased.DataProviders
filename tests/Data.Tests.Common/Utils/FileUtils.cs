@@ -39,4 +39,19 @@ public static class FileUtils
             }
         }
     }
+
+    public static string GetTempFolderName()
+    {
+        // Create a temporary file
+        string tempFile = Path.GetTempFileName();
+
+        // Delete the temporary file
+        File.Delete(tempFile);
+
+        // Create a temporary folder using the name of the temporary file
+        Directory.CreateDirectory(tempFile);
+
+        // Return the path of the temporary folder
+        return tempFile;
+    }
 }
