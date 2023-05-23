@@ -38,7 +38,7 @@ public class XmlCommandTests
     public void ExecuteNonQuery_CreateDatabase_WithExisting()
     {
         var tempFolder = FileUtils.GetTempFolderName();
-        var databaseName = $"{tempFolder}\\MyDatabase.xml";
+        var databaseName = Path.Combine(tempFolder, "MyDatabase.xml");
         File.Create(databaseName);
 
         CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
@@ -52,13 +52,41 @@ public class XmlCommandTests
     public void ExecuteNonQuery_CreateDatabase_NewDatabase()
     {
         var tempFolder = FileUtils.GetTempFolderName();
-        var databaseName = $"{tempFolder}\\MyDatabase.xml";
+        var databaseName = Path.Combine(tempFolder, "MyDatabase.xml");
 
         CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
         {
             var connectionString = getConnectionString(ConnectionStrings.Instance);
             return new XmlConnection(connectionString);
         }, databaseName, 1);
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_WithExisting()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = Path.Combine(tempFolder, "MyDatabase.xml");
+        var fileStream = File.Create(databaseName);
+        fileStream.Close();
+
+        CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, databaseName, 1);
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_NewDatabase()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var databaseName = Path.Combine(tempFolder, "MyDatabase.xml");
+
+        CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, databaseName, 0);
     }
 
 }

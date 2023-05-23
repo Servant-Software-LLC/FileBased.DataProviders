@@ -104,7 +104,6 @@ public static class CommandTests
 
         var executeResult = command.ExecuteNonQuery()!;
 
-        command = connection.CreateCommand();
 
         // Assert
 
@@ -126,5 +125,30 @@ public static class CommandTests
         connection.Close();
     }
 
-    
+
+    public static void ExecuteNonQuery_Admin_DropDatabase<TFileParameter>(
+        Func<Func<ConnectionStringsBase, FileConnectionString>, FileConnection<TFileParameter>> createConnection,
+        string databaseName, int expectedExecuteResult)
+    where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection(connString => connString.Admin);
+        connection.Open();
+
+        // Act
+        var command = connection.CreateCommand();
+        command.CommandText = $"DROP DATABASE '{databaseName}'";
+
+        var executeResult = command.ExecuteNonQuery()!;
+
+
+        // Assert
+
+        //Make sure that it indicated whether the database was created or not.
+        Assert.Equal(expectedExecuteResult, executeResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }

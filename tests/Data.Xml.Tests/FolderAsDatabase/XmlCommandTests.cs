@@ -51,13 +51,78 @@ public class XmlCommandTests
     public void ExecuteNonQuery_CreateDatabase_NewDatabase()
     {
         var tempFolder = FileUtils.GetTempFolderName();
-        var myNewDatabase = $"{tempFolder}\\MyNewDatabase";
+        var myNewDatabase = Path.Combine(tempFolder, "MyNewDatabase");
 
         CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
         {
             var connectionString = getConnectionString(ConnectionStrings.Instance);
             return new XmlConnection(connectionString);
         }, myNewDatabase, 1);
+
+
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_WithExisting()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+
+        CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, tempFolder, 1);
+
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_WithSubfolder()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+
+        //Create a sub-folder
+        Directory.CreateDirectory(Path.Combine(tempFolder, "SubFolder"));
+
+        Assert.Throws<InvalidOperationException>(() =>
+            CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+            {
+                var connectionString = getConnectionString(ConnectionStrings.Instance);
+                return new XmlConnection(connectionString);
+            }, tempFolder, 1)
+        );
+
+
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_WithNonDatabaseFile()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+
+        //Create a file without the provider's extension
+        File.Create(Path.Combine(tempFolder, "Readme.txt"));
+
+        Assert.Throws<InvalidOperationException>(() =>
+            CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+            {
+                var connectionString = getConnectionString(ConnectionStrings.Instance);
+                return new XmlConnection(connectionString);
+            }, tempFolder, 1)
+        );
+
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_DropDatabase_NoDatabase()
+    {
+        var tempFolder = FileUtils.GetTempFolderName();
+        var unexistingDatabase = $"{tempFolder}\\UnexistingDatabase";
+
+        CommandTests.ExecuteNonQuery_Admin_DropDatabase(getConnectionString =>
+        {
+            var connectionString = getConnectionString(ConnectionStrings.Instance);
+            return new XmlConnection(connectionString);
+        }, unexistingDatabase, 0);
 
 
     }
