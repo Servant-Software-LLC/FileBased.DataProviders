@@ -25,4 +25,22 @@ public class CsvInsertTests
         new CsvConnection(ConnectionStrings.Instance
         .FolderAsDB.AddFormatted(true)));
     }
+
+    [Fact]
+    public void Insert_IndentityColumn_NoLastRow()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_NoLastRow(
+            () => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)),
+        true);
+    }
+
+    [Fact]
+    public void Insert_IndentityColumn_LastRow()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_LastRow_Decimal(
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)),
+        true);
+    }
 }

@@ -238,7 +238,11 @@ public abstract class FileReader<TFileParameter> : IDisposable
         if (IsSchemaColumn(tableName))
             return GenerateInformationSchemaColumn();
 
-        return DataSet!.Tables[tableName]!;
+        var table = DataSet!.Tables[tableName]!;
+        if (table == null)
+            throw new TableNotFoundException($"Table '{tableName}' not found in '{fileConnection.Database}'");
+
+        return table;
     }
 
     private void EnsureFileSystemWatcher()

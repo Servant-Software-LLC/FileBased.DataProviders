@@ -43,6 +43,7 @@ internal class CsvDataSetWriter : IDataSetWriter
                     foreach (DataColumn column in table.Columns)
                         csv.WriteField(column.ColumnName);
                     csv.NextRecord();
+
                     // Write row values
                     foreach (DataRow row in table.Rows)
                     {
