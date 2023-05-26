@@ -36,7 +36,11 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
     public override bool IsNullable
     {
         get => false;
-        set => throw new NotImplementedException("Support for nullable parameters needs to be considered and/or implemented.");
+        set
+        {
+            if (value)
+                throw new NotImplementedException("Support for nullable parameters needs to be considered and/or implemented.");
+        }
     }
 
     public override string ParameterName { get; set; }
