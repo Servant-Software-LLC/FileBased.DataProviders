@@ -115,14 +115,16 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
         string joinColumn = GetColumnWithAlias(subNode.ChildNodes[5]);
         if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
         {
-            ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join");
+            ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join", $"SourceColumn = {sourceColumn} JoinColumn = {joinColumn}");
         }
+
         if (!joinColumn.StartsWith(tableAlias))
         {
             var join = joinColumn;
             joinColumn = sourceColumn;
             sourceColumn = join;
         }
+
         var fileJoin = new Join(table, joinColumn, sourceColumn);
         
         var hasAlreayJoin = FindJoin(list,x => GetNameWithAlias(x.TableName).alias == GetNameWithAlias(fileJoin.SourceColumn).alias);
@@ -131,7 +133,10 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
             hasAlreayJoin.InnerJoin.Add(fileJoin);
         }
         else
-        list.Add(fileJoin);
+        {
+            list.Add(fileJoin);
+        }
+
         if (joinNode.ChildNodes[2].ChildNodes.Count>0)
         {
             AddJoin(list,joinNode.ChildNodes[2]);

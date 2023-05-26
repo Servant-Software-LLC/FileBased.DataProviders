@@ -18,8 +18,8 @@ internal static class ThrowHelper
     
     public static QueryNotSupportedException GetQueryNotSupportedException() => new(QUERY_NOT_SUPPORTED);
 
-    public static void ThrowSyntaxtErrorException(string error) => 
-        throw new QueryNotSupportedException($"{SYNTAX_ERROR} {error}");
+    public static void ThrowSyntaxtErrorException(string error, string command) => 
+        throw new QueryNotSupportedException($"{SYNTAX_ERROR}. {error}. Command = {command}");
 
     //public static void ThrowTableNotFoundException(string tableName) =>
     //    throw new TableNotFoundException(string.Format(TABLE_NOT_FOUND,tableName));

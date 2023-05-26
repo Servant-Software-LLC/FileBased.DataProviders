@@ -130,7 +130,7 @@ public abstract class FileQuery<TFileParameter>
         var parseTree = parser.Parse(fileCommand.CommandText);
         if (parseTree.HasErrors())
         {
-            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages));
+            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages), fileCommand.CommandText);
         }
 
         var mainNode = parseTree.Root.ChildNodes[0];
