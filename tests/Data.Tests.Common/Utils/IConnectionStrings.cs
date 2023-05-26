@@ -9,6 +9,8 @@ public interface IConnectionStrings
     FileConnectionString EmptyWithTablesFileAsDB { get; }
     FileConnectionString eComFileDB { get; }
     FileConnectionString eComFolderDB { get; }
+    FileConnectionString gettingStartedFileDB { get; }
+    FileConnectionString gettingStartedFolderDB { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

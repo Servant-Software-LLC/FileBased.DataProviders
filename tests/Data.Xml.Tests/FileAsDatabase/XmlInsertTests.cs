@@ -19,7 +19,26 @@ public class XmlInsertTests
     public void Insert_JsonShouldBeFormatted()
     {
         InsertTests.Insert_ShouldBeFormattedForFile(() =>
-        new XmlConnection(ConnectionStrings.Instance
-        .FileAsDB.AddFormatted(true)));
+        new XmlConnection(ConnectionStrings.Instance.FileAsDB.AddFormatted(true)));
     }
+
+    [Fact]
+    public void Insert_IndentityColumn_NoLastRow()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_NoLastRow(
+            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId))
+        );
+
+    }
+
+    [Fact]
+    public void Insert_IndentityColumn_LastRow_Decimal()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_LastRow_Decimal(
+            () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
+        );
+    }
+
 }

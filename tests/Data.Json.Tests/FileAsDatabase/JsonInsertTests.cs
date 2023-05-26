@@ -73,4 +73,20 @@ public class JsonInsertTests
         new JsonConnection(ConnectionStrings.Instance
         .FileAsDB.AddFormatted(true)));
     }
+
+    [Fact]
+    public void Insert_IndentityColumn_NoLastRow()
+    {
+        //NOTE: Without a single row, there is no way for the Json Provider to 'know' of an indentity column
+    }
+
+    [Fact]
+    public void Insert_IndentityColumn_LastRow_Decimal()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_LastRow_Decimal(
+            () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId))
+        );
+    }
+
 }

@@ -24,4 +24,24 @@ public class XmlInsertTests
         InsertTests.Insert_ShouldBeFormatted(() =>
         new XmlConnection(ConnectionStrings.Instance.FolderAsDB.AddFormatted(true)));
     }
+
+    [Fact]
+    public void Insert_IndentityColumn_NoLastRow()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_NoLastRow(
+            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId))
+        );
+
+    }
+
+    [Fact]
+    public void Insert_IndentityColumn_LastRow_Decimal()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_IndentityColumn_LastRow_Decimal(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
+        );
+    }
+
 }
