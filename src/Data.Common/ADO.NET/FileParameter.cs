@@ -39,7 +39,7 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
         set
         {
             if (value)
-                throw new NotImplementedException("Support for nullable parameters needs to be considered and/or implemented.");
+                throw new NotImplementedException("Trying to set FileParameter.IsNullable to true.  Support for nullable parameters needs to be considered and/or implemented.");
         }
     }
 
