@@ -115,7 +115,7 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
         string joinColumn = GetColumnWithAlias(subNode.ChildNodes[5]);
         if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
         {
-            ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join", $"SourceColumn = {sourceColumn} JoinColumn = {joinColumn}");
+            ThrowHelper.ThrowQuerySyntaxException("Syntax error. Invalid ON join", $"SourceColumn = {sourceColumn} JoinColumn = {joinColumn}");
         }
 
         if (!joinColumn.StartsWith(tableAlias))
