@@ -10,7 +10,7 @@ global using Data.Common.Interfaces;
 global using Data.Common.Enum;
 global using System.Collections;
 global using Data.Common.FileIO;
-global using Data.Common.FileQuery;
+global using Data.Common.FileQueries;
 global using Data.Common.Extension;
 global using System.Data.FileClient;
 global using Data.Common.FileIO.Read;

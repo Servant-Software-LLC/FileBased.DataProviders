@@ -2,9 +2,9 @@
 
 namespace Data.Csv.CsvIO.Delete;
 
-internal class CsvDelete : FileDelete<CsvParameter>
+internal class CsvDelete : FileDelete
 {
-    public CsvDelete(FileDeleteQuery<CsvParameter> queryParser, FileConnection<CsvParameter> connection, FileCommand<CsvParameter> command) 
+    public CsvDelete(FileDeleteQuery queryParser, FileConnection<CsvParameter> connection, FileCommand<CsvParameter> command) 
         : base(queryParser, connection, command)
     {
         this.dataSetWriter = new CsvDataSetWriter(connection, queryParser);

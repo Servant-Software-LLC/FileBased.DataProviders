@@ -1,14 +1,13 @@
 ﻿using CsvHelper;
-using System.Data.CsvClient;
 
 namespace Data.Csv.CsvIO;
 
 internal class CsvDataSetWriter : IDataSetWriter
 {
-    private readonly FileConnection<CsvParameter> fileConnection;
-    private readonly FileQuery<CsvParameter> fileQuery;
+    private readonly IFileConnection fileConnection;
+    private readonly FileQuery fileQuery;
 
-    public CsvDataSetWriter(FileConnection<CsvParameter> fileConnection, FileQuery<CsvParameter> fileQuery)
+    public CsvDataSetWriter(IFileConnection fileConnection, FileQuery fileQuery)
     {
         this.fileConnection = fileConnection;
         this.fileQuery = fileQuery;

@@ -1,14 +1,11 @@
-﻿using System.Data.Common;
+﻿namespace Data.Common.FileIO.Write;
 
-namespace Data.Common.FileIO.Write;
-
-public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileInsert : FileWriter
 {
-    private readonly FileInsertQuery<TFileParameter> queryParser;
+    private readonly FileInsertQuery queryParser;
 
-    public FileInsert(FileInsertQuery<TFileParameter> queryParser, FileConnection<TFileParameter> fileConnection, FileCommand<TFileParameter> fileCommand)
-        : base(fileConnection, fileCommand,(FileQuery.FileQuery<TFileParameter>)queryParser)
+    public FileInsert(FileInsertQuery queryParser, IFileConnection fileConnection, IFileCommand fileCommand)
+        : base(fileConnection, fileCommand, queryParser)
     {
         this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
     }

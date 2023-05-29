@@ -1,17 +1,16 @@
 ﻿namespace Data.Common.FileIO.Read;
 
-public abstract class FileReader<TFileParameter> : IDisposable
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileReader : IDisposable
 {
     private const string SchemaTable = "INFORMATION_SCHEMA.TABLES";
     private const string SchemaColumn = "INFORMATION_SCHEMA.COLUMNS";
     private FileSystemWatcher? fileWatcher;
-    protected readonly FileConnection<TFileParameter> fileConnection;
+    protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
     public DataSet? DataSet { get; protected set; }
 
-    public FileReader(FileConnection<TFileParameter> fileConnection)
+    public FileReader(IFileConnection fileConnection)
     {
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
 
@@ -50,12 +49,12 @@ public abstract class FileReader<TFileParameter> : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileQuery.FileQuery<TFileParameter> queryParser, bool shouldLock = false)
+    public DataTable ReadFile(FileQuery queryParser, bool shouldLock = false)
     {
         DataTable returnValue;
 
         if (shouldLock)
-            FileWriter<TFileParameter>._rwLock.EnterReadLock();
+            FileWriter._rwLock.EnterReadLock();
 
         try
         {
@@ -105,8 +104,9 @@ public abstract class FileReader<TFileParameter> : IDisposable
         finally
         {
             if (shouldLock)
-                FileWriter<TFileParameter>._rwLock.ExitReadLock();
+                FileWriter._rwLock.ExitReadLock();
         }
+
         return returnValue;
     }
 
@@ -132,9 +132,9 @@ public abstract class FileReader<TFileParameter> : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileQuery.FileQuery<TFileParameter> jsonQueryParser)
+    private DataTable CheckIfSelect(FileQuery jsonQueryParser)
     {
-        if (jsonQueryParser is FileSelectQuery<TFileParameter> jsonSelectQuery)
+        if (jsonQueryParser is FileSelectQuery jsonSelectQuery)
         {
             //Parser is JsonSelectQuery
 
@@ -267,13 +267,13 @@ public abstract class FileReader<TFileParameter> : IDisposable
     }
   
 
-    private HashSet<string> GetTableNames(FileQuery.FileQuery<TFileParameter> jsonQueryParser)
+    private HashSet<string> GetTableNames(FileQuery jsonQueryParser)
     {
         //Start with the name of the first table in the JOIN
         var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
-        if (jsonQueryParser is FileSelectQuery<TFileParameter> FileSelectQuery && FileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
+        if (jsonQueryParser is FileSelectQuery fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
         {
             foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
             {

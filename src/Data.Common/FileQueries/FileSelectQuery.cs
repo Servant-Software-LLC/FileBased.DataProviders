@@ -1,14 +1,13 @@
 ﻿using Data.Xml.JsonJoin;
 using Irony.Parsing;
 
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileQueries;
 
-public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public class FileSelectQuery : FileQuery
 {
 
-    public FileSelectQuery(ParseTreeNode tree, FileCommand<TFileParameter> fileCommand)
-        : base(tree, fileCommand)
+    public FileSelectQuery(ParseTreeNode tree, DbParameterCollection parameters)
+        : base(tree, parameters)
     {
     }
 
@@ -177,7 +176,7 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
     {
         string alias = string.Empty;
         string tableName = name;
-        if (!FileReader<TFileParameter>.IsSchemaTable(name) && !FileReader<TFileParameter>.IsSchemaColumn(name))
+        if (!FileReader.IsSchemaTable(name) && !FileReader.IsSchemaColumn(name))
         {
             if (tableName.Contains(' '))
             {

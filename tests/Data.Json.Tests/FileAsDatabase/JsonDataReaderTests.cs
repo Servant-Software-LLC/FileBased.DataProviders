@@ -53,4 +53,11 @@ public class JsonDataReaderTests
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
             new JsonConnection(ConnectionStrings.Instance.FileAsDB));
     }
+
+    [Fact]
+    public void Reader_NextResult_ShouldReadData()
+    {
+        DataReaderTests.Reader_NextResult_ShouldReadData(() =>
+        new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
 }

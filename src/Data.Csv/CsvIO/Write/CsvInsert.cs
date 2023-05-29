@@ -2,9 +2,9 @@
 
 namespace Data.Csv.CsvIO.Write;
 
-internal class CsvInsert : FileInsert<CsvParameter>
+internal class CsvInsert : FileInsert
 {
-    public CsvInsert(FileInsertQuery<CsvParameter> queryParser, FileConnection<CsvParameter> jsonConnection, FileCommand<CsvParameter> jsonCommand) 
+    public CsvInsert(FileInsertQuery queryParser, FileConnection<CsvParameter> jsonConnection, FileCommand<CsvParameter> jsonCommand) 
         : base(queryParser, jsonConnection, jsonCommand)
     {
         dataSetWriter = new CsvDataSetWriter(jsonConnection, queryParser);

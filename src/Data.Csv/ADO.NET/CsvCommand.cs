@@ -28,15 +28,16 @@ public class CsvCommand : FileCommand<CsvParameter>
 
     public override CsvDataAdapter CreateAdapter() => new(this);
 
-    protected override FileWriter<CsvParameter> CreateWriter(FileQuery<CsvParameter> queryParser) => queryParser switch
+    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
-        FileDeleteQuery<CsvParameter> deleteQuery => new CsvDelete(deleteQuery, (CsvConnection)Connection!, this),
-        FileInsertQuery<CsvParameter> insertQuery => new CsvInsert(insertQuery, (CsvConnection)Connection!, this),
-        FileUpdateQuery<CsvParameter> updateQuery => new CsvUpdate(updateQuery, (CsvConnection)Connection!, this),
+        FileDeleteQuery deleteQuery => new CsvDelete(deleteQuery, (CsvConnection)Connection!, this),
+        FileInsertQuery insertQuery => new CsvInsert(insertQuery, (CsvConnection)Connection!, this),
+        FileUpdateQuery updateQuery => new CsvUpdate(updateQuery, (CsvConnection)Connection!, this),
 
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override CsvDataReader CreateDataReader(FileQuery<CsvParameter> queryParser) => new(queryParser, ((CsvConnection)Connection!).FileReader);
+    protected override CsvDataReader CreateDataReader(IEnumerable<FileQuery> queryParsers) => 
+        new(queryParsers, ((CsvConnection)Connection!).FileReader);
 
 }

@@ -2,7 +2,7 @@
 
 namespace Data.Xml.XmlIO.Read;
 
-internal class XmlReader : FileReader<XmlParameter>
+internal class XmlReader : FileReader
 {
     public XmlReader(XmlConnection connection) 
         : 

@@ -2,9 +2,9 @@
 
 namespace Data.Xml.XmlIO.Write;
 
-internal class XmlInsert : FileInsert<XmlParameter>
+internal class XmlInsert : FileInsert
 {
-    public XmlInsert(FileInsertQuery<XmlParameter> queryParser, FileConnection<XmlParameter> jsonConnection, FileCommand<XmlParameter> jsonCommand) 
+    public XmlInsert(FileInsertQuery queryParser, FileConnection<XmlParameter> jsonConnection, FileCommand<XmlParameter> jsonCommand) 
         : base(queryParser, jsonConnection, jsonCommand)
     {
         dataSetWriter = new XmlDataSetWriter(jsonConnection, queryParser);

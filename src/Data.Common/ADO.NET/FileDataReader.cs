@@ -2,30 +2,27 @@
 
 namespace System.Data.FileClient;
 
-public class FileDataReader<TFileParameter> : DbDataReader
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public class FileDataReader : DbDataReader
 {
-    private readonly FileEnumerator FileEnumerator;
+    private readonly IEnumerator<FileQuery> queryParserEnumerator;
+    private readonly FileReader fileReader;
     private readonly DataTable workingResultSet;
+    private FileEnumerator currentFileEnumerator;
     private object?[]? currentDataRow = null;
 
-    public FileDataReader(FileQuery<TFileParameter> queryParser, FileReader<TFileParameter> FileReader)
+    public FileDataReader(IEnumerable<FileQuery> queryParsers, FileReader fileReader)
     {
-        if (queryParser == null)
-            throw new ArgumentNullException(nameof(queryParser));
-        if (FileReader == null)
-            throw new ArgumentNullException(nameof(FileReader));
+        if (queryParsers == null)
+            throw new ArgumentNullException(nameof(queryParsers));
 
-        //Create the DataTable which is our working resultset
-        workingResultSet = FileReader.ReadFile(queryParser, true) ?? throw new ArgumentNullException(nameof(workingResultSet));
-            
-        var filter = queryParser!.Filter;
+        queryParserEnumerator = queryParsers.GetEnumerator();
+        this.fileReader = fileReader ?? throw new ArgumentNullException(nameof(fileReader));
 
-        FileEnumerator = new FileEnumerator(queryParser.GetColumnNames(), workingResultSet, filter);
+        NextResult();
     }
 
     public override int Depth => 0;
-    public override bool IsClosed => FileEnumerator == null;
+    public override bool IsClosed => currentFileEnumerator == null;
     public override int RecordsAffected => -1;
 
     /// <summary>
@@ -37,7 +34,7 @@ public class FileDataReader<TFileParameter> : DbDataReader
     /// <summary>
     /// Gets a value that indicates whether this DbDataReader contains one or more rows.
     /// </summary>
-    public override bool HasRows => throw new NotImplementedException();
+    public override bool HasRows => currentDataRow != null;
 
     public override void Close() => Dispose();
 
@@ -124,7 +121,7 @@ public class FileDataReader<TFileParameter> : DbDataReader
         tempSchemaTable.Columns.Add(BaseTableNamespace);
         tempSchemaTable.Columns.Add(BaseColumnNamespace);
 
-        foreach (string cl in FileEnumerator.Columns)
+        foreach (string cl in currentFileEnumerator.Columns)
         {
             DataColumn dc = workingResultSet.Columns[cl]!;
             DataRow dr = tempSchemaTable.NewRow();
@@ -170,20 +167,35 @@ public class FileDataReader<TFileParameter> : DbDataReader
         return tempSchemaTable;
     }
 
-    public override bool NextResult() => false;
+    public override bool NextResult()
+    {
+        if (!queryParserEnumerator.MoveNext())
+            return false;
+
+        //Create the DataTable which is our working resultset
+        var queryParser = queryParserEnumerator.Current;
+        var workingResultSet = fileReader.ReadFile(queryParser, true);
+        if (workingResultSet == null)
+            throw new ArgumentNullException(nameof(workingResultSet));
+
+        var filter = queryParser!.Filter;
+
+        currentFileEnumerator = new FileEnumerator(queryParser.GetColumnNames(), workingResultSet, filter);
+        return true;
+    }
 
     public override bool Read()
     {
-        if (FileEnumerator.MoveNext())
+        if (currentFileEnumerator.MoveNext())
         {
-            currentDataRow = FileEnumerator.Current;
+            currentDataRow = currentFileEnumerator.Current;
             return true;
         }
 
         return false;
     }
 
-    public override int FieldCount => FileEnumerator.FieldCount;
+    public override int FieldCount => currentFileEnumerator.FieldCount;
 
     public override bool GetBoolean(int i) => GetValueAsType<bool>(i);
 
@@ -271,14 +283,14 @@ public class FileDataReader<TFileParameter> : DbDataReader
     public override DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
     public override decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
     public override double GetDouble(int i) => GetValueAsType<double>(i);
-    public override Type GetFieldType(int i) => FileEnumerator.GetType(i);
+    public override Type GetFieldType(int i) => currentFileEnumerator.GetType(i);
     public override float GetFloat(int i) => GetValueAsType<float>(i);
     public override Guid GetGuid(int i) => GetValueAsType<Guid>(i);
     public override short GetInt16(int i) => GetValueAsType<short>(i);
     public override int GetInt32(int i) => GetValueAsType<int>(i);
     public override long GetInt64(int i) => GetValueAsType<long>(i);
-    public override string GetName(int i) => FileEnumerator.GetName(i);
-    public override int GetOrdinal(string name) => FileEnumerator.GetOrdinal(name);
+    public override string GetName(int i) => currentFileEnumerator.GetName(i);
+    public override int GetOrdinal(string name) => currentFileEnumerator.GetOrdinal(name);
     public override string GetString(int i) => GetValueAsType<string>(i);
 
     public override object GetValue(int i) => currentDataRow != null ? currentDataRow[i]!

@@ -1,10 +1,10 @@
 ﻿using Irony.Parsing;
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileQueries;
 
-public class FileUpdateQuery<TFileParameter> : FileQuery<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public class FileUpdateQuery : FileQuery
 {
-    public FileUpdateQuery(ParseTreeNode tree, FileCommand<TFileParameter> fileCommand) : base(tree, fileCommand)
+    public FileUpdateQuery(ParseTreeNode tree, DbParameterCollection parameters) 
+        : base(tree, parameters)
     {
     }
 

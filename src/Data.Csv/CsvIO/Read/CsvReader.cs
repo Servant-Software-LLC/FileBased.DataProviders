@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Data.Csv.CsvIO.Read;
 
-internal class CsvReader : FileReader<CsvParameter>
+internal class CsvReader : FileReader
 {    
     public CsvReader(CsvConnection connection) 
         : base(connection)

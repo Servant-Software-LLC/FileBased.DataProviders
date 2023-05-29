@@ -14,11 +14,11 @@ public class JsonDataAdapter : FileDataAdapter<JsonParameter>
     {
     }
 
-    protected override FileWriter<JsonParameter> CreateWriter(FileQuery<JsonParameter> queryParser) => queryParser switch
+    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
     {
-        FileDeleteQuery<JsonParameter> deleteQuery => new JsonDelete(deleteQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
-        FileInsertQuery<JsonParameter> insertQuery => new JsonInsert(insertQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
-        FileUpdateQuery<JsonParameter> updateQuery => new JsonUpdate(updateQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        FileDeleteQuery deleteQuery => new JsonDelete(deleteQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        FileInsertQuery insertQuery => new JsonInsert(insertQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        FileUpdateQuery updateQuery => new JsonUpdate(updateQuery, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
 
         _ => throw new InvalidOperationException("query not supported")
     };

@@ -1,17 +1,16 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileQueries;
 
-public abstract class FileQuery<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileQuery
 {
     protected readonly ParseTreeNode node;
-    private readonly FileCommand<TFileParameter> fileCommand;
+    private readonly DbParameterCollection parameters;
 
-    protected FileQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
+    protected FileQuery(ParseTreeNode node, DbParameterCollection parameters)
     {
         this.node = node;
-        this.fileCommand = fileCommand;
+        this.parameters = parameters;
         Filter = GetFilters();
         TableName = GetTable();
     }
@@ -101,12 +100,12 @@ public abstract class FileQuery<TFileParameter>
         {
             object? value;
             string paramName = GetParamName(x);
-            if (!fileCommand.Parameters.Contains(paramName))
+            if (!parameters.Contains(paramName))
             {
                 throw new InvalidOperationException($"Must declare the scalar variable \"@{paramName}\"");
             }
 
-            var parameter = fileCommand.Parameters[paramName].Convert<IDbDataParameter>();
+            var parameter = parameters[paramName].Convert<IDbDataParameter>();
             value = parameter.Value;
             return value;
 
@@ -121,32 +120,54 @@ public abstract class FileQuery<TFileParameter>
         }
     }
 
-    public static FileQuery<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
+    /// <summary>
+    /// Supports scenario where EF Core calls FileCommand<TFileParameter>.ExecuteDbDataReader() with a multi-line
+    /// SQL statement that first does an INSERT and then SELECTs the identity value of the newly INSERT'd row.
+    /// </summary>
+    /// <param name="fileCommand"></param>
+    /// <returns></returns>
+    internal static IEnumerable<FileQuery> CreateMultiCommandSupport(DbCommand fileCommand)
     {
-        if (((FileConnection<TFileParameter>)fileCommand.Connection).AdminMode)
-            throw new ArgumentException($"The {nameof(FileQuery<TFileParameter>)}.{nameof(Create)} method cannot be used with an admin connection.");
+        var commandText = fileCommand.CommandText;
+        var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+        foreach (var command in commands)
+        {
+            var fileQuery = CreateFromCommand(command, fileCommand.Parameters);
+            yield return fileQuery;
+        }
+    }
+
+    internal static FileQuery Create(IFileCommand fileCommand)
+    {
+        if (fileCommand.FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(FileQuery)}.{nameof(Create)} method cannot be used with an admin connection.");
+
+        return CreateFromCommand(fileCommand.CommandText, fileCommand.Parameters as DbParameterCollection);
+    }
+
+    private static FileQuery CreateFromCommand(string commandText, DbParameterCollection parameters)
+    {
         var parser = new Parser(new SqlGrammar());
-        var parseTree = parser.Parse(fileCommand.CommandText);
+        var parseTree = parser.Parse(commandText);
         if (parseTree.HasErrors())
         {
-            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages), fileCommand.CommandText);
+            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages), commandText);
         }
 
         var mainNode = parseTree.Root.ChildNodes[0];
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new FileInsertQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileInsertQuery(mainNode, parameters);
             case "deleteStmt":
-                return new FileDeleteQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileDeleteQuery(mainNode, parameters);
             case "updateStmt":
-                return new FileUpdateQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileUpdateQuery(mainNode, parameters);
             case "selectStmt":
-                return new FileSelectQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileSelectQuery(mainNode, parameters);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();
     }
-
 }

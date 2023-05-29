@@ -3,9 +3,9 @@ using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Write;
 
-internal class JsonInsert : FileInsert<JsonParameter>
+internal class JsonInsert : FileInsert
 {
-    public JsonInsert(FileInsertQuery<JsonParameter> queryParser, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
+    public JsonInsert(FileInsertQuery queryParser, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
         : base(queryParser, jsonConnection, jsonCommand)
     {
         dataSetWriter = new JsonDataSetWriter(jsonConnection, queryParser);

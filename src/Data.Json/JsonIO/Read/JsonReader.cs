@@ -2,7 +2,7 @@
 
 namespace Data.Json.JsonIO.Read;
 
-internal class JsonReader : FileReader<JsonParameter>
+internal class JsonReader : FileReader
 {
     public JsonReader(JsonConnection jsonConnection) 
         : 

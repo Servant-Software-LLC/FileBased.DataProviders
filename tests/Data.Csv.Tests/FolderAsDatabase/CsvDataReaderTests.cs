@@ -57,4 +57,12 @@ public class CsvDataReaderTests
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Reader_NextResult_ShouldReadData()
+    {
+        DataReaderTests.Reader_NextResult_ShouldReadData(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
 }

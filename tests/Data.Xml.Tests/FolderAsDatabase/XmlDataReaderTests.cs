@@ -57,4 +57,12 @@ public class XmlDataReaderTests
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
      new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Reader_NextResult_ShouldReadData()
+    {
+        DataReaderTests.Reader_NextResult_ShouldReadData(() =>
+        new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
 }

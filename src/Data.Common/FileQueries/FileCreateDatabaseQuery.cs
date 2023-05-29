@@ -1,6 +1,6 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileQueries;
 
 public class FileCreateDatabaseQuery<TFileParameter> : FileAdminQuery<TFileParameter>
     where TFileParameter : FileParameter<TFileParameter>, new()

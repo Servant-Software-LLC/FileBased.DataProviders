@@ -1,9 +1,9 @@
 ﻿namespace System.Data.CsvClient;
 
-public class CsvDataReader : FileDataReader<CsvParameter>
+public class CsvDataReader : FileDataReader
 {
-    internal CsvDataReader(FileQuery<CsvParameter> queryParser, FileReader<CsvParameter> fileReader) 
-        : base(queryParser, fileReader)
+    internal CsvDataReader(IEnumerable<FileQuery> queryParsers, FileReader fileReader) 
+        : base(queryParsers, fileReader)
     {
     }
-}
+}   

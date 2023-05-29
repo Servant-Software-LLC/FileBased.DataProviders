@@ -1,10 +1,9 @@
 ﻿namespace Data.Common.FileIO.Write;
-public class FileUpdate<TFileParameter> : FileWriter<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public class FileUpdate : FileWriter
 {
-    private readonly FileUpdateQuery<TFileParameter> queryParser;
+    private readonly FileUpdateQuery queryParser;
 
-    public FileUpdate(FileUpdateQuery<TFileParameter> queryParser, FileConnection<TFileParameter> FileConnection, FileCommand<TFileParameter> FileCommand) 
+    public FileUpdate(FileUpdateQuery queryParser, IFileConnection FileConnection, IFileCommand FileCommand) 
         : base(FileConnection, FileCommand, queryParser)
     {
         this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));

@@ -284,4 +284,39 @@ public static class DataReaderTests
         // Close the connection
         connection.Close();
     }
+
+    public static void Reader_NextResult_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("SELECT * FROM locations; SELECT name, email FROM employees");
+        var reader = command.ExecuteReader();
+
+        // Assert (on locations SELECT)
+        Assert.True(reader.Read());
+        var fieldCount = reader.FieldCount;
+        Assert.Equal(4, fieldCount);
+
+        //Act - Get the next resultset.
+        var nextResult = reader.NextResult();
+
+        // Assert
+        Assert.True(nextResult);
+        Assert.True(reader.Read());
+        fieldCount = reader.FieldCount;
+        Assert.Equal(2, fieldCount);
+
+        //Act - There are no more resultsets.
+        nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }
