@@ -49,7 +49,7 @@ public abstract class FileReader : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileQuery queryParser, bool shouldLock = false)
+    public DataTable ReadFile(FileStatement fileStatement, bool shouldLock = false)
     {
         DataTable returnValue;
 
@@ -63,7 +63,7 @@ public abstract class FileReader : IDisposable
             if (fileConnection.FolderAsDatabase)
             {
                 DataSet ??= new DataSet();
-                var newTables = GetTableNames(queryParser);
+                var newTables = GetTableNames(fileStatement);
 
                 if (newTables.Count == 1)
                 {
@@ -99,7 +99,7 @@ public abstract class FileReader : IDisposable
             //Reload any of the tables from disk?
             CheckForTableReload();
 
-            returnValue = CheckIfSelect(queryParser);
+            returnValue = CheckIfSelect(fileStatement);
         }
         finally
         {
@@ -132,9 +132,9 @@ public abstract class FileReader : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileQuery jsonQueryParser)
+    private DataTable CheckIfSelect(FileStatement jsonQueryParser)
     {
-        if (jsonQueryParser is FileSelectQuery jsonSelectQuery)
+        if (jsonQueryParser is FileSelect jsonSelectQuery)
         {
             //Parser is JsonSelectQuery
 
@@ -267,13 +267,13 @@ public abstract class FileReader : IDisposable
     }
   
 
-    private HashSet<string> GetTableNames(FileQuery jsonQueryParser)
+    private HashSet<string> GetTableNames(FileStatement jsonQueryParser)
     {
         //Start with the name of the first table in the JOIN
         var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
-        if (jsonQueryParser is FileSelectQuery fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
+        if (jsonQueryParser is FileSelect fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
         {
             foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
             {

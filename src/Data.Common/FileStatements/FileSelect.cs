@@ -1,13 +1,13 @@
 ﻿using Data.Xml.JsonJoin;
 using Irony.Parsing;
 
-namespace Data.Common.FileQueries;
+namespace Data.Common.FileStatements;
 
-public class FileSelectQuery : FileQuery
+public class FileSelect : FileStatement
 {
 
-    public FileSelectQuery(ParseTreeNode tree, DbParameterCollection parameters)
-        : base(tree, parameters)
+    public FileSelect(ParseTreeNode tree, DbParameterCollection parameters, string statement)
+        : base(tree, parameters, statement)
     {
     }
 

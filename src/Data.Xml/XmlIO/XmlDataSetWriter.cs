@@ -5,9 +5,9 @@ namespace Data.Xml.XmlIO;
 internal class XmlDataSetWriter : IDataSetWriter
 {
     private readonly IFileConnection fileConnection;
-    private readonly FileQuery fileQuery;
+    private readonly FileStatement fileQuery;
 
-    public XmlDataSetWriter(IFileConnection fileConnection, FileQuery fileQuery)
+    public XmlDataSetWriter(IFileConnection fileConnection, FileStatement fileQuery)
     {
         this.fileConnection = fileConnection;
         this.fileQuery = fileQuery;

@@ -2,8 +2,8 @@
 
 public class JsonDataReader : FileDataReader
 {
-    internal JsonDataReader(IEnumerable<FileQuery> queryParsers, FileReader FileReader) 
-        : base(queryParsers, FileReader)
+    internal JsonDataReader(IEnumerable<FileStatement> fileStatements, FileReader FileReader, Func<FileStatement, FileWriter> createWriter) 
+        : base(fileStatements, FileReader, createWriter)
     {
     }
 }

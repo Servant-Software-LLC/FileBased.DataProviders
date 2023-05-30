@@ -1,11 +1,11 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Common.FileQueries;
+namespace Data.Common.FileStatements;
 
-public class FileDeleteQuery : FileQuery
+public class FileDelete : FileStatement
 {
-    public FileDeleteQuery(ParseTreeNode tree, DbParameterCollection parameters) 
-        : base(tree, parameters)
+    public FileDelete(ParseTreeNode tree, DbParameterCollection parameters, string statement) 
+        : base(tree, parameters, statement)
     {
     }
 

@@ -319,4 +319,38 @@ public static class DataReaderTests
         connection.Close();
     }
 
+    public static void Reader_NextResult_WithInsert<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("INSERT INTO locations (id, city, state, zip) VALUES (50, 'New Braunfels', 'Texas', 78132); SELECT * FROM locations");
+        var reader = command.ExecuteReader();
+
+        // Assert (on locations SELECT)
+        Assert.False(reader.Read());
+        Assert.Equal(1, reader.RecordsAffected);
+        Assert.Equal(0, reader.FieldCount);
+
+        //Act - Get the next resultset.
+        var nextResult = reader.NextResult();
+
+        // Assert
+        Assert.True(nextResult);
+        Assert.True(reader.Read());
+        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(4, reader.FieldCount);
+
+        //Act - There are no more resultsets.
+        nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }

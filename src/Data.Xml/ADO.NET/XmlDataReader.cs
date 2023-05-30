@@ -2,8 +2,8 @@
 
 public class XmlDataReader : FileDataReader
 {
-    internal XmlDataReader(IEnumerable<FileQuery> queryParsers, FileReader fileReader) 
-        : base(queryParsers, fileReader)
+    internal XmlDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter) 
+        : base(fileStatements, fileReader, createWriter)
     {
     }
 }

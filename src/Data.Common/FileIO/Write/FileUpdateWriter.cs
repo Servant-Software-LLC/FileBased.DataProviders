@@ -1,12 +1,12 @@
 ﻿namespace Data.Common.FileIO.Write;
-public class FileUpdate : FileWriter
+public class FileUpdateWriter : FileWriter
 {
-    private readonly FileUpdateQuery queryParser;
+    private readonly FileStatements.FileUpdate fileStatement;
 
-    public FileUpdate(FileUpdateQuery queryParser, IFileConnection FileConnection, IFileCommand FileCommand) 
-        : base(FileConnection, FileCommand, queryParser)
+    public FileUpdateWriter(FileStatements.FileUpdate fileStatement, IFileConnection FileConnection, IFileCommand FileCommand) 
+        : base(FileConnection, FileCommand, fileStatement)
     {
-        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     public override int Execute()
@@ -20,12 +20,12 @@ public class FileUpdate : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(queryParser);
-            var values = queryParser.GetValues();
+            var dataTable = fileReader.ReadFile(fileStatement);
+            var values = fileStatement.GetValues();
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = queryParser.Filter?.Evaluate();
+            dataView.RowFilter = fileStatement.Filter?.Evaluate();
 
             var rowsAffected = dataView.Count;
 

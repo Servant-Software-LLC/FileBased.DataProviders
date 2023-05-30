@@ -1,5 +1,7 @@
+using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
 using System.Data.XmlClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Xml.Tests.FolderAsDatabase;
@@ -63,6 +65,14 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_NextResult_ShouldReadData(() =>
         new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_WithInsert()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_WithInsert(() =>
+        new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

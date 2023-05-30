@@ -2,8 +2,8 @@
 
 public class CsvDataReader : FileDataReader
 {
-    internal CsvDataReader(IEnumerable<FileQuery> queryParsers, FileReader fileReader) 
-        : base(queryParsers, fileReader)
+    internal CsvDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter) 
+        : base(fileStatements, fileReader, createWriter)
     {
     }
 }   

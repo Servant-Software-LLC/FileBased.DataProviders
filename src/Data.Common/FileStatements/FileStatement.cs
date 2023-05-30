@@ -1,22 +1,28 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
-namespace Data.Common.FileQueries;
+namespace Data.Common.FileStatements;
 
-public abstract class FileQuery
+public abstract class FileStatement
 {
     protected readonly ParseTreeNode node;
     private readonly DbParameterCollection parameters;
 
-    protected FileQuery(ParseTreeNode node, DbParameterCollection parameters)
+    protected FileStatement(ParseTreeNode node, DbParameterCollection parameters, string statement)
     {
         this.node = node;
         this.parameters = parameters;
         Filter = GetFilters();
         TableName = GetTable();
+        Statement = statement;
     }
 
     public string TableName { get; }
     public Filter? Filter { get; }
+
+    /// <summary>
+    /// SQL statement that created this instance.
+    /// </summary>
+    public string Statement { get; }
 
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
@@ -126,7 +132,7 @@ public abstract class FileQuery
     /// </summary>
     /// <param name="fileCommand"></param>
     /// <returns></returns>
-    internal static IEnumerable<FileQuery> CreateMultiCommandSupport(DbCommand fileCommand)
+    internal static IEnumerable<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand)
     {
         var commandText = fileCommand.CommandText;
         var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -138,15 +144,15 @@ public abstract class FileQuery
         }
     }
 
-    internal static FileQuery Create(IFileCommand fileCommand)
+    internal static FileStatement Create(IFileCommand fileCommand)
     {
         if (fileCommand.FileConnection.AdminMode)
-            throw new ArgumentException($"The {nameof(FileQuery)}.{nameof(Create)} method cannot be used with an admin connection.");
+            throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(Create)} method cannot be used with an admin connection.");
 
         return CreateFromCommand(fileCommand.CommandText, fileCommand.Parameters as DbParameterCollection);
     }
 
-    private static FileQuery CreateFromCommand(string commandText, DbParameterCollection parameters)
+    private static FileStatement CreateFromCommand(string commandText, DbParameterCollection parameters)
     {
         var parser = new Parser(new SqlGrammar());
         var parseTree = parser.Parse(commandText);
@@ -159,13 +165,13 @@ public abstract class FileQuery
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new FileInsertQuery(mainNode, parameters);
+                return new FileInsert(mainNode, parameters, commandText);
             case "deleteStmt":
-                return new FileDeleteQuery(mainNode, parameters);
+                return new FileDelete(mainNode, parameters, commandText);
             case "updateStmt":
-                return new FileUpdateQuery(mainNode, parameters);
+                return new FileUpdate(mainNode, parameters, commandText);
             case "selectStmt":
-                return new FileSelectQuery(mainNode, parameters);
+                return new FileSelect(mainNode, parameters, commandText);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();

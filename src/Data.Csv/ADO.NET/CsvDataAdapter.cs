@@ -13,14 +13,14 @@ public class CsvDataAdapter : FileDataAdapter<CsvParameter>
     {
     }
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
+    protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
-        FileDeleteQuery deleteQuery =>
-            new CsvDelete(deleteQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
-        FileInsertQuery insertQuery =>
-            new CsvInsert(insertQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
-        FileUpdateQuery updateQuery =>
-            new CsvUpdate(updateQuery, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
+        global::Data.Common.FileStatements.FileDelete deleteStatement =>
+            new CsvDelete(deleteStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
+        global::Data.Common.FileStatements.FileInsert insertStatement =>
+            new CsvInsert(insertStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
+        global::Data.Common.FileStatements.FileUpdate updateStatement =>
+            new CsvUpdate(updateStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
 
         _ => throw new InvalidOperationException("query not supported")
     };

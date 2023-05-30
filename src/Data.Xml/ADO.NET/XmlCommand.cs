@@ -28,16 +28,16 @@ public class XmlCommand : FileCommand<XmlParameter>
 
     public override XmlDataAdapter CreateAdapter() => new(this);
 
-    protected override FileWriter CreateWriter(FileQuery queryParser) => queryParser switch
+    protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
-        FileDeleteQuery deleteQuery => new XmlDelete(deleteQuery, (XmlConnection)Connection!, this),
-        FileInsertQuery insertQuery => new XmlInsert(insertQuery, (XmlConnection)Connection!, this),
-        FileUpdateQuery updateQuery => new XmlUpdate(updateQuery, (XmlConnection)Connection!, this),
+        FileDelete deleteStatement => new XmlDelete(deleteStatement, (XmlConnection)Connection!, this),
+        FileInsert insertStatement => new XmlInsert(insertStatement, (XmlConnection)Connection!, this),
+        FileUpdate updateStatement => new XmlUpdate(updateStatement, (XmlConnection)Connection!, this),
 
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override XmlDataReader CreateDataReader(IEnumerable<FileQuery> queryParser) => 
-        new(queryParser, ((XmlConnection)Connection!).FileReader);
+    protected override XmlDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements) => 
+        new(fileStatements, ((XmlConnection)Connection!).FileReader, CreateWriter);
 
 }

@@ -3,12 +3,12 @@ using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Write;
 
-internal class JsonInsert : FileInsert
+internal class JsonInsert : Common.FileIO.Write.FileInsertWriter
 {
-    public JsonInsert(FileInsertQuery queryParser, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
-        : base(queryParser, jsonConnection, jsonCommand)
+    public JsonInsert(Common.FileStatements.FileInsert fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
+        : base(fileStatement, jsonConnection, jsonCommand)
     {
-        dataSetWriter = new JsonDataSetWriter(jsonConnection, queryParser);
+        dataSetWriter = new JsonDataSetWriter(jsonConnection, fileStatement);
     }
 
     public override bool SchemaUnknownWithoutData => true;

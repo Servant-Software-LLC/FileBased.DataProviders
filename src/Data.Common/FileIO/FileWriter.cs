@@ -3,14 +3,14 @@
 public abstract class FileWriter
 {
     protected readonly IFileCommand fileCommand;
-    protected readonly FileQuery fileQuery;
+    protected readonly FileStatement fileQuery;
     protected readonly FileReader fileReader;
     protected readonly IFileTransaction? fileTransaction;
     protected IDataSetWriter? dataSetWriter { get; set; }
 
     public FileWriter(IFileConnection fileConnection,
                       IFileCommand fileCommand,
-                      FileQuery fileQuery)
+                      FileStatement fileQuery)
     {
         this.fileCommand = fileCommand;
         this.fileQuery = fileQuery;

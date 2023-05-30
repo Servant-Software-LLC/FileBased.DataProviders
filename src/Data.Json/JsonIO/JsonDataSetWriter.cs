@@ -3,9 +3,9 @@
 internal class JsonDataSetWriter : IDataSetWriter
 {
     private readonly IFileConnection fileConnection;
-    private readonly FileQuery fileQuery;
+    private readonly FileStatement fileQuery;
 
-    public JsonDataSetWriter(IFileConnection fileConnection, FileQuery fileQuery)
+    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileQuery)
     {
         this.fileConnection = fileConnection;
         this.fileQuery = fileQuery;

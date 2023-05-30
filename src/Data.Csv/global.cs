@@ -1,6 +1,6 @@
 ﻿global using System.Data;
 global using System.Data.FileClient;
-global using Data.Common.FileQueries;
+global using Data.Common.FileStatements;
 global using Data.Common.FileIO;
 global using Data.Common.FileIO.Delete;
 global using Data.Common.FileFilter;
