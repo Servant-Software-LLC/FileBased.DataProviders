@@ -343,7 +343,7 @@ public abstract class FileDataReader : DbDataReader
                                           : throw new ArgumentNullException(nameof(currentDataRow));
     }
 
-    protected new void Dispose() => result = null;
+    protected new void Dispose() => fileReader.Dispose();
 
     /// <summary>
     /// Gets the value of the specified column as an instance of <see cref="object"/>.
