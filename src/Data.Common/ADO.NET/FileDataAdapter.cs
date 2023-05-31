@@ -1,8 +1,13 @@
-﻿namespace System.Data.FileClient;
+﻿using Data.Common.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace System.Data.FileClient;
 
 public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+    private ILogger<FileDataAdapter<TFileParameter>> log => connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
+
     private DataRow? lastDataRowChanged;
     private FileConnection<TFileParameter>? connection;
 
@@ -67,6 +72,8 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
+        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
+
         var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
@@ -103,6 +110,8 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
+
+        log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
         var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
         var fileReader = connection.FileReader;
@@ -162,6 +171,8 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
+
+        log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
 
         var query = FileStatement.Create((FileCommand<TFileParameter>)UpdateCommand);
         if (query is not FileUpdate updateStatement)

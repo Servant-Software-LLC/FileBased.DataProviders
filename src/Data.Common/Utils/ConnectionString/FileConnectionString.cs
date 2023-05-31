@@ -39,7 +39,8 @@ public class FileConnectionString : IConnectionStringProperties
         new()
         {
             DataSource = DataSource,
-            Formatted = Formatted
+            Formatted = Formatted,
+            LogLevel = LogLevel
         };
 
     public FileConnectionString AddFormatted(bool? formatted) => new(this) { Formatted = formatted };

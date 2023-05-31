@@ -1,4 +1,6 @@
-﻿namespace Data.Common.Extension;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Data.Common.Extension;
 
 public static class FileConnectionStringTestsExtensions
 {
@@ -58,4 +60,10 @@ public static class FileConnectionStringTestsExtensions
         return new() { DataSource = sandboxDatabaseFile, Formatted = fileConnectionString.Formatted };
     }
 
+    public static FileConnectionString AddLogging(this FileConnectionString fileConnectionString, LogLevel minimumLogLevel)
+    {
+        var clone = fileConnectionString.Clone();
+        clone.LogLevel = minimumLogLevel;
+        return clone;
+    }    
 }

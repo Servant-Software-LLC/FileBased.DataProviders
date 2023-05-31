@@ -185,6 +185,7 @@ public abstract class FileDataReader : DbDataReader
 
         //Create the DataTable which is our working resultset
         var fileStatement = statementEnumerator.Current;
+
         result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
         return true;
     }

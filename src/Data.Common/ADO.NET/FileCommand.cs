@@ -1,8 +1,12 @@
-﻿namespace System.Data.FileClient;
+﻿using Data.Common.Utils;
+using Microsoft.Extensions.Logging;
+
+namespace System.Data.FileClient;
 
 public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+    private ILogger<FileCommand<TFileParameter>> log => FileConnection.LoggerServices.CreateLogger<FileCommand<TFileParameter>>();
 
     public override string? CommandText { get; set; } = string.Empty;
     public override int CommandTimeout { get; set; }
@@ -120,6 +124,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
+        log.LogInformation($"{GetType()}.{nameof(ExecuteNonQuery)}() called.  CommandText = {CommandText}");
+
         if (FileConnection.AdminMode)
             return ExecuteAdminNonQuery();
 
@@ -159,6 +165,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
+        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
+
         return CreateDataReader(fileStatements);
     }
 
@@ -170,6 +178,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         if (FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(ExecuteScalar)} method cannot be used with an admin connection.");
+
+        log.LogInformation($"{GetType()}.{nameof(ExecuteScalar)}() called.  CommandText = {CommandText}");
 
         //ExecuteScalar method of a class deriving from DbCommand is designed to execute a single command and
         //return the scalar value from the first column of the first row of the result set. It is not intended
