@@ -1,4 +1,5 @@
 ﻿namespace Data.Common.FileFilter;
+
 public class SimpleFilter : Filter
 {
     private readonly string propName;

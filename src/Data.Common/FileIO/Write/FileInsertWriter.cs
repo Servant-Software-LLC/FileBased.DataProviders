@@ -1,22 +1,24 @@
-﻿using System.Data.Common;
+﻿namespace Data.Common.FileIO.Write;
 
-namespace Data.Common.FileIO.Write;
-
-public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileInsertWriter : FileWriter
 {
-    private readonly FileInsertQuery<TFileParameter> queryParser;
+    private readonly FileStatements.FileInsert fileStatement;
 
-    public FileInsert(FileInsertQuery<TFileParameter> queryParser, FileConnection<TFileParameter> fileConnection, FileCommand<TFileParameter> fileCommand)
-        : base(fileConnection, fileCommand,(FileQuery.FileQuery<TFileParameter>)queryParser)
+    public FileInsertWriter(FileStatements.FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
+        : base(fileConnection, fileCommand, fileStatement)
     {
-        this.queryParser = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     /// <summary>
     /// Can columns be added to an empty table (data-wise) with an INSERT?  
     /// </summary>
     public abstract bool SchemaUnknownWithoutData { get; }
+
+    /// <summary>
+    /// Identity value generated during the execution of this INSERT statement.
+    /// </summary>
+    public object? LastInsertIdentity { get; private set; }
 
     public override int Execute()
     {
@@ -34,7 +36,7 @@ public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(queryParser);
+            var dataTable = fileReader.ReadFile(fileStatement);
             
             //Check if we need to add columns on the first INSERT of data into this table.
             if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
@@ -43,7 +45,7 @@ public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
             }
 
             var row = dataTable!.NewRow();
-            foreach (var val in queryParser.GetValues())
+            foreach (var val in fileStatement.GetValues())
             {
                 row[val.Key] = val.Value;
             }
@@ -95,23 +97,40 @@ public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
                 //Since we don't have a datatype for values in a CSV, we need to determine if the last
                 //row 'looks' like a datatype that can be an identity (i.e. Guid or integer).
 
-                //If there isn't a lastRow, then assume the datatype is integer and start from 1.                
-                if (lastRow == null)
+                bool handled = false;
+                try
                 {
-                    newRow[dataColumn.ColumnName] = DefaultIdentityValue();
-                    continue;
+
+                    //If there isn't a lastRow, then assume the datatype is integer and start from 1.                
+                    if (lastRow == null)
+                    {
+                        newRow[dataColumn.ColumnName] = DefaultIdentityValue();
+                        handled = true;
+                        continue;
+                    }
+
+                    //Does the value of this column in the last row look like a Guid?
+                    if (GuidHandled(dataColumn, lastRow, newRow))
+                    {
+                        handled = true;
+                        continue;
+                    }
+
+
+                    //Does the value of this column in the last row look like an decimal or is one?
+                    if (DecimalHandled(dataColumn, lastRow, newRow))
+                    {
+                        handled = true;
+                        continue;
+                    }
+                        
+                    //The lastRow value of the column isn't recognized, so we don't want to guess.
                 }
-
-                //Does the value of this column in the last row look like a Guid?
-                if (GuidHandled(dataColumn, lastRow, newRow))
-                    continue;
-
-
-                //Does the value of this column in the last row look like an decimal or is one?
-                if (DecimalHandled(dataColumn, lastRow, newRow))
-                    continue;
-
-                //The lastRow value of the column isn't recognized, so we don't want to guess.
+                finally
+                {
+                    if (handled)
+                        LastInsertIdentity = newRow[dataColumn.ColumnName];
+                }
             }
 
         }
@@ -123,7 +142,7 @@ public abstract class FileInsert<TFileParameter> : FileWriter<TFileParameter>
 
     private void AddMissingColumns(DataTable dataTable)
     {
-        foreach (var val in queryParser.GetValues())
+        foreach (var val in fileStatement.GetValues())
         {
             var jsonType = GetJsonType(val.Value);
             dataTable.Columns.Add(val.Key, jsonType);

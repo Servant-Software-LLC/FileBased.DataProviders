@@ -1,14 +1,13 @@
 ﻿namespace Data.Common.FileIO.Delete;
 
-public abstract class FileDelete<TFileParameter> : FileWriter<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileDeleteWriter : FileWriter
 {
-    private readonly FileDeleteQuery<TFileParameter> query;
+    private readonly FileStatements.FileDelete query;
 
-    public FileDelete(FileDeleteQuery<TFileParameter> queryParser, FileConnection<TFileParameter> fileConnection, FileCommand<TFileParameter> fileCommand)
-        : base(fileConnection, fileCommand, queryParser)
+    public FileDeleteWriter(FileStatements.FileDelete fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
+        : base(fileConnection, fileCommand, fileStatement)
     {
-        query = queryParser ?? throw new ArgumentNullException(nameof(queryParser));
+        query = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     public override int Execute()

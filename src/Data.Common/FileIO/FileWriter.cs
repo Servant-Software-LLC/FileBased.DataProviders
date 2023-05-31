@@ -1,22 +1,21 @@
 ﻿namespace Data.Common.FileIO;
 
-public abstract class FileWriter<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileWriter
 {
-    protected readonly FileCommand<TFileParameter> fileCommand;
-    protected readonly FileQuery.FileQuery<TFileParameter> fileQuery;
-    protected readonly FileReader<TFileParameter> fileReader;
-    protected readonly FileTransaction<TFileParameter>? fileTransaction;
+    protected readonly IFileCommand fileCommand;
+    protected readonly FileStatement fileQuery;
+    protected readonly FileReader fileReader;
+    protected readonly IFileTransaction? fileTransaction;
     protected IDataSetWriter? dataSetWriter { get; set; }
 
-    public FileWriter(FileConnection<TFileParameter> fileConnection,
-                      FileCommand<TFileParameter> fileCommand,
-                      FileQuery.FileQuery<TFileParameter> fileQuery)
+    public FileWriter(IFileConnection fileConnection,
+                      IFileCommand fileCommand,
+                      FileStatement fileQuery)
     {
         this.fileCommand = fileCommand;
         this.fileQuery = fileQuery;
         fileReader = fileConnection.FileReader;
-        fileTransaction = fileCommand.Transaction as FileTransaction<TFileParameter>;
+        fileTransaction = fileCommand.FileTransaction;
     }
 
     public abstract int Execute();    

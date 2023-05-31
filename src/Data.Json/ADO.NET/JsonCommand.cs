@@ -28,15 +28,16 @@ public class JsonCommand : FileCommand<JsonParameter>
 
     public override JsonDataAdapter CreateAdapter() => new(this);
 
-    protected override FileWriter<JsonParameter> CreateWriter(FileQuery<JsonParameter> queryParser) => queryParser switch
+    protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
-        FileDeleteQuery<JsonParameter> deleteQuery => new JsonDelete(deleteQuery, (JsonConnection)Connection!, this),
-        FileInsertQuery<JsonParameter> insertQuery => new JsonInsert(insertQuery, (JsonConnection)Connection!, this),
-        FileUpdateQuery<JsonParameter> updateQuery => new JsonUpdate(updateQuery, (JsonConnection)Connection!, this),
+        FileDelete deleteStatement => new JsonDelete(deleteStatement, (JsonConnection)Connection!, this),
+        FileInsert insertStatement => new JsonInsert(insertStatement, (JsonConnection)Connection!, this),
+        FileUpdate updateStatement => new JsonUpdate(updateStatement, (JsonConnection)Connection!, this),
 
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override JsonDataReader CreateDataReader(FileQuery<JsonParameter> queryParser) => new(queryParser, ((JsonConnection)Connection!).FileReader);
+    protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements) => 
+        new(fileStatements, ((JsonConnection)Connection!).FileReader, CreateWriter);
 
 }

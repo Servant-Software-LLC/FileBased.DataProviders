@@ -1,11 +1,11 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileTransaction<TFileParameter> : DbTransaction
+public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTransaction
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnection<TFileParameter> connection;
     private readonly IsolationLevel isolationLevel;
-    internal bool TransactionDone { get; private set; } = false;
+    public bool TransactionDone { get; private set; } = false;
 
     public FileTransaction(FileConnection<TFileParameter> connection, IsolationLevel isolationLevel = default)
     {
@@ -13,7 +13,7 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction
         this.isolationLevel = isolationLevel;
     }
 
-    public readonly List<FileWriter<TFileParameter>> Writers = new();
+    public List<FileWriter> Writers { get; } = new();
 
     public override IsolationLevel IsolationLevel => isolationLevel;
     public override void Commit()
@@ -24,7 +24,7 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction
         }
         TransactionDone = true;
 
-        FileWriter<TFileParameter>._rwLock.EnterWriteLock();
+        FileWriter._rwLock.EnterWriteLock();
         try
         {
             Writers.ForEach(writer =>
@@ -34,7 +34,7 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction
         }
         finally
         {
-            FileWriter<TFileParameter>._rwLock.ExitWriteLock();
+            FileWriter._rwLock.ExitWriteLock();
         }
 
     }

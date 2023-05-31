@@ -2,8 +2,7 @@
 
 public static class FileConnectionExtensions
 {
-    public static string GetTablePath<TFileParameter>(this FileConnection<TFileParameter> fileConnection, string tableName)
-        where TFileParameter : FileParameter<TFileParameter>, new()
+    public static string GetTablePath(this IFileConnection fileConnection, string tableName)
     {
         var pathType = GetPathType(fileConnection);
         if (pathType != PathType.Directory)
@@ -12,8 +11,7 @@ public static class FileConnectionExtensions
         return Path.Combine(fileConnection.Database, $"{tableName}.{fileConnection.FileExtension}");
     }
 
-    internal static PathType GetPathType<TFileParameter>(this FileConnection<TFileParameter> fileConnection)
-        where TFileParameter : FileParameter<TFileParameter>, new()
+    internal static PathType GetPathType(this IFileConnection fileConnection)
     {
         if (IsAdmin(fileConnection.Database))
             return PathType.Admin;

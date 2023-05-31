@@ -1,14 +1,13 @@
-﻿
-using System.Data.JsonClient;
+﻿using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Delete;
 
-internal class JsonDelete : FileDelete<JsonParameter>
+internal class JsonDelete : Common.FileIO.Delete.FileDeleteWriter
 {
-    public JsonDelete(FileDeleteQuery<JsonParameter> queryParser, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
-        : base(queryParser, jsonConnection, jsonCommand)
+    public JsonDelete(Common.FileStatements.FileDelete fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
+        : base(fileStatement, jsonConnection, jsonCommand)
     {
-        this.dataSetWriter = new JsonDataSetWriter(jsonConnection, queryParser);
+        this.dataSetWriter = new JsonDataSetWriter(jsonConnection, fileStatement);
     }
 }
 

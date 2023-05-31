@@ -1,4 +1,6 @@
+using Data.Common.Extension;
 using System.Data.JsonClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -52,5 +54,28 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
             new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_ShouldReadData()
+    {
+        DataReaderTests.Reader_NextResult_ShouldReadData(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_WithInsert()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_WithInsert(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Reader_NextResult_WithFunctions()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_WithFunctions(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 }

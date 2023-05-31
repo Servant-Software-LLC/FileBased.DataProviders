@@ -2,11 +2,11 @@
 
 namespace Data.Xml.XmlIO.Write;
 
-internal class XmlUpdate : FileUpdate<XmlParameter>
+internal class XmlUpdate : Common.FileIO.Write.FileUpdateWriter
 {
-    public XmlUpdate(FileUpdateQuery<XmlParameter> queryParser, FileConnection<XmlParameter> FileConnection, FileCommand<XmlParameter> FileCommand) 
-        : base(queryParser, FileConnection, FileCommand)
+    public XmlUpdate(Common.FileStatements.FileUpdate fileStatement, FileConnection<XmlParameter> FileConnection, FileCommand<XmlParameter> FileCommand) 
+        : base(fileStatement, FileConnection, FileCommand)
     {
-        dataSetWriter = new XmlDataSetWriter(FileConnection, queryParser);
+        dataSetWriter = new XmlDataSetWriter(FileConnection, fileStatement);
     }
 }

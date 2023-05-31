@@ -1,13 +1,11 @@
-﻿using System.Data.JsonClient;
-
-namespace Data.Json.JsonIO;
+﻿namespace Data.Json.JsonIO;
 
 internal class JsonDataSetWriter : IDataSetWriter
 {
-    private readonly FileConnection<JsonParameter> fileConnection;
-    private readonly FileQuery<JsonParameter> fileQuery;
+    private readonly IFileConnection fileConnection;
+    private readonly FileStatement fileQuery;
 
-    public JsonDataSetWriter(FileConnection<JsonParameter> fileConnection, FileQuery<JsonParameter> fileQuery)
+    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileQuery)
     {
         this.fileConnection = fileConnection;
         this.fileQuery = fileQuery;

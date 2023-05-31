@@ -284,4 +284,116 @@ public static class DataReaderTests
         // Close the connection
         connection.Close();
     }
+
+    public static void Reader_NextResult_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("SELECT * FROM locations; SELECT name, email FROM employees");
+        var reader = command.ExecuteReader();
+
+        // Assert (on locations SELECT)
+        Assert.True(reader.Read());
+        var fieldCount = reader.FieldCount;
+        Assert.Equal(4, fieldCount);
+
+        //Act - Get the next resultset.
+        var nextResult = reader.NextResult();
+
+        // Assert
+        Assert.True(nextResult);
+        Assert.True(reader.Read());
+        fieldCount = reader.FieldCount;
+        Assert.Equal(2, fieldCount);
+
+        //Act - There are no more resultsets.
+        nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
+    public static void Reader_NextResult_WithInsert<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("INSERT INTO locations (id, city, state, zip) VALUES (50, 'New Braunfels', 'Texas', 78132); SELECT * FROM locations");
+        var reader = command.ExecuteReader();
+
+        // Assert (on locations SELECT)
+        Assert.False(reader.Read());
+        Assert.Equal(1, reader.RecordsAffected);
+        Assert.Equal(0, reader.FieldCount);
+
+        //Act - Get the next resultset.
+        var nextResult = reader.NextResult();
+
+        // Assert
+        Assert.True(nextResult);
+        Assert.True(reader.Read());
+        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(4, reader.FieldCount);
+
+        //Act - There are no more resultsets.
+        nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
+
+    /// <summary>
+    /// Test functions in SELECT - specifically LAST_INSERT_ID() and ROW_COUNT() (See https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/32)
+    /// </summary>
+    /// <typeparam name="TFileParameter"></typeparam>
+    /// <param name="createFileConnection"></param>
+    public static void Reader_NextResult_WithFunctions<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('New Braunfels', 'Texas', 78132); SELECT LAST_INSERT_ID() WHERE ROW_COUNT() = 1");
+        var reader = command.ExecuteReader();
+
+        // Assert (on locations SELECT)
+        Assert.False(reader.Read());
+        Assert.Equal(1, reader.RecordsAffected);
+        Assert.Equal(0, reader.FieldCount);
+
+        //Act - Get the next resultset.
+        var nextResult = reader.NextResult();
+
+        // Assert
+        Assert.True(nextResult);
+        Assert.True(reader.Read());
+        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(1, reader.FieldCount);
+
+        //Make sure that the new identity value for locations.id was created.
+        Assert.Equal(3, reader.GetInt32(0));
+
+        //Act - There are no more resultsets.
+        nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }

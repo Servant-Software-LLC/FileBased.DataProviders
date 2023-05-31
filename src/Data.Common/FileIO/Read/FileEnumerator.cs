@@ -6,6 +6,7 @@ internal class FileEnumerator : IEnumerator<object?[]>
                                                 // one of the tables (i.e. not created from the columns/joins of the SELECT query) and many JsonDataReader/JsonEnumerator
                                                 // may be instantiated with different filters on them.
     private object?[] currentRow = Array.Empty<object>();
+    private bool endOfResultset;
 
     public FileEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter)
     {
@@ -35,10 +36,19 @@ internal class FileEnumerator : IEnumerator<object?[]>
     public List<string> Columns { get; } = new List<string>();
     public int FieldCount => Columns.Count;
 
+    public bool MoreRowsAvailable => workingDataView.Count > CurrentIndex;
+
+    public bool HasRows => workingDataView.Count > 0;
+
+
     public bool MoveNext()
     {
+        if (endOfResultset)
+            return false;
+
         CurrentIndex++;
-        if (workingDataView.Count > CurrentIndex)
+
+        if (MoreRowsAvailable)
         {
             var row = workingDataView[CurrentIndex].Row;
             if (Columns?.FirstOrDefault()?.Trim() != "*")
@@ -55,8 +65,11 @@ internal class FileEnumerator : IEnumerator<object?[]>
             }
             return true;
         }
+
+        endOfResultset = true;
         return false;
     }
+
     public bool MoveNextInitial()
     {
         var res = MoveNext();

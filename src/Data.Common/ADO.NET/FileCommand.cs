@@ -1,6 +1,6 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileCommand<TFileParameter> : DbCommand
+public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
 
@@ -13,18 +13,46 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     protected override DbParameterCollection DbParameterCollection { get; } = new FileParameterCollection<TFileParameter>();
 
     public FileConnection<TFileParameter> FileConnection { get; private set; }
+    IFileConnection IFileCommand.FileConnection => FileConnection;
+
+    public FileTransaction<TFileParameter> FileTransaction { get; private set; }
+    IFileTransaction IFileCommand.FileTransaction => FileTransaction;
+
     protected override DbConnection DbConnection 
     { 
         get => FileConnection;
         set
         {
-            if (value is not null && value is not FileConnection<TFileParameter> fileConnection)
+            if (value is null)
+            {
+                FileConnection = null;
+                return;
+            }
+
+            if (value is not FileConnection<TFileParameter> fileConnection)
                 throw new ArgumentOutOfRangeException(nameof(value), $"{GetType()} must be a type that inherits {typeof(FileConnection<TFileParameter>)}");
-            FileConnection = (FileConnection<TFileParameter>)value;
+            
+            FileConnection = fileConnection;
         }
     }
 
-    protected override DbTransaction DbTransaction { get; set; }
+    protected override DbTransaction DbTransaction 
+    {
+        get => FileTransaction; 
+        set
+        {
+            if (value is null)
+            {
+                FileTransaction = null;
+                return;
+            }
+
+            if (value is not FileTransaction<TFileParameter> fileTransaction)
+                throw new ArgumentOutOfRangeException(nameof(value), $"{GetType()} must be a type that inherits {typeof(FileTransaction<TFileParameter>)}");
+
+            FileTransaction = fileTransaction;
+        }
+    }
 
 
     public FileCommand()
@@ -51,7 +79,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     {
         CommandText = cmdText;
         FileConnection = connection;
-        Transaction = transaction;
+        FileTransaction = transaction;
     }
 
     public override void Cancel()
@@ -63,7 +91,6 @@ public abstract class FileCommand<TFileParameter> : DbCommand
     /// Design time visible.
     /// </summary>
     public override bool DesignTimeVisible { get; set; }
-
 
     public abstract TFileParameter CreateParameter();
     public abstract TFileParameter CreateParameter(string parameterName, object value);
@@ -96,21 +123,21 @@ public abstract class FileCommand<TFileParameter> : DbCommand
         if (FileConnection.AdminMode)
             return ExecuteAdminNonQuery();
 
-        var queryParser = FileQuery<TFileParameter>.Create(this);
+        var fileStatement = FileStatement.Create(this);
 
-        FileWriter<TFileParameter> fileWriter = CreateWriter(queryParser);
+        var fileWriter = CreateWriter(fileStatement);
 
         return fileWriter.Execute();
     }
 
     private int ExecuteAdminNonQuery()
     {
-        var queryParser = FileAdminQuery<TFileParameter>.Create(this);
-        return queryParser.Execute() ? 1 : 0;
+        var fileAdminStatement = FileAdminStatement<TFileParameter>.Create(this);
+        return fileAdminStatement.Execute() ? 1 : 0;
     }
 
-    protected abstract FileWriter<TFileParameter> CreateWriter(FileQuery<TFileParameter> queryParser);
-    protected abstract FileDataReader<TFileParameter> CreateDataReader(FileQuery<TFileParameter> queryParser);
+    protected abstract FileWriter CreateWriter(FileStatement fileStatement);
+    protected abstract FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements);
 
     /// <summary>
     /// Executes the command text against the connection.
@@ -123,13 +150,16 @@ public abstract class FileCommand<TFileParameter> : DbCommand
         if (FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(ExecuteDbDataReader)} method cannot be used with an admin connection.");
 
-        var queryParser = FileQuery<TFileParameter>.Create(this);
+        //When calling ExecuteDbDataReader, the CommandText property of a DbCommand can contain
+        //multiple commands separated by semicolons
+        var fileStatements = FileStatement.CreateMultiCommandSupport(this);
 
         if (FileConnection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
-        return CreateDataReader(queryParser);
+
+        return CreateDataReader(fileStatements);
     }
 
     public override void Prepare() => throw new NotImplementedException();
@@ -141,18 +171,21 @@ public abstract class FileCommand<TFileParameter> : DbCommand
         if (FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(ExecuteScalar)} method cannot be used with an admin connection.");
 
-        var queryParser = FileQuery<TFileParameter>.Create(this);
-        if (queryParser is not FileSelectQuery<TFileParameter> selectQuery)
+        //ExecuteScalar method of a class deriving from DbCommand is designed to execute a single command and
+        //return the scalar value from the first column of the first row of the result set. It is not intended
+        //to process multiple commands or handle multiple result sets.
+        var fileStatement = FileStatement.Create(this);
+        if (fileStatement is not FileSelect selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
         var columns = selectQuery.GetColumnNames();
         var reader = FileConnection!.FileReader ;
 
-        var dataTable = reader.ReadFile(queryParser, true);
+        var dataTable = reader.ReadFile(fileStatement, true);
         var dataView = new DataView(dataTable);
 
-        if (queryParser.Filter!=null)
-            dataView.RowFilter = queryParser.Filter.Evaluate();
+        if (fileStatement.Filter!=null)
+            dataView.RowFilter = fileStatement.Filter.Evaluate();
 
         object? result = null;
         

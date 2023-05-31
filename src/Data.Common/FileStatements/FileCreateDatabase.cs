@@ -1,11 +1,11 @@
 ﻿using Irony.Parsing;
 
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileStatements;
 
-public class FileCreateDatabaseQuery<TFileParameter> : FileAdminQuery<TFileParameter>
+public class FileCreateDatabase<TFileParameter> : FileAdminStatement<TFileParameter>
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    public FileCreateDatabaseQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
+    public FileCreateDatabase(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
         : base(node, fileCommand)
     {
         

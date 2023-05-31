@@ -1,5 +1,7 @@
+using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
 using System.Data.CsvClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;
@@ -56,5 +58,28 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadDataWithSelectedColumns(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_ShouldReadData()
+    {
+        DataReaderTests.Reader_NextResult_ShouldReadData(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_WithInsert()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_WithInsert(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Reader_NextResult_WithFunctions()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_WithFunctions(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 }

@@ -1,15 +1,15 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
 
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileStatements;
 
-public abstract class FileAdminQuery<TFileParameter>
+public abstract class FileAdminStatement<TFileParameter>
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     protected readonly ParseTreeNode node;
     protected readonly FileCommand<TFileParameter> fileCommand;
 
-    public FileAdminQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
+    public FileAdminStatement(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
     {
         this.node = node;
         this.fileCommand = fileCommand;
@@ -25,27 +25,27 @@ public abstract class FileAdminQuery<TFileParameter>
     /// <exception cref="ArgumentNullException"></exception>
     public abstract bool Execute();
 
-    public static FileAdminQuery<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
+    public static FileAdminStatement<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
     {
         if (!fileCommand.FileConnection.AdminMode)
-            throw new ArgumentException($"The {nameof(FileAdminQuery<TFileParameter>)}.{nameof(Create)} method can only be used with an admin connection.");
+            throw new ArgumentException($"The {nameof(FileAdminStatement<TFileParameter>)}.{nameof(Create)} method can only be used with an admin connection.");
 
         var parser = new Parser(new AdminGrammar());
         var parseTree = parser.Parse(fileCommand.CommandText);
         if (parseTree.HasErrors())
         {
-            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages), fileCommand.CommandText);
+            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages), fileCommand.CommandText);
         }
 
         var mainNode = parseTree.Root.ChildNodes[0];
-        FileAdminQuery<TFileParameter> command;
+        FileAdminStatement<TFileParameter> command;
         switch (mainNode.Term.Name)
         {
             case "createDatabaseStmt":
-                command = new FileCreateDatabaseQuery<TFileParameter>(mainNode, fileCommand);
+                command = new FileCreateDatabase<TFileParameter>(mainNode, fileCommand);
                 break;
             case "dropDatabaseStmt":
-                command = new FileDropDatabaseQuery<TFileParameter>(mainNode, fileCommand);
+                command = new FileDropDatabase<TFileParameter>(mainNode, fileCommand);
                 break;
             default:
                 throw ThrowHelper.GetQueryNotSupportedException();

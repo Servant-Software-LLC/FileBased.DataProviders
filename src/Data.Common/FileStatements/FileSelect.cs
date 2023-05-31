@@ -1,14 +1,13 @@
 ﻿using Data.Xml.JsonJoin;
 using Irony.Parsing;
 
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileStatements;
 
-public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public class FileSelect : FileStatement
 {
 
-    public FileSelectQuery(ParseTreeNode tree, FileCommand<TFileParameter> fileCommand)
-        : base(tree, fileCommand)
+    public FileSelect(ParseTreeNode tree, DbParameterCollection parameters, string statement)
+        : base(tree, parameters, statement)
     {
     }
 
@@ -33,10 +32,13 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
                 string col = string.Empty;
                 var colNode= x.ChildNodes[0].ChildNodes[0];
 
-                //Check If it is an aggregate query 
-                if (colNode.ChildNodes.Count>1 && colNode.ChildNodes[0].Term.Name!= "id_simple")
+                if (colNode.Term.Name == "builtinFunc")
                 {
-
+                    col = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+                }
+                //Check If it is an aggregate query 
+                else if (colNode.ChildNodes.Count > 1 && colNode.ChildNodes[0].Term.Name != "id_simple")
+                {
                     var aggregateName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
                     ThrowHelper.ThrowIfNotSupportedAggregateFunctionException(aggregateName);
                     col = colNode.ChildNodes[1].ChildNodes[0].Token.ValueString;
@@ -62,6 +64,11 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
         var fromClauseOpt = node
           .ChildNodes
           .First(item => item.Term.Name == "fromClauseOpt");
+
+        //If the columns are just constants or built-in functions, then it may not have a FROM clause
+        //in the SELECT statement.
+        if (fromClauseOpt.ChildNodes.Count == 0)
+            return string.Empty;
 
         var tableId = fromClauseOpt.ChildNodes[1].ChildNodes[0];
         if (tableId.ChildNodes.Count == 2)
@@ -115,7 +122,7 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
         string joinColumn = GetColumnWithAlias(subNode.ChildNodes[5]);
         if (!joinColumn.StartsWith(tableAlias)&& !sourceColumn.StartsWith(tableAlias))
         {
-            ThrowHelper.ThrowSyntaxtErrorException("Invalid ON join", $"SourceColumn = {sourceColumn} JoinColumn = {joinColumn}");
+            ThrowHelper.ThrowQuerySyntaxException("Syntax error. Invalid ON join", $"SourceColumn = {sourceColumn} JoinColumn = {joinColumn}");
         }
 
         if (!joinColumn.StartsWith(tableAlias))
@@ -177,7 +184,7 @@ public class FileSelectQuery<TFileParameter> : FileQuery<TFileParameter>
     {
         string alias = string.Empty;
         string tableName = name;
-        if (!FileReader<TFileParameter>.IsSchemaTable(name) && !FileReader<TFileParameter>.IsSchemaColumn(name))
+        if (!FileReader.IsSchemaTable(name) && !FileReader.IsSchemaColumn(name))
         {
             if (tableName.Contains(' '))
             {

@@ -1,23 +1,28 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
-namespace Data.Common.FileQuery;
+namespace Data.Common.FileStatements;
 
-public abstract class FileQuery<TFileParameter>
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileStatement
 {
     protected readonly ParseTreeNode node;
-    private readonly FileCommand<TFileParameter> fileCommand;
+    private readonly DbParameterCollection parameters;
 
-    protected FileQuery(ParseTreeNode node, FileCommand<TFileParameter> fileCommand)
+    protected FileStatement(ParseTreeNode node, DbParameterCollection parameters, string statement)
     {
         this.node = node;
-        this.fileCommand = fileCommand;
+        this.parameters = parameters;
         Filter = GetFilters();
         TableName = GetTable();
+        Statement = statement;
     }
 
     public string TableName { get; }
     public Filter? Filter { get; }
+
+    /// <summary>
+    /// SQL statement that created this instance.
+    /// </summary>
+    public string Statement { get; }
 
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
@@ -53,6 +58,15 @@ public abstract class FileQuery<TFileParameter>
                 object? value = GetValue(x);
 
                 mainFilter = new SimpleFilter(field, op, value!);
+                break;
+            }
+            else if (item.Term.Name == "builtinFunc")
+            {
+                var funcName = x[0].ChildNodes[0].ChildNodes[0].Token.ValueString;
+                var op = x[1].ChildNodes[0].Token.ValueString;
+                object? value = GetValue(x);
+
+                mainFilter = new FuncFilter(funcName, op, value!);
                 break;
             }
             else if (item.Term.Name == "binOp")
@@ -101,12 +115,12 @@ public abstract class FileQuery<TFileParameter>
         {
             object? value;
             string paramName = GetParamName(x);
-            if (!fileCommand.Parameters.Contains(paramName))
+            if (!parameters.Contains(paramName))
             {
                 throw new InvalidOperationException($"Must declare the scalar variable \"@{paramName}\"");
             }
 
-            var parameter = fileCommand.Parameters[paramName].Convert<IDbDataParameter>();
+            var parameter = parameters[paramName].Convert<IDbDataParameter>();
             value = parameter.Value;
             return value;
 
@@ -121,32 +135,54 @@ public abstract class FileQuery<TFileParameter>
         }
     }
 
-    public static FileQuery<TFileParameter> Create(FileCommand<TFileParameter> fileCommand)
+    /// <summary>
+    /// Supports scenario where EF Core calls FileCommand<TFileParameter>.ExecuteDbDataReader() with a multi-line
+    /// SQL statement that first does an INSERT and then SELECTs the identity value of the newly INSERT'd row.
+    /// </summary>
+    /// <param name="fileCommand"></param>
+    /// <returns></returns>
+    internal static IEnumerable<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand)
     {
-        if (((FileConnection<TFileParameter>)fileCommand.Connection).AdminMode)
-            throw new ArgumentException($"The {nameof(FileQuery<TFileParameter>)}.{nameof(Create)} method cannot be used with an admin connection.");
+        var commandText = fileCommand.CommandText;
+        var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+        foreach (var command in commands)
+        {
+            var fileQuery = CreateFromCommand(command, fileCommand.Parameters);
+            yield return fileQuery;
+        }
+    }
+
+    internal static FileStatement Create(IFileCommand fileCommand)
+    {
+        if (fileCommand.FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(Create)} method cannot be used with an admin connection.");
+
+        return CreateFromCommand(fileCommand.CommandText, fileCommand.Parameters as DbParameterCollection);
+    }
+
+    private static FileStatement CreateFromCommand(string commandText, DbParameterCollection parameters)
+    {
         var parser = new Parser(new SqlGrammar());
-        var parseTree = parser.Parse(fileCommand.CommandText);
+        var parseTree = parser.Parse(commandText);
         if (parseTree.HasErrors())
         {
-            ThrowHelper.ThrowSyntaxtErrorException(string.Join(Environment.NewLine, parseTree.ParserMessages), fileCommand.CommandText);
+            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages.Select(parserMessage => $"{parserMessage.Message}. Location={parserMessage.Location}")), commandText);
         }
 
         var mainNode = parseTree.Root.ChildNodes[0];
         switch (mainNode.Term.Name)
         {
             case "insertStmt":
-                return new FileInsertQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileInsert(mainNode, parameters, commandText);
             case "deleteStmt":
-                return new FileDeleteQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileDelete(mainNode, parameters, commandText);
             case "updateStmt":
-                return new FileUpdateQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileUpdate(mainNode, parameters, commandText);
             case "selectStmt":
-                return new FileSelectQuery<TFileParameter>(mainNode, fileCommand);
+                return new FileSelect(mainNode, parameters, commandText);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();
     }
-
 }

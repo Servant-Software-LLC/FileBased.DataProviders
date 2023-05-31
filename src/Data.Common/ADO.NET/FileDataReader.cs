@@ -1,32 +1,31 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Data.Common.Utils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data.FileClient;
 
-public class FileDataReader<TFileParameter> : DbDataReader
-    where TFileParameter : FileParameter<TFileParameter>, new()
+public abstract class FileDataReader : DbDataReader
 {
-    private readonly FileEnumerator FileEnumerator;
-    private readonly DataTable workingResultSet;
-    private object?[]? currentDataRow = null;
-
-    public FileDataReader(FileQuery<TFileParameter> queryParser, FileReader<TFileParameter> FileReader)
+    private readonly IEnumerator<FileStatement> statementEnumerator;
+    private readonly FileReader fileReader;
+    private readonly Func<FileStatement, FileWriter> createWriter;
+    private Result previousWriteResult;
+    private Result result;
+    
+    protected FileDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter)
     {
-        if (queryParser == null)
-            throw new ArgumentNullException(nameof(queryParser));
-        if (FileReader == null)
-            throw new ArgumentNullException(nameof(FileReader));
+        if (fileStatements == null)
+            throw new ArgumentNullException(nameof(fileStatements));
 
-        //Create the DataTable which is our working resultset
-        workingResultSet = FileReader.ReadFile(queryParser, true) ?? throw new ArgumentNullException(nameof(workingResultSet));
-            
-        var filter = queryParser!.Filter;
+        statementEnumerator = fileStatements.GetEnumerator();
+        this.fileReader = fileReader ?? throw new ArgumentNullException(nameof(fileReader));
+        this.createWriter = createWriter ?? throw new ArgumentNullException(nameof(createWriter));
 
-        FileEnumerator = new FileEnumerator(queryParser.GetColumnNames(), workingResultSet, filter);
+        NextResult();
     }
 
     public override int Depth => 0;
-    public override bool IsClosed => FileEnumerator == null;
-    public override int RecordsAffected => -1;
+    public override bool IsClosed => result.IsClosed;
+    public override int RecordsAffected => result.RecordsAffected;
 
     /// <summary>
     /// Returns an <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.
@@ -37,12 +36,17 @@ public class FileDataReader<TFileParameter> : DbDataReader
     /// <summary>
     /// Gets a value that indicates whether this DbDataReader contains one or more rows.
     /// </summary>
-    public override bool HasRows => throw new NotImplementedException();
+    public override bool HasRows => result.HasRows;
 
     public override void Close() => Dispose();
 
     public override DataTable GetSchemaTable()
     {
+        var workingResultSet = result.WorkingResultSet;
+        if (workingResultSet == null)
+            return null;
+
+
         DataTable tempSchemaTable = new DataTable("SchemaTable");
         tempSchemaTable.Locale = Globalization.CultureInfo.InvariantCulture;
 
@@ -124,7 +128,7 @@ public class FileDataReader<TFileParameter> : DbDataReader
         tempSchemaTable.Columns.Add(BaseTableNamespace);
         tempSchemaTable.Columns.Add(BaseColumnNamespace);
 
-        foreach (string cl in FileEnumerator.Columns)
+        foreach (string cl in result.FileEnumerator.Columns)
         {
             DataColumn dc = workingResultSet.Columns[cl]!;
             DataRow dr = tempSchemaTable.NewRow();
@@ -170,20 +174,24 @@ public class FileDataReader<TFileParameter> : DbDataReader
         return tempSchemaTable;
     }
 
-    public override bool NextResult() => false;
-
-    public override bool Read()
+    public override bool NextResult()
     {
-        if (FileEnumerator.MoveNext())
-        {
-            currentDataRow = FileEnumerator.Current;
-            return true;
-        }
+        //Save the last write statement that we executed to evaluate built-in functions.
+        if (statementEnumerator.Current is not FileSelect)
+            previousWriteResult = result;
 
-        return false;
+        if (!statementEnumerator.MoveNext())
+            return false;
+
+        //Create the DataTable which is our working resultset
+        var fileStatement = statementEnumerator.Current;
+        result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
+        return true;
     }
 
-    public override int FieldCount => FileEnumerator.FieldCount;
+    public override bool Read() => result.Read();
+
+    public override int FieldCount => result.FieldCount;
 
     public override bool GetBoolean(int i) => GetValueAsType<bool>(i);
 
@@ -191,8 +199,11 @@ public class FileDataReader<TFileParameter> : DbDataReader
 
     public override long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
     {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
         byte[] tempBuffer;
-        tempBuffer = (byte[])currentDataRow![ordinal]!;
+        tempBuffer = (byte[])result.CurrentDataRow![ordinal]!;
         if (buffer == null)
         {
             return tempBuffer.Length;
@@ -230,8 +241,11 @@ public class FileDataReader<TFileParameter> : DbDataReader
 
     public override long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
     {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
         char[] tempBuffer;
-            tempBuffer = (char[])currentDataRow![ordinal]!;
+            tempBuffer = (char[])result.CurrentDataRow![ordinal]!;
       
         if (buffer == null)
         {
@@ -271,21 +285,49 @@ public class FileDataReader<TFileParameter> : DbDataReader
     public override DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
     public override decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
     public override double GetDouble(int i) => GetValueAsType<double>(i);
-    public override Type GetFieldType(int i) => FileEnumerator.GetType(i);
+    public override Type GetFieldType(int i)
+    {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return result.FileEnumerator.GetType(i);
+    }
     public override float GetFloat(int i) => GetValueAsType<float>(i);
     public override Guid GetGuid(int i) => GetValueAsType<Guid>(i);
     public override short GetInt16(int i) => GetValueAsType<short>(i);
     public override int GetInt32(int i) => GetValueAsType<int>(i);
     public override long GetInt64(int i) => GetValueAsType<long>(i);
-    public override string GetName(int i) => FileEnumerator.GetName(i);
-    public override int GetOrdinal(string name) => FileEnumerator.GetOrdinal(name);
+    
+    public override string GetName(int i)
+    {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return result.FileEnumerator.GetName(i);
+    }
+
+    public override int GetOrdinal(string name)
+    {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return result.FileEnumerator.GetOrdinal(name);
+    }
+
     public override string GetString(int i) => GetValueAsType<string>(i);
 
-    public override object GetValue(int i) => currentDataRow != null ? currentDataRow[i]!
-                                        : throw new ArgumentNullException(nameof(currentDataRow));
+    public override object GetValue(int i)
+    {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return result.CurrentDataRow != null ? result.CurrentDataRow[i]!
+                                             : throw new ArgumentNullException(nameof(result.CurrentDataRow));
+    }
 
     public override int GetValues(object[] values)
     {
+        var currentDataRow = result.CurrentDataRow;
         if (currentDataRow == null)
             return 0;
 
@@ -293,10 +335,15 @@ public class FileDataReader<TFileParameter> : DbDataReader
         return (currentDataRow.Length > values.Length ? values.Length : currentDataRow.Length);
     }
 
-    public override bool IsDBNull(int i) => currentDataRow is not null ? currentDataRow[i] == null
-                                        : throw new ArgumentNullException(nameof(currentDataRow));
+    public override bool IsDBNull(int i)
+    {
+        var currentDataRow = result.CurrentDataRow;
 
-    protected new void Dispose() => currentDataRow = null;
+        return currentDataRow is not null ? currentDataRow[i] == null
+                                          : throw new ArgumentNullException(nameof(currentDataRow));
+    }
+
+    protected new void Dispose() => result = null;
 
     /// <summary>
     /// Gets the value of the specified column as an instance of <see cref="object"/>.
@@ -312,7 +359,13 @@ public class FileDataReader<TFileParameter> : DbDataReader
         }
     }
 
-    public T GetValueAsType<T>(int index) => (T)Convert.ChangeType(currentDataRow![index], typeof(T))!;
+    public T GetValueAsType<T>(int index)
+    {
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return (T)Convert.ChangeType(result.CurrentDataRow![index], typeof(T))!;
+    }
 
 
     /// <summary>

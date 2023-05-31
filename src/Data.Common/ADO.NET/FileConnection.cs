@@ -1,6 +1,6 @@
 ﻿namespace System.Data.FileClient;
 
-public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnection, IConnectionStringProperties
+public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IConnectionStringProperties
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
@@ -37,7 +37,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IDbConnecti
     public bool FolderAsDatabase => PathType == PathType.Directory;
     public bool AdminMode => PathType == PathType.Admin;
 
-    public FileReader<TFileParameter> FileReader { get; protected set; }
+    public FileReader FileReader { get; protected set; }
 
     public new abstract FileTransaction<TFileParameter> BeginTransaction();
 

@@ -67,7 +67,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        var selectQuery = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)SelectCommand);
+        var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         dataTable = GetTable(dataTable, selectQuery);
@@ -104,7 +104,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        var selectQuery = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)SelectCommand);
+        var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         var cols = GetColumns(dataTable, selectQuery);
@@ -163,8 +163,8 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        var query = FileQuery<TFileParameter>.Create((FileCommand<TFileParameter>)UpdateCommand);
-        if (query is not FileUpdateQuery<TFileParameter> updateQuery)
+        var query = FileStatement.Create((FileCommand<TFileParameter>)UpdateCommand);
+        if (query is not FileUpdate updateStatement)
         {
             throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
         }
@@ -189,7 +189,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         return updater.Execute();
     }
 
-    protected abstract FileWriter<TFileParameter> CreateWriter(FileQuery<TFileParameter> fileQuery);
+    protected abstract FileWriter CreateWriter(FileStatement fileQuery);
 
     private void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
     {
@@ -199,7 +199,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         }
     }
 
-    private DataTable GetTable(DataTable dataTable, FileQuery<TFileParameter> query)
+    private DataTable GetTable(DataTable dataTable, FileStatement query)
     {
         var filters = query.GetFilters();
         var view = new DataView(dataTable);
@@ -210,7 +210,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         return view.ToTable();
     }
 
-    private IEnumerable<string> GetColumns(DataTable dataTable, FileQuery<TFileParameter> query)
+    private IEnumerable<string> GetColumns(DataTable dataTable, FileStatement query)
     {
         var cols = query.GetColumnNames()
             .ToList();
