@@ -8,6 +8,7 @@ public abstract class FileDataReader : DbDataReader
     private readonly IEnumerator<FileStatement> statementEnumerator;
     private readonly FileReader fileReader;
     private readonly Func<FileStatement, FileWriter> createWriter;
+    private Result previousWriteResult;
     private Result result;
     
     protected FileDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter)
@@ -175,12 +176,16 @@ public abstract class FileDataReader : DbDataReader
 
     public override bool NextResult()
     {
+        //Save the last write statement that we executed to evaluate built-in functions.
+        if (statementEnumerator.Current is not FileSelect)
+            previousWriteResult = result;
+
         if (!statementEnumerator.MoveNext())
             return false;
 
         //Create the DataTable which is our working resultset
         var fileStatement = statementEnumerator.Current;
-        result = new Result(fileStatement, fileReader, createWriter);
+        result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
         return true;
     }
 

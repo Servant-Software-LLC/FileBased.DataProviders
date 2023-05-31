@@ -103,6 +103,8 @@ public class SqlGrammar : Grammar
         var aggregate = new NonTerminal("aggregate");
         var aggregateArg = new NonTerminal("aggregateArg");
         var aggregateName = new NonTerminal("aggregateName");
+        var builtinFunc = new NonTerminal("builtinFunc");
+        var builtinFuncArgs = new NonTerminal("builtinFuncArgs");
         var tuple = new NonTerminal("tuple");
         var joinChainOpt = new NonTerminal("joinChainOpt");
         var joinKindOpt = new NonTerminal("joinKindOpt");
@@ -198,12 +200,15 @@ public class SqlGrammar : Grammar
         columnItem.Rule = columnSource + aliasOpt;
         aliasOpt.Rule = Empty | asOpt + Id;
         asOpt.Rule = Empty | AS;
-        columnSource.Rule = aggregate | Id;
+        columnSource.Rule = aggregate | builtinFunc | Id;
         aggregate.Rule = aggregateName + "(" + aggregateArg + ")";
         aggregateArg.Rule = expression | "*";
         aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
+        builtinFunc.Rule = Id + "(" + builtinFuncArgs + ")";
+        builtinFuncArgs.Rule = Empty | exprList;
+
         intoClauseOpt.Rule = Empty | INTO + Id;
-        fromClauseOpt.Rule = FROM + idlist + joinChainOpt;
+        fromClauseOpt.Rule = Empty | FROM + idlist + joinChainOpt;
         //joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idlist + ON + Id + "=" + Id;
         join.Rule = (JOIN + idlist + ON + Id + "=" + Id);
 
@@ -223,7 +228,7 @@ public class SqlGrammar : Grammar
 
         //Expression
         exprList.Rule = MakePlusRule(exprList, comma, expression);
-        expression.Rule = term | (PARAMETER + (Parameter | string_literal)) | unExpr | binExpr;// | betweenExpr; //-- BETWEEN doesn't work - yet; brings a few parsing conflicts 
+        expression.Rule = term | builtinFunc | (PARAMETER + (Parameter | string_literal)) | unExpr | binExpr;// | betweenExpr; //-- BETWEEN doesn't work - yet; brings a few parsing conflicts 
         term.Rule = Id |(PARAMETER + (Parameter | string_literal)) | string_literal | number | funCall | tuple | parSelectStmt;// | inStmt;
         tuple.Rule = "(" + exprList + ")";
         parSelectStmt.Rule = "(" + selectStmt + ")";

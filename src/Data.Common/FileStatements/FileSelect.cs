@@ -32,10 +32,13 @@ public class FileSelect : FileStatement
                 string col = string.Empty;
                 var colNode= x.ChildNodes[0].ChildNodes[0];
 
-                //Check If it is an aggregate query 
-                if (colNode.ChildNodes.Count>1 && colNode.ChildNodes[0].Term.Name!= "id_simple")
+                if (colNode.Term.Name == "builtinFunc")
                 {
-
+                    col = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
+                }
+                //Check If it is an aggregate query 
+                else if (colNode.ChildNodes.Count > 1 && colNode.ChildNodes[0].Term.Name != "id_simple")
+                {
                     var aggregateName = colNode.ChildNodes[0].ChildNodes[0].Token.ValueString;
                     ThrowHelper.ThrowIfNotSupportedAggregateFunctionException(aggregateName);
                     col = colNode.ChildNodes[1].ChildNodes[0].Token.ValueString;
@@ -61,6 +64,11 @@ public class FileSelect : FileStatement
         var fromClauseOpt = node
           .ChildNodes
           .First(item => item.Term.Name == "fromClauseOpt");
+
+        //If the columns are just constants or built-in functions, then it may not have a FROM clause
+        //in the SELECT statement.
+        if (fromClauseOpt.ChildNodes.Count == 0)
+            return string.Empty;
 
         var tableId = fromClauseOpt.ChildNodes[1].ChildNodes[0];
         if (tableId.ChildNodes.Count == 2)

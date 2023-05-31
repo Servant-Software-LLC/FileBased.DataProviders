@@ -60,6 +60,15 @@ public abstract class FileStatement
                 mainFilter = new SimpleFilter(field, op, value!);
                 break;
             }
+            else if (item.Term.Name == "builtinFunc")
+            {
+                var funcName = x[0].ChildNodes[0].ChildNodes[0].Token.ValueString;
+                var op = x[1].ChildNodes[0].Token.ValueString;
+                object? value = GetValue(x);
+
+                mainFilter = new FuncFilter(funcName, op, value!);
+                break;
+            }
             else if (item.Term.Name == "binOp")
             {
                 var next = x[2];
@@ -158,7 +167,7 @@ public abstract class FileStatement
         var parseTree = parser.Parse(commandText);
         if (parseTree.HasErrors())
         {
-            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages), commandText);
+            ThrowHelper.ThrowQuerySyntaxException(string.Join(Environment.NewLine, parseTree.ParserMessages.Select(parserMessage => $"{parserMessage.Message}. Location={parserMessage.Location}")), commandText);
         }
 
         var mainNode = parseTree.Root.ChildNodes[0];
