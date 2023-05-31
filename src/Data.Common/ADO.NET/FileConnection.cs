@@ -1,4 +1,7 @@
-﻿namespace System.Data.FileClient;
+﻿using Data.Common.Utils;
+using Microsoft.Extensions.Logging;
+
+namespace System.Data.FileClient;
 
 public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IConnectionStringProperties
     where TFileParameter : FileParameter<TFileParameter>, new()
@@ -10,24 +13,30 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public override string ConnectionString { get => connectionString.ConnectionString!; set => connectionString.ConnectionString = value; }
     public override string DataSource => connectionString.DataSource;
     public bool? Formatted => connectionString.Formatted;
+    public LogLevel LogLevel => connectionString.LogLevel ?? LogLevel.None;
 
     public override string Database => connectionString.DataSource ?? string.Empty;
     public override ConnectionState State => state;
-
+    
+    internal LoggerServices LoggerServices { get; }
+    private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();
 
     protected FileConnection(string connectionString)
     {
         ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
         this.connectionString = connectionString;
         state = ConnectionState.Closed;
+
+        LoggerServices = new LoggerServices(LogLevel);
+        log.LogInformation($"{GetType()} created.  ConnectionString = {connectionString}");    
     }
 
     public override string ServerVersion
     {
         get
         {
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            var assembly = Reflection.Assembly.GetExecutingAssembly();
+            var fvi = Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
             string version = fvi.FileVersion;
             return version;
         }

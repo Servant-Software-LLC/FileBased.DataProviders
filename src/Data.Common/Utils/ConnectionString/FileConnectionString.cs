@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 
 namespace Data.Common.Utils.ConnectionString;
 
@@ -13,16 +15,25 @@ public class FileConnectionString : IConnectionStringProperties
 
     public string ConnectionString 
     {
-        get =>
-            Formatted == null ?
-                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource};" :
-                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource}; {nameof(FileConnectionStringKeywords.Formatted)}={Formatted.Value};";
+        get
+        {
+            StringBuilder stringBuilder = new($"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource};");
+
+            if (Formatted != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeywords.Formatted)}={Formatted.Value};");
+
+            if (LogLevel != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeywords.LogLevel)}={LogLevel};");
+
+            return stringBuilder.ToString();
+        }
 
         set => Parse(value); 
     }
 
     public string DataSource { get; set; }
     public bool? Formatted { get; set; }
+    public LogLevel? LogLevel { get; set; }
 
     public FileConnectionString Clone() =>
         new()
@@ -72,6 +83,19 @@ public class FileConnectionString : IConnectionStringProperties
                     throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.Formatted)} was not a boolean value.", nameof(connectionString));
 
                 Formatted = bFormatted.Value;
+                continue;
+            }
+
+            //Log
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeywords.LogLevel))
+            {
+                if (keyValuePair.Value == null)
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.Formatted)} was null.", nameof(connectionString));
+
+                if (!System.Enum.TryParse<LogLevel>(keyValuePair.Value.ToString(), true, out LogLevel logLevel))
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.LogLevel)} was not a {typeof(LogLevel)} enum value.", nameof(connectionString));
+
+                LogLevel = logLevel;
                 continue;
             }
 

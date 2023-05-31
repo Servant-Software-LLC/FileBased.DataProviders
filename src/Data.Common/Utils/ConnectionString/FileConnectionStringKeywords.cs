@@ -4,5 +4,7 @@ public enum FileConnectionStringKeywords
 {
     [Alias("Data Source")]
     DataSource,
-    Formatted
+    Formatted,
+    [Alias("Log")]
+    LogLevel
 }

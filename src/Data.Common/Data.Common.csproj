@@ -9,6 +9,8 @@
 
   <ItemGroup>
 	  <PackageReference Include="Irony" />
+	  <PackageReference Include="Serilog.Extensions.Logging" />
+	  <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>  
 
 </Project>
