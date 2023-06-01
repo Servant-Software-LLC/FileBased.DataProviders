@@ -54,7 +54,7 @@ public abstract class FileDataReader : DbDataReader
         try
         {
             //Save the last write statement that we executed to evaluate built-in functions.
-            if (statementEnumerator.Current is not FileSelect)
+            if (statementEnumerator.Current != null && statementEnumerator.Current is not FileSelect)
             {
                 previousWriteResult = result;
                 log.LogDebug($"Saving previousWriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
