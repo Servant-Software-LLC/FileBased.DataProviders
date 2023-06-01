@@ -1,6 +1,4 @@
-﻿using System.Data.JsonClient;
-
-namespace Data.Json.JsonException;
+﻿namespace Data.Json.JsonException;
 
 internal static class ThrowHelper
 {

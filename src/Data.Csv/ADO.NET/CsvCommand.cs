@@ -1,4 +1,6 @@
-﻿namespace System.Data.CsvClient;
+﻿using Data.Common.Utils;
+
+namespace System.Data.CsvClient;
 
 public class CsvCommand : FileCommand<CsvParameter>
 {
@@ -37,7 +39,7 @@ public class CsvCommand : FileCommand<CsvParameter>
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override CsvDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements) => 
-        new(fileStatements, ((CsvConnection)Connection!).FileReader, CreateWriter);
+    protected override CsvDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 
+        new(fileStatements, FileConnection.FileReader, CreateWriter, loggerServices);
 
 }

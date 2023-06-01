@@ -1,5 +1,4 @@
-﻿using Data.Common.Interfaces;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
 

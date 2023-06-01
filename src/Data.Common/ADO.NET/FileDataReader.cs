@@ -1,17 +1,25 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.FileStatements;
+using Data.Common.Utils;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data.FileClient;
 
 public abstract class FileDataReader : DbDataReader
 {
+    private ILogger<FileDataReader> log => loggerServices.CreateLogger<FileDataReader>();
+
     private readonly IEnumerator<FileStatement> statementEnumerator;
     private readonly FileReader fileReader;
     private readonly Func<FileStatement, FileWriter> createWriter;
+    private readonly LoggerServices loggerServices;
     private Result previousWriteResult;
     private Result result;
     
-    protected FileDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter)
+    protected FileDataReader(IEnumerable<FileStatement> fileStatements, 
+                             FileReader fileReader, 
+                             Func<FileStatement, FileWriter> createWriter,
+                             LoggerServices loggerServices)
     {
         if (fileStatements == null)
             throw new ArgumentNullException(nameof(fileStatements));
@@ -19,6 +27,7 @@ public abstract class FileDataReader : DbDataReader
         statementEnumerator = fileStatements.GetEnumerator();
         this.fileReader = fileReader ?? throw new ArgumentNullException(nameof(fileReader));
         this.createWriter = createWriter ?? throw new ArgumentNullException(nameof(createWriter));
+        this.loggerServices = loggerServices ?? throw new ArgumentNullException(nameof(loggerServices));
 
         NextResult();
     }
@@ -40,8 +49,41 @@ public abstract class FileDataReader : DbDataReader
 
     public override void Close() => Dispose();
 
+    public override bool NextResult()
+    {
+        try
+        {
+            //Save the last write statement that we executed to evaluate built-in functions.
+            if (statementEnumerator.Current is not FileSelect)
+            {
+                previousWriteResult = result;
+                log.LogDebug($"Saving previousWriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
+            }
+
+            if (!statementEnumerator.MoveNext())
+            {
+                log.LogInformation($"{GetType()}.{nameof(NextResult)}(). No more results to enumerate.");
+                return false;
+            }
+
+            //Create the DataTable which is our working resultset
+            var fileStatement = statementEnumerator.Current;
+
+            log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Execute for next resultset.  Statement: {fileStatement.Statement}");
+            result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            log.LogError($"{GetType()}.{nameof(NextResult)}(). Exception occurred. {ex}");
+            return false;
+        }
+    }
+
     public override DataTable GetSchemaTable()
     {
+        log.LogInformation($"{GetType()}.{nameof(NextResult)}() called.");
+
         var workingResultSet = result.WorkingResultSet;
         if (workingResultSet == null)
             return null;
@@ -172,22 +214,6 @@ public abstract class FileDataReader : DbDataReader
         tempSchemaTable.AcceptChanges();
 
         return tempSchemaTable;
-    }
-
-    public override bool NextResult()
-    {
-        //Save the last write statement that we executed to evaluate built-in functions.
-        if (statementEnumerator.Current is not FileSelect)
-            previousWriteResult = result;
-
-        if (!statementEnumerator.MoveNext())
-            return false;
-
-        //Create the DataTable which is our working resultset
-        var fileStatement = statementEnumerator.Current;
-
-        result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
-        return true;
     }
 
     public override bool Read() => result.Read();

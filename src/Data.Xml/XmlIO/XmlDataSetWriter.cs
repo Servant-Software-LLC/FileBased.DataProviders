@@ -1,6 +1,4 @@
-﻿using System.Data.XmlClient;
-
-namespace Data.Xml.XmlIO;
+﻿namespace Data.Xml.XmlIO;
 
 internal class XmlDataSetWriter : IDataSetWriter
 {

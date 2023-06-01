@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace Data.Common.FileException;
+﻿namespace Data.Common.FileException;
 
 internal static class ThrowHelper
 {

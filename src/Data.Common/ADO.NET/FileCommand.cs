@@ -143,7 +143,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     }
 
     protected abstract FileWriter CreateWriter(FileStatement fileStatement);
-    protected abstract FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements);
+    protected abstract FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices);
 
     /// <summary>
     /// Executes the command text against the connection.
@@ -167,7 +167,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
 
-        return CreateDataReader(fileStatements);
+        return CreateDataReader(fileStatements, FileConnection.LoggerServices);
     }
 
     public override void Prepare() => throw new NotImplementedException();

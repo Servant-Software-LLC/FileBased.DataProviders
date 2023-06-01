@@ -14,5 +14,4 @@ global using Data.Common.FileStatements;
 global using Data.Common.Extension;
 global using System.Data.FileClient;
 global using Data.Common.FileIO.Read;
-global using Data.Common.FileIO.Delete;
 
