@@ -20,7 +20,7 @@ public class JsonConnectionStringTests
         FileConnectionString connectionString = new();
 
         var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString = "tree=oak;");
-        Assert.Contains(nameof(FileConnectionStringKeywords.DataSource), exception.Message);
+        Assert.Contains(nameof(FileConnectionStringKeyword.DataSource), exception.Message);
     }
 
     [Fact]
