@@ -34,7 +34,10 @@ public abstract class FileDataReader : DbDataReader
 
     public override int Depth => 0;
     public override bool IsClosed => result.IsClosed;
-    public override int RecordsAffected => result.RecordsAffected;
+
+    //Copying SQL Server ADO.NET provider's behavior here.  It retains the RowsAffected value
+    //from the last executed non-query command when moving to the next result set using NextResult().
+    public override int RecordsAffected => previousWriteResult != null ? previousWriteResult.RecordsAffected : -1;
 
     /// <summary>
     /// Returns an <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.
@@ -53,13 +56,6 @@ public abstract class FileDataReader : DbDataReader
     {
         try
         {
-            //Save the last write statement that we executed to evaluate built-in functions.
-            if (statementEnumerator.Current != null && statementEnumerator.Current is not FileSelect)
-            {
-                previousWriteResult = result;
-                log.LogDebug($"Saving previousWriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
-            }
-
             if (!statementEnumerator.MoveNext())
             {
                 log.LogInformation($"{GetType()}.{nameof(NextResult)}(). No more results to enumerate.");
@@ -71,6 +67,14 @@ public abstract class FileDataReader : DbDataReader
 
             log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Execute for next resultset.  Statement: {fileStatement.Statement}");
             result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
+
+            //Save the last write statement that we executed to evaluate built-in functions.
+            if (fileStatement is not FileSelect)
+            {
+                previousWriteResult = result;
+                log.LogDebug($"Saving previousWriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
+            }
+
             return true;
         }
         catch (Exception ex)

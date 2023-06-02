@@ -341,7 +341,7 @@ public static class DataReaderTests
         // Assert
         Assert.True(nextResult);
         Assert.True(reader.Read());
-        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(1, reader.RecordsAffected);
         Assert.Equal(4, reader.FieldCount);
 
         //Act - There are no more resultsets.
@@ -381,7 +381,7 @@ public static class DataReaderTests
         // Assert
         Assert.True(nextResult);
         Assert.True(reader.Read());
-        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(1, reader.RecordsAffected);
         Assert.Equal(1, reader.FieldCount);
 
         //Make sure that the new identity value for locations.id was created.
