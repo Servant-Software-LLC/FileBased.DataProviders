@@ -85,14 +85,14 @@ public static class InsertTests
             connection.Open();
 
             // Act - Insert a new record into the locations table
-            var command = connection.CreateCommand($"INSERT INTO Blogs(Url) VALUES ('https://www.theminimalists.com/blog/')");
+            var command = connection.CreateCommand($"INSERT INTO \"Blogs\" (\"Url\") VALUES ('https://www.theminimalists.com/blog/')");
             var rowsAffected = command.ExecuteNonQuery();
 
             // Assert
             Assert.Equal(1, rowsAffected);
 
             // Act - Verify that we now have a row with a BlogId == 1
-            command = connection.CreateCommand($"SELECT * FROM [Blogs]");
+            command = connection.CreateCommand($"SELECT * FROM \"Blogs\"");
 
             using (var reader = command.ExecuteReader())
             {
