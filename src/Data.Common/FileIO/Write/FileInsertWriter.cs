@@ -1,7 +1,10 @@
-﻿namespace Data.Common.FileIO.Write;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Data.Common.FileIO.Write;
 
 public abstract class FileInsertWriter : FileWriter
 {
+    private ILogger<FileInsertWriter> log => fileConnection.LoggerServices.CreateLogger<FileInsertWriter>();
     private readonly FileStatements.FileInsert fileStatement;
 
     public FileInsertWriter(FileStatements.FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
@@ -22,6 +25,8 @@ public abstract class FileInsertWriter : FileWriter
 
     public override int Execute()
     {
+        log.LogDebug($"{GetType()}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
+
         if (IsTransactedLater)
         {
             fileTransaction!.Writers.Add(this);

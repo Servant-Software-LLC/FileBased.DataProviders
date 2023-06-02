@@ -1,7 +1,10 @@
-﻿namespace Data.Xml.XmlIO;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Data.Xml.XmlIO;
 
 internal class XmlDataSetWriter : IDataSetWriter
 {
+    private ILogger<XmlDataSetWriter> log => ((IFileConnection)fileConnection).LoggerServices.CreateLogger<XmlDataSetWriter>();
     private readonly IFileConnection fileConnection;
     private readonly FileStatement fileQuery;
 
@@ -25,6 +28,7 @@ internal class XmlDataSetWriter : IDataSetWriter
 
     private void SaveToFile(DataSet dataSet)
     {
+        log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
         using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
         {
             dataSet.WriteXml(fileStream, XmlWriteMode.WriteSchema);
@@ -40,6 +44,7 @@ internal class XmlDataSetWriter : IDataSetWriter
         foreach (DataTable table in tablesToWrite)
         {
             var path = fileConnection.GetTablePath(table.TableName);
+            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
             using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
                 table.WriteXml(fileStream, XmlWriteMode.WriteSchema);

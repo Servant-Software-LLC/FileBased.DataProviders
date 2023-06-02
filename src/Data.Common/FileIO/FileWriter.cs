@@ -4,6 +4,7 @@ public abstract class FileWriter
 {
     protected readonly IFileCommand fileCommand;
     protected readonly FileStatement fileQuery;
+    protected readonly IFileConnection fileConnection;
     protected readonly FileReader fileReader;
     protected readonly IFileTransaction? fileTransaction;
     protected IDataSetWriter? dataSetWriter { get; set; }
@@ -14,6 +15,7 @@ public abstract class FileWriter
     {
         this.fileCommand = fileCommand;
         this.fileQuery = fileQuery;
+        this.fileConnection = fileConnection; 
         fileReader = fileConnection.FileReader;
         fileTransaction = fileCommand.FileTransaction;
     }

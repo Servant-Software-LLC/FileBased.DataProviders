@@ -19,6 +19,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public override ConnectionState State => state;
     
     internal LoggerServices LoggerServices { get; }
+    LoggerServices IFileConnection.LoggerServices => LoggerServices;
     private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();
 
     protected FileConnection(string connectionString)
