@@ -25,7 +25,7 @@ public abstract class FileInsertWriter : FileWriter
 
     public override int Execute()
     {
-        log.LogDebug($"{GetType()}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
+        log.LogDebug($"{nameof(FileInsertWriter)}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
 
         if (IsTransactedLater)
         {
