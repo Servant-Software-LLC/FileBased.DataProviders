@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.FileStatements;
+using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
@@ -53,26 +54,34 @@ public abstract class FileDataReader : DbDataReader
 
     public override bool NextResult()
     {
+        log.LogInformation($"{GetType()}.{nameof(NextResult)}() called.");
+
         try
         {
-            if (!statementEnumerator.MoveNext())
+            bool isSelectStatement;
+            do
             {
-                log.LogInformation($"{GetType()}.{nameof(NextResult)}(). No more results to enumerate.");
-                return false;
-            }
+                if (!statementEnumerator.MoveNext())
+                {
+                    log.LogInformation($"{GetType()}.{nameof(NextResult)}(). No more results to enumerate.");
+                    return false;
+                }
 
-            //Create the DataTable which is our working resultset
-            var fileStatement = statementEnumerator.Current;
+                //Create the DataTable which is our working resultset
+                var fileStatement = statementEnumerator.Current;
 
-            log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Execute for next resultset.  Statement: {fileStatement.Statement}");
-            result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
+                log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Executing statement: {fileStatement.Statement}");
+                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
 
-            //Save the last write statement that we executed to evaluate built-in functions.
-            if (fileStatement is not FileSelect)
-            {
-                previousWriteResult = result;
-                log.LogDebug($"Saving previous WriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
-            }
+                //Save the last write statement that we executed to evaluate built-in functions.
+                isSelectStatement = fileStatement is FileSelect;
+                if (!isSelectStatement)
+                {
+                    previousWriteResult = result;
+                    log.LogDebug($"Saving previous WriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
+                }
+
+            } while (!isSelectStatement);
 
             return true;
         }
