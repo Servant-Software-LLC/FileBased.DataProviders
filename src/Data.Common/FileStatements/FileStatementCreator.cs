@@ -11,16 +11,12 @@ internal class FileStatementCreator
     /// </summary>
     /// <param name="fileCommand"></param>
     /// <returns></returns>
-    public static IEnumerable<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand)
+    public static IList<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand)
     {
         var commandText = fileCommand.CommandText;
         var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        foreach (var command in commands)
-        {
-            var fileQuery = CreateFromCommand(command, fileCommand.Parameters);
-            yield return fileQuery;
-        }
+        return commands.Select(command => CreateFromCommand(command, fileCommand.Parameters)).ToList();
     }
 
     public static FileStatement Create(IFileCommand fileCommand)
