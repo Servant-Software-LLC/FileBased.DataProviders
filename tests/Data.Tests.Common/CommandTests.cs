@@ -3,7 +3,7 @@ using Data.Tests.Common.Utils;
 using System.Data.FileClient;
 using Xunit;
 
-namespace Data.Csv.Tests.FolderAsDatabase;
+namespace Data.Tests.Common;
 
 /// <summary>
 /// Tests that exercise the <see cref="FileCommand"/> class while using the 'Folder as Database' approach.
