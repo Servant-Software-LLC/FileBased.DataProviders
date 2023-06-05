@@ -129,7 +129,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         if (FileConnection.AdminMode)
             return ExecuteAdminNonQuery();
 
-        var fileStatement = FileStatementCreator.Create(this);
+        var fileStatement = FileStatementCreator.Create(this, log);
 
         var fileWriter = CreateWriter(fileStatement);
 
@@ -158,7 +158,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         //When calling ExecuteDbDataReader, the CommandText property of a DbCommand can contain
         //multiple commands separated by semicolons
-        var fileStatements = FileStatementCreator.CreateMultiCommandSupport(this);
+        var fileStatements = FileStatementCreator.CreateMultiCommandSupport(this, log);
 
         if (FileConnection!.State != ConnectionState.Open)
         {
@@ -184,7 +184,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         //ExecuteScalar method of a class deriving from DbCommand is designed to execute a single command and
         //return the scalar value from the first column of the first row of the result set. It is not intended
         //to process multiple commands or handle multiple result sets.
-        var fileStatement = FileStatementCreator.Create(this);
+        var fileStatement = FileStatementCreator.Create(this, log);
         if (fileStatement is not FileSelect selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 

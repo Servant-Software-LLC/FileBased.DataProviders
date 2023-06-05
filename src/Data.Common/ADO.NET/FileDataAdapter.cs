@@ -73,7 +73,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand);
+        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         dataTable = GetTable(dataTable, selectQuery);
@@ -112,7 +112,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand);
+        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         var cols = GetColumns(dataTable, selectQuery);
@@ -173,7 +173,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
 
-        var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand);
+        var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
         if (query is not FileUpdate updateStatement)
         {
             throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
