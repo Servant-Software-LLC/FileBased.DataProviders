@@ -14,7 +14,7 @@ public class FileInsert : FileStatement
         var values = node
             .ChildNodes[4]
             .ChildNodes[1]
-            .ChildNodes.Select(x => x.ChildNodes.Count==0? x.Token.Value: base.GetValue(x.ChildNodes));
+            .ChildNodes.Select(x => x.ChildNodes.Count==0? x.Token.Value: GetInsertParameterValue(x.ChildNodes));
         if (cols.Count() != values.Count())
         {
             throw new InvalidOperationException("The supplied values are not matched");
@@ -34,4 +34,12 @@ public class FileInsert : FileStatement
     }
 
     public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
+
+    private object? GetInsertParameterValue(ParseTreeNodeList x)
+    {
+        if (x[0].Term.Name != "Parameter")
+            throw new InvalidOperationException($"Expected all calls to GetInsertParameterValue() to be Parameter");
+
+        return GetParameterValue(x[0].ChildNodes);
+    }
 }

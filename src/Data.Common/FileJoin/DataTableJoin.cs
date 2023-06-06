@@ -56,7 +56,8 @@ public class DataTableJoin
         var filter = new SimpleFilter(dataTableInnerJoin.JoinColumn, dataTableInnerJoin.Operation, sourceColumnVal);
         //File.WriteAllText("foo.txt", "foo");
         var dataView = new DataView(dataTableToJoin!);
-        dataView.RowFilter = filter.Evaluate();
+        var sFilter = filter.Evaluate();
+        dataView.RowFilter = sFilter;
 
         foreach (DataRowView row in dataView)
         {

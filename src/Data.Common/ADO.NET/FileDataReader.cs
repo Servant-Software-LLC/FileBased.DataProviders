@@ -88,7 +88,7 @@ public abstract class FileDataReader : DbDataReader
         catch (Exception ex)
         {
             log.LogError($"{GetType()}.{nameof(NextResult)}(). Exception occurred. {ex}");
-            return false;
+            throw;
         }
     }
 

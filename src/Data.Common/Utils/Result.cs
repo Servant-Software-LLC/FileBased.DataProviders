@@ -31,12 +31,12 @@ internal class Result
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
             var filter = fileStatement!.Filter;
-            if (filter is FuncFilter funcFilter)
+            if (filter != null)
             {
-                if (previousWriteResult is null)
-                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause { funcFilter } because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
+                if (previousWriteResult is not null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
+                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
 
-                funcFilter.EvaluateFunction(previousWriteResult);
+                filter.ResolveFunctions(previousWriteResult);
             }
 
 

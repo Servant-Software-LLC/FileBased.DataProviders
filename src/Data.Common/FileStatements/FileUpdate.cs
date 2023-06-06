@@ -22,9 +22,9 @@ public class FileUpdate : FileStatement
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
         var cols = GetColumnNames();
-        var values = node
-     .ChildNodes[3].ChildNodes
-     .Select(item =>  base.GetValue(item.ChildNodes));
+        var assignList = node.ChildNodes[3];
+        var values = assignList.ChildNodes.Select(item => base.GetValue(item.ChildNodes[2]));
+        
         if (cols.Count() != values.Count())
         {
             throw new InvalidOperationException("The supplied values are not matched");
