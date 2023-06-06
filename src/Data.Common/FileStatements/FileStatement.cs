@@ -1,5 +1,4 @@
-﻿using Data.Common.Parsing;
-using Irony.Parsing;
+﻿using Irony.Parsing;
 namespace Data.Common.FileStatements;
 
 public abstract class FileStatement
