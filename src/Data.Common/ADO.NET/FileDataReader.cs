@@ -71,7 +71,7 @@ public abstract class FileDataReader : DbDataReader
                 var fileStatement = statementEnumerator.Current;
 
                 log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Executing statement: {fileStatement.Statement}");
-                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
+                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult, log);
 
                 //Save the last write statement that we executed to evaluate built-in functions.
                 isSelectStatement = fileStatement is FileSelect;

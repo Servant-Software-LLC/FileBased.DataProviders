@@ -1,18 +1,22 @@
 ﻿using Data.Common.FileIO.Write;
+using Microsoft.Extensions.Logging;
 
 namespace Data.Common.Utils;
 
 internal class Result
 {
+    private readonly ILogger log;
+
     public DataTable WorkingResultSet { get; }
     public FileEnumerator FileEnumerator { get; }
 
     public object?[]? CurrentDataRow { get; private set; }
     public string Statement { get; }
 
-    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, Result previousWriteResult)
+    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, Result previousWriteResult, ILogger log)
     {
         Statement = fileStatement.Statement;
+        this.log = log;
 
         //If SELECT statement
         if (fileStatement is FileSelect fileSelect)
@@ -20,27 +24,30 @@ internal class Result
             //Normal SELECT query with a FROM <table> clause
             if (!string.IsNullOrEmpty(fileStatement.TableName))
             {
+                log.LogDebug("Normal SELECT query with a FROM <table> clause");
                 WorkingResultSet = fileReader.ReadFile(fileStatement, true);
             }
             else //SELECT query with no FROM clause
             {
+                log.LogDebug("SELECT query with no FROM clause");
                 WorkingResultSet = GetSingleRowTable(fileSelect, previousWriteResult);
             }
 
             if (WorkingResultSet == null)
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
+            log.LogDebug("Determine filer if any.");
             var filter = fileStatement!.Filter;
             if (filter != null)
             {
                 if (previousWriteResult is not null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
                     throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
 
+                log.LogDebug("Resolving built-in functions.");
                 filter.ResolveFunctions(previousWriteResult);
             }
 
-
-            FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter);
+            FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter, log);
 
             RecordsAffected = -1;
             return;

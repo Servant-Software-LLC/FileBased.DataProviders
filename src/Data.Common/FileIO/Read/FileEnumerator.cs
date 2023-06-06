@@ -1,22 +1,37 @@
-﻿namespace Data.Common.FileIO.Read;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Data.Common.FileIO.Read;
 
 internal class FileEnumerator : IEnumerator<object?[]>
 {
+    private readonly ILogger log;
     private readonly DataView workingDataView;  // We cannot use the DefaultView of the DataTable, because workingResultset may be a pointer directly to
                                                 // one of the tables (i.e. not created from the columns/joins of the SELECT query) and many JsonDataReader/JsonEnumerator
                                                 // may be instantiated with different filters on them.
     private object?[] currentRow = Array.Empty<object>();
     private bool endOfResultset;
 
-    public FileEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter)
+    public FileEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter, ILogger log)
     {
         if (workingResultset == null) 
             throw new ArgumentNullException(nameof(workingResultset));
 
+        this.log = log;
+
+        log.LogDebug($"FileEnumerator creating. Filter? {filter != null}");
         workingDataView = new DataView(workingResultset);
         if (filter != null)
         {
-            workingDataView.RowFilter = filter.Evaluate();
+            try
+            {
+                var sFilter = filter.Evaluate();
+                log.LogDebug($"Filter: {sFilter}");
+                workingDataView.RowFilter = sFilter;
+            }
+            catch(Exception ex)
+            {
+                log.LogError($"Filter could not be applied to DataView.  Error: {ex}");
+            }
         }
 
         Columns.AddRange(resultSetColumnNames);
@@ -28,6 +43,8 @@ internal class FileEnumerator : IEnumerator<object?[]>
                 Columns.Add(column.ColumnName);
             }
         }
+
+        log.LogDebug($"FileEnumerator created.");
     }
 
     public object?[] Current => currentRow;
@@ -43,6 +60,8 @@ internal class FileEnumerator : IEnumerator<object?[]>
 
     public bool MoveNext()
     {
+        log.LogDebug($"FileEnumerator.MoveNext() called.  endofResultset = {endOfResultset}");
+
         if (endOfResultset)
             return false;
 
@@ -66,6 +85,7 @@ internal class FileEnumerator : IEnumerator<object?[]>
             return true;
         }
 
+        log.LogDebug($"End of resultset reached.");
         endOfResultset = true;
         return false;
     }
