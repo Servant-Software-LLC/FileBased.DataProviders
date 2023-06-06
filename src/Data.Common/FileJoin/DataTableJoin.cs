@@ -53,7 +53,7 @@ public class DataTableJoin
         var sourceColumnVal = sourceRow[dataTableInnerJoin.SourceColumn];
         var dataTableToJoin = database.Tables[dataTableInnerJoin.TableName];
 
-        var filter = new SimpleFilter(dataTableInnerJoin.JoinColumn, dataTableInnerJoin.Operation, sourceColumnVal);
+        var filter = new SimpleFilter(new Field(dataTableInnerJoin.JoinColumn), dataTableInnerJoin.Operation, sourceColumnVal);
         //File.WriteAllText("foo.txt", "foo");
         var dataView = new DataView(dataTableToJoin!);
         var sFilter = filter.Evaluate();
