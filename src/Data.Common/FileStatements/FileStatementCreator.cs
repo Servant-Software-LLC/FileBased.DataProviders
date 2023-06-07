@@ -52,17 +52,21 @@ internal class FileStatementCreator
         //in seldomly tested scenarios and when the grammar changes.
         try
         {
+            //In a transaction scenario in EF Core, it isn't clear why, but the parameters have DbParameterCollection.Clear() called before the DbTransaction.Commit() is called.
+            //Therefore, we need to clone this parameter collection, since it is used by are writers in the transaction's commit.
+            var cloneParameters = (parameters as IFileParameterCollection).Clone() as DbParameterCollection;
+
             var mainNode = parseTree.Root.ChildNodes[0];
             switch (mainNode.Term.Name)
             {
                 case "insertStmt":
-                    return new FileInsert(mainNode, parameters, commandText);
+                    return new FileInsert(mainNode, cloneParameters, commandText);
                 case "deleteStmt":
-                    return new FileDelete(mainNode, parameters, commandText);
+                    return new FileDelete(mainNode, cloneParameters, commandText);
                 case "updateStmt":
-                    return new FileUpdate(mainNode, parameters, commandText);
+                    return new FileUpdate(mainNode, cloneParameters, commandText);
                 case "selectStmt":
-                    return new FileSelect(mainNode, parameters, commandText);
+                    return new FileSelect(mainNode, cloneParameters, commandText);
             }
         }
         catch (Exception ex)

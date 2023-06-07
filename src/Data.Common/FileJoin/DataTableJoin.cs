@@ -10,12 +10,12 @@ public class DataTableJoin
         this.mainTable = mainTable;
     }
 
-    public DataTable Join(DataSet database)
+    public DataTable Join(DataSet database, Dictionary<string, List<DataRow>> transactionScopedRows)
     {
         var resultTable = new DataTable();
-        foreach (DataTable item in database.Tables)
+        foreach (DataTable table in database.Tables)
         {
-            foreach (DataColumn col in item.Columns)
+            foreach (DataColumn col in table.Columns)
             {
                 if (resultTable.Columns[col.ColumnName] != null)
                 {
@@ -25,7 +25,18 @@ public class DataTableJoin
             }
         }
 
-        foreach (DataRow sourceRow in database.Tables[mainTable]!.Rows)
+        var mainDataTable = database.Tables[mainTable]!;
+
+        //If we have additional rows to add because we're in a transaction
+        if (transactionScopedRows != null && transactionScopedRows.TryGetValue(mainTable, out List<DataRow> additionalRows))
+        {
+            mainDataTable = mainDataTable.Copy();
+
+            foreach (DataRow additionalRow in additionalRows)
+                mainDataTable.Rows.Add(additionalRow);
+        }
+
+        foreach (DataRow sourceRow in mainDataTable.Rows)
         {
             var rows = new List<DataRow>();
             foreach (var dataTableInnerJoin in dataTableInnerJoins)
@@ -34,7 +45,8 @@ public class DataTableJoin
                          resultTable,
                          dataTableInnerJoin,
                          database,
-                         rows);
+                         rows,
+                         transactionScopedRows);
             }
             foreach (var item in rows)
             {
@@ -48,10 +60,20 @@ public class DataTableJoin
                                   DataTable resultTable,
                                   Join dataTableInnerJoin,
                                   DataSet database,
-                                  List<DataRow> dataRows)
+                                  List<DataRow> dataRows,
+                                  Dictionary<string, List<DataRow>> transactionScopedRows)
     {
         var sourceColumnVal = sourceRow[dataTableInnerJoin.SourceColumn];
         var dataTableToJoin = database.Tables[dataTableInnerJoin.TableName];
+
+        //If we have additional rows to add because we're in a transaction
+        if (transactionScopedRows != null && transactionScopedRows.TryGetValue(mainTable, out List<DataRow> additionalRows))
+        {
+            dataTableToJoin = dataTableToJoin.Copy();
+
+            foreach (DataRow additionalRow in additionalRows)
+                dataTableToJoin.Rows.Add(additionalRow);
+        }
 
         var filter = new SimpleFilter(new Field(dataTableInnerJoin.JoinColumn), dataTableInnerJoin.Operation, sourceColumnVal);
         //File.WriteAllText("foo.txt", "foo");
@@ -68,10 +90,12 @@ public class DataTableJoin
                 {
                     var rows = new List<DataRow>();
                     var otherRows = JoinRows(row.Row,
-                        resultTable,
-                        innerJoin,
-                        database,
-                        rows);
+                                            resultTable,
+                                            innerJoin,
+                                            database,
+                                            rows,
+                                            transactionScopedRows);
+
                     foreach (var item in otherRows)
                     {
                         AddRow(item, sourceRow.Table, sourceRow);

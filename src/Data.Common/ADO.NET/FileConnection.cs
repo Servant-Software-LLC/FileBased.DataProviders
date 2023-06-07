@@ -39,6 +39,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
             var assembly = Reflection.Assembly.GetExecutingAssembly();
             var fvi = Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
             string version = fvi.FileVersion;
+
+            log.LogDebug($"{GetType()}.{nameof(ServerVersion)}() = {version}");
             return version;
         }
     }

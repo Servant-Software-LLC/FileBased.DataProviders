@@ -23,6 +23,8 @@ public abstract class FileInsertWriter : FileWriter
     /// </summary>
     public object? LastInsertIdentity { get; private set; }
 
+    public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
+
     public override int Execute()
     {
         log.LogDebug($"{nameof(FileInsertWriter)}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
@@ -30,6 +32,10 @@ public abstract class FileInsertWriter : FileWriter
         if (IsTransactedLater)
         {
             fileTransaction!.Writers.Add(this);
+
+            //Call PrepareRow() in order to determine the identity value
+            var results = PrepareRow(fileStatement);
+            TransactionScopedRow = (results.Table.TableName, results.Row);
             return 1;
         }
         try
@@ -41,22 +47,8 @@ public abstract class FileInsertWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(fileStatement);
-            
-            //Check if we need to add columns on the first INSERT of data into this table.
-            if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
-            {
-                AddMissingColumns(dataTable);
-            }
-
-            var row = dataTable!.NewRow();
-            foreach (var val in fileStatement.GetValues())
-            {
-                row[val.Key] = val.Value;
-            }
-
-            AddMissingIdentityValues(dataTable, row);
-            dataTable.Rows.Add(row);
+            var results = PrepareRow(fileStatement);
+            results.Table.Rows.Add(results.Row);
         }
         finally
         {
@@ -69,6 +61,26 @@ public abstract class FileInsertWriter : FileWriter
             }
         }
         return 1;
+    }
+
+    private (DataTable Table, DataRow Row) PrepareRow(FileStatements.FileInsert fileStatement)
+    {
+        var dataTable = fileReader.ReadFile(fileStatement);
+
+        //Check if we need to add columns on the first INSERT of data into this table.
+        if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
+        {
+            AddMissingColumns(dataTable);
+        }
+
+        var row = dataTable!.NewRow();
+        foreach (var val in fileStatement.GetValues())
+        {
+            row[val.Key] = val.Value;
+        }
+
+        AddMissingIdentityValues(dataTable, row);
+        return (dataTable, row);
     }
 
     protected abstract object DefaultIdentityValue();

@@ -14,6 +14,8 @@ public abstract class FileDataReader : DbDataReader
     private readonly Func<FileStatement, FileWriter> createWriter;
     private readonly LoggerServices loggerServices;
     private Result previousWriteResult;
+    private Dictionary<string, List<DataRow>> transactionScopedRows = new();
+
     private Result result;
     
     protected FileDataReader(IEnumerable<FileStatement> fileStatements, 
@@ -37,7 +39,15 @@ public abstract class FileDataReader : DbDataReader
 
     //Copying SQL Server ADO.NET provider's behavior here.  It retains the RowsAffected value
     //from the last executed non-query command when moving to the next result set using NextResult().
-    public override int RecordsAffected => previousWriteResult != null ? previousWriteResult.RecordsAffected : -1;
+    public override int RecordsAffected
+    {
+        get
+        {
+            var returnValue = previousWriteResult != null ? previousWriteResult.RecordsAffected : -1;
+            log.LogDebug($"{GetType()}.{nameof(RecordsAffected)} = {returnValue}");
+            return returnValue;
+        }
+    }
 
     /// <summary>
     /// Returns an <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.
@@ -71,7 +81,7 @@ public abstract class FileDataReader : DbDataReader
                 var fileStatement = statementEnumerator.Current;
 
                 log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Executing statement: {fileStatement.Statement}");
-                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult, log);
+                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult, transactionScopedRows, log);
 
                 //Save the last write statement that we executed to evaluate built-in functions.
                 isSelectStatement = fileStatement is FileSelect;
@@ -79,6 +89,20 @@ public abstract class FileDataReader : DbDataReader
                 {
                     previousWriteResult = result;
                     log.LogDebug($"Saving previous WriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
+
+                    //If this result has an addition row from an INSERT that is in the middle of a transaction..
+                    if (result.TransactionScopedRow.HasValue)
+                    {
+                        var tableName = result.TransactionScopedRow.Value.TableName;
+                        if (!transactionScopedRows.TryGetValue(tableName, out List<DataRow> additionalRows))
+                        {
+                            additionalRows = new List<DataRow>();
+                            transactionScopedRows[tableName] = additionalRows;
+                        }
+
+                        additionalRows.Add(result.TransactionScopedRow.Value.Row);
+                    }
+
                 }
 
             } while (!isSelectStatement);

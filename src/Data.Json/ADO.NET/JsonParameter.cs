@@ -18,5 +18,5 @@ public class JsonParameter : FileParameter<JsonParameter>
     {
     }
 
-    public override JsonParameter Clone() => new(ParameterName, DbType, SourceColumn);
+    public override JsonParameter Clone() => new(ParameterName, Value) { SourceColumn = SourceColumn };
 }

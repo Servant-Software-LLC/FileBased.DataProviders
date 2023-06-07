@@ -3,7 +3,7 @@
 namespace System.Data.FileClient;
 
 
-public class FileParameterCollection<TFileParameter> : DbParameterCollection, IDataParameterCollection, IList<TFileParameter>
+public class FileParameterCollection<TFileParameter> : DbParameterCollection, IFileParameterCollection, IList<TFileParameter>
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     internal List<TFileParameter> InternalList { get; } = new(5);
@@ -154,6 +154,18 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, ID
     /// <param name="arrayIndex">Starting index in destination array.</param>
     public void CopyTo(TFileParameter[] array, int arrayIndex)
         => InternalList.CopyTo(array, arrayIndex);
+
+    public IFileParameterCollection Clone()
+    {
+        var clone = new FileParameterCollection<TFileParameter>();
+        foreach (FileParameter<TFileParameter> parameter in this)
+        {
+            var clonedParameter = parameter.Clone();
+            clone.Add(clonedParameter);
+        }
+
+        return clone;
+    }
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(string parameterName)

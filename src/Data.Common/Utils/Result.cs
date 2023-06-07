@@ -13,7 +13,8 @@ internal class Result
     public object?[]? CurrentDataRow { get; private set; }
     public string Statement { get; }
 
-    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, Result previousWriteResult, ILogger log)
+    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, 
+                  Result previousWriteResult, Dictionary<string, List<DataRow>> transactionScopedRows, ILogger log)
     {
         Statement = fileStatement.Statement;
         this.log = log;
@@ -25,7 +26,7 @@ internal class Result
             if (!string.IsNullOrEmpty(fileStatement.TableName))
             {
                 log.LogDebug("Normal SELECT query with a FROM <table> clause");
-                WorkingResultSet = fileReader.ReadFile(fileStatement, true);
+                WorkingResultSet = fileReader.ReadFile(fileStatement, true, transactionScopedRows);
             }
             else //SELECT query with no FROM clause
             {
@@ -59,7 +60,10 @@ internal class Result
         RecordsAffected = fileWriter.Execute();
 
         if (fileWriter is FileInsertWriter fileInsertWriter)
+        {
             LastInsertIdentity = fileInsertWriter.LastInsertIdentity;
+            TransactionScopedRow = fileInsertWriter.TransactionScopedRow;
+        }
     }
 
     public int FieldCount => FileEnumerator == null ? 0 : FileEnumerator.FieldCount;
@@ -70,7 +74,7 @@ internal class Result
 
     public int RecordsAffected { get; private set; }
     public object? LastInsertIdentity { get; private set; }
-
+    public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
     public bool Read()
     {
         if (FileEnumerator == null)

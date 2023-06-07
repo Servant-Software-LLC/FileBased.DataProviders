@@ -117,7 +117,7 @@ public abstract class FileStatement
         string paramName = GetParameterName(x);
         if (!parameters.Contains(paramName))
         {
-            throw new InvalidOperationException($"Must declare the scalar variable \"@{paramName}\"");
+            throw new InvalidOperationException($"Must declare the scalar variable \"{paramName}\"");
         }
 
         var parameter = parameters[paramName].Convert<IDbDataParameter>();
@@ -128,10 +128,10 @@ public abstract class FileStatement
 
     private string GetParameterName(ParseTreeNodeList x)
     {
-        if (x[0].ChildNodes.Count == 0)
-        {
-            return x[0].Token.ValueString;
-        }
-        return x[0].ChildNodes[0].Token.ValueString;
+        var parameterName = x[0].ChildNodes.Count == 0 ?
+                                x[0].Token.ValueString :
+                                x[0].ChildNodes[0].Token.ValueString;
+
+        return parameterName.StartsWith('@') ? parameterName : $"@{parameterName}";
     }
 }

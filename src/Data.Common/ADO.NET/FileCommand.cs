@@ -60,35 +60,27 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
 
     public FileCommand()
-    {
-    }
+        : this(null, null, null) { }
 
     public FileCommand(string command)
-    {
-        CommandText = command;
-    }
+        : this(command, null, null) { }
 
     public FileCommand(FileConnection<TFileParameter> connection)
-    {
-        FileConnection = connection;
-    }
+        : this(null, connection, null) { }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection)
-    {
-        CommandText = cmdText;
-        FileConnection = connection;
-    }
+        :this(cmdText, connection, null) { }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection, FileTransaction<TFileParameter> transaction)
     {
-        CommandText = cmdText;
-        FileConnection = connection;
-        FileTransaction = transaction;
+        if (cmdText != null) CommandText = cmdText;
+        if (connection != null) FileConnection = connection;
+        if (transaction != null) FileTransaction = transaction;
     }
 
     public override void Cancel()
     {
-
+        log.LogDebug($"{GetType()}.{nameof(Cancel)} () called.");
     }
 
     /// <summary>
@@ -110,6 +102,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
     public void Dispose()
     {
+        log.LogInformation($"{GetType()}.{nameof(Dispose)}() called.  CommandText = {CommandText}");
+
         FileConnection?.Close();
         CommandText = string.Empty;
         Parameters.Clear();
@@ -117,14 +111,14 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
     public override int ExecuteNonQuery()
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteNonQuery)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
-
-        log.LogInformation($"{GetType()}.{nameof(ExecuteNonQuery)}() called.  CommandText = {CommandText}");
 
         if (FileConnection.AdminMode)
             return ExecuteAdminNonQuery();
@@ -151,6 +145,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     /// <returns>A task representing the operation.</returns>
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection.AdminMode)
@@ -165,21 +161,23 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
-
         return CreateDataReader(fileStatements, FileConnection.LoggerServices);
     }
 
-    public override void Prepare() => throw new NotImplementedException();
+    public override void Prepare()
+    {
+        log.LogDebug($"{GetType()}.{nameof(Prepare)} () called.");
+    }
+
 
     public override object? ExecuteScalar()
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteScalar)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(ExecuteScalar)} method cannot be used with an admin connection.");
-
-        log.LogInformation($"{GetType()}.{nameof(ExecuteScalar)}() called.  CommandText = {CommandText}");
 
         //ExecuteScalar method of a class deriving from DbCommand is designed to execute a single command and
         //return the scalar value from the first column of the first row of the result set. It is not intended

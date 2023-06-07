@@ -12,19 +12,19 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     public FileParameter(string parameterName, DbType type)
     {
-        ParameterName = parameterName;
+        ParameterName = StandardizeName(parameterName);
         DbType = type;
     }
 
     public FileParameter(string parameterName, object value)
     {
-        ParameterName = parameterName;
+        ParameterName = StandardizeName(parameterName);
         Value = value;   // Setting the value also infers the type.
     }
 
     public FileParameter(string parameterName, DbType dbType, string sourceColumn)
     {
-        ParameterName = parameterName;
+        ParameterName = StandardizeName(parameterName);
         DbType = dbType;
         SourceColumn = sourceColumn;
     }
@@ -126,4 +126,7 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     public abstract TFileParameter Clone();
     object ICloneable.Clone() => Clone();
+
+    //Be forgiving, if the name isn't prefixed with a '@', then add it.
+    private string StandardizeName(string name) => name.StartsWith('@') ? name : $"@{name}";
 }

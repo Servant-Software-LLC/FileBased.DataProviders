@@ -49,7 +49,8 @@ public abstract class FileReader : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileStatement fileStatement, bool shouldLock = false)
+    public DataTable ReadFile(FileStatement fileStatement, bool shouldLock = false, 
+                              Dictionary<string, List<DataRow>> transactionScopedRows = null)
     {
         DataTable returnValue;
 
@@ -99,7 +100,7 @@ public abstract class FileReader : IDisposable
             //Reload any of the tables from disk?
             CheckForTableReload();
 
-            returnValue = CheckIfSelect(fileStatement);
+            returnValue = CheckIfSelect(fileStatement, transactionScopedRows);
         }
         finally
         {
@@ -132,25 +133,25 @@ public abstract class FileReader : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileStatement jsonQueryParser)
+    private DataTable CheckIfSelect(FileStatement fileQueryParser, Dictionary<string, List<DataRow>> transactionScopedRows)
     {
-        if (jsonQueryParser is FileSelect jsonSelectQuery)
+        if (fileQueryParser is FileSelect fileSelect)
         {
-            //Parser is JsonSelectQuery
+            //Parser is FileSelect
 
-            var dataTableJoin = jsonSelectQuery.GetFileJoin();
+            var dataTableJoin = fileSelect.GetFileJoin();
             if (dataTableJoin == null)
             {
                 //No table join.
-                return GetDataTable(jsonQueryParser.TableName)!;
+                return GetDataTable(fileQueryParser.TableName, transactionScopedRows)!;
             }
 
             //NOTE:  No support yet for INFORMATION_SCHEMA.TABLES table in SQL queries that have JOIN
-            return dataTableJoin.Join(DataSet!);
+            return dataTableJoin.Join(DataSet!, transactionScopedRows);
         }
 
-        //Parser is not a JsonSelectQuery
-        return GetDataTable(jsonQueryParser!.TableName)!;
+        //Parser is not a FileSelect
+        return GetDataTable(fileQueryParser!.TableName, transactionScopedRows)!;
     }
 
     private DataTable GenerateInformationSchemaTable()
@@ -230,7 +231,7 @@ public abstract class FileReader : IDisposable
     }
 
 
-    private DataTable GetDataTable(string tableName)
+    private DataTable GetDataTable(string tableName, Dictionary<string, List<DataRow>> transactionScopedRows)
     {
         if (IsSchemaTable(tableName))
             return GenerateInformationSchemaTable();
@@ -241,6 +242,24 @@ public abstract class FileReader : IDisposable
         var table = DataSet!.Tables[tableName]!;
         if (table == null)
             throw new TableNotFoundException($"Table '{tableName}' not found in '{fileConnection.Database}'");
+
+        if (transactionScopedRows != null && transactionScopedRows.TryGetValue(tableName, out List<DataRow> additionalRows))
+        {
+            table = table.Copy();
+
+            foreach (DataRow additionalRow in additionalRows)
+            {
+                var newRow = table.NewRow();
+
+                // Copy the data.
+                for (int i = 0; i < additionalRow.Table.Columns.Count; i++)
+                {
+                    newRow[i] = additionalRow[i];
+                }
+
+                table.Rows.Add(newRow);
+            }
+        }
 
         return table;
     }
