@@ -33,7 +33,7 @@ jobs:
       shell: pwsh
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore --configuration $BuildConfiguration
 
     - name: Build
       run: dotnet build --no-restore --configuration $BuildConfiguration
