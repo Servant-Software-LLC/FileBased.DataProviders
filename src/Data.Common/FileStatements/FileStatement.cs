@@ -4,12 +4,11 @@ namespace Data.Common.FileStatements;
 public abstract class FileStatement
 {
     protected readonly ParseTreeNode node;
-    private readonly DbParameterCollection parameters;
-
+    
     protected FileStatement(ParseTreeNode node, DbParameterCollection parameters, string statement)
     {
         this.node = node;
-        this.parameters = parameters;
+        Parameters = parameters;
         Filter = GetFilters();
         TableName = GetTable();
         Statement = statement;
@@ -22,6 +21,7 @@ public abstract class FileStatement
     /// SQL statement that created this instance.
     /// </summary>
     public string Statement { get; }
+    public DbParameterCollection Parameters { get; }
 
     public abstract string GetTable();
     public abstract IEnumerable<string> GetColumnNames();
@@ -115,12 +115,12 @@ public abstract class FileStatement
     {
         object? value;
         string paramName = GetParameterName(x);
-        if (!parameters.Contains(paramName))
+        if (!Parameters.Contains(paramName))
         {
             throw new InvalidOperationException($"Must declare the scalar variable \"{paramName}\"");
         }
 
-        var parameter = parameters[paramName].Convert<IDbDataParameter>();
+        var parameter = Parameters[paramName].Convert<IDbDataParameter>();
         value = parameter.Value;
         return value;
 

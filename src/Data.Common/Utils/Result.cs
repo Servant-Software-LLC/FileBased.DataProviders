@@ -37,7 +37,7 @@ internal class Result
             if (WorkingResultSet == null)
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
-            log.LogDebug("Determine filer if any.");
+            log.LogDebug("Determine filter if any.");
             var filter = fileStatement!.Filter;
             if (filter != null)
             {

@@ -188,4 +188,68 @@ public static class TransactionTests
         // Close the connection
         connection.Close();
     }
+
+    public static void Transaction_MultipleInserts_GeneratingIdentity<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection,
+                                                                                      bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        using (var connection = createFileConnection())
+        {
+            connection.Open();
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                var commandText = "INSERT INTO \"Blogs\" (\"Url\") VALUES (@p0); SELECT \"BlogId\" FROM \"Blogs\" WHERE ROW_COUNT() = 1 AND \"BlogId\"=LAST_INSERT_ID();";
+                var command = connection.CreateCommand(commandText);
+                command.Parameters.Add(command.CreateParameter("@p0", "http://blogs.msdn.com/adonet"));
+                using (var reader = command.ExecuteReader())
+                {
+                    // Assert
+                    Assert.NotNull(reader);
+                    Assert.Equal(1, reader.FieldCount);
+
+                    //first Row
+                    Assert.True(reader.Read());
+                    Assert.Equal(dataTypeAlwaysString ? "1" : 1m, reader["BlogId"]);
+
+                    //There should be no second row.
+                    Assert.False(reader.Read());
+                }
+
+                command.Parameters.Clear();
+                command.Parameters.Add(command.CreateParameter("@p0", "https://www.billboard.com/"));
+                using (var reader = command.ExecuteReader())
+                {
+                    // Assert
+                    Assert.NotNull(reader);
+                    Assert.Equal(1, reader.FieldCount);
+
+                    //first Row
+                    Assert.True(reader.Read());
+                    Assert.Equal(dataTypeAlwaysString ? "2" : 2m, reader["BlogId"]);
+
+                    //There should be no second row.
+                    Assert.False(reader.Read());
+                }
+
+                transaction.Commit();
+            }
+
+            // Query the Blogs table to see that the rows were finally INSERT'd
+            var adapter = connection.CreateDataAdapter("SELECT * FROM Blogs");
+            var dataSet = new DataSet();
+            adapter.Fill(dataSet);
+            
+            Assert.Equal(2, dataSet.Tables[0].Rows.Count);
+
+            var firstRow = dataSet.Tables[0].Rows[0];
+            Assert.Equal(dataTypeAlwaysString ? "1" : 1m, firstRow["BlogId"]);
+            Assert.Equal("http://blogs.msdn.com/adonet", firstRow["Url"]);
+
+            var secondRow = dataSet.Tables[0].Rows[1];
+            Assert.Equal(dataTypeAlwaysString ? "2" : 2m, secondRow["BlogId"]);
+            Assert.Equal("https://www.billboard.com/", firstRow["Url"]);
+
+        }
+    }
 }
