@@ -33,10 +33,10 @@ jobs:
       shell: pwsh
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore EFCore.FileBased.Providers.sln
 
     - name: Build
-      run: dotnet build --no-restore --configuration $BuildConfiguration
+      run: dotnet build EFCore.FileBased.Providers.sln --no-restore --configuration $BuildConfiguration
 
     - name: Obfuscate assemblies (ArmDot)
       run: |
