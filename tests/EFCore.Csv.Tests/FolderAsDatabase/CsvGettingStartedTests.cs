@@ -1,5 +1,6 @@
 ﻿using Data.Common.Extension;
 using EFCore.Csv.Tests.Utils;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 using Xunit;
 using GettingStarted = EFCore.Common.Tests.GettingStartedTests<EFCore.Csv.Tests.Models.BloggingContext>;
@@ -15,7 +16,8 @@ public class CsvGettingStartedTests
     public void Create_AddBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Create_AddBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
+        string connectionString = ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId);
+        GettingStarted.Create_AddBlog(connectionString);
     }
 
     [Fact]
@@ -29,14 +31,14 @@ public class CsvGettingStartedTests
     public void Update_UpdateBlogAddPost()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Update_UpdateBlogAddPost(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Delete_DeleteBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Delete_DeleteBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug));
     }
 
 }

@@ -7,9 +7,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore" />
-		<PackageReference Include="xunit" />
-		<PackageReference Include="ServantSoftware.Data.Common" />
-
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" />
+	  <PackageReference Include="xunit" />
+	
+      <!-- ServantSoftware.Data.Common : Debug uses csproj / Release uses NuGet package -->
+	  <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Common\Data.Common.csproj" Condition="'$(Configuration)'=='Debug'" />
+	  <PackageReference Include="ServantSoftware.Data.Common" Condition="'$(Configuration)'=='Release'" />
+	
 	</ItemGroup>
 </Project>

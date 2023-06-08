@@ -53,7 +53,7 @@ public class CsvOptionsExtension : RelationalOptionsExtension
 
         public override CsvOptionsExtension Extension => (CsvOptionsExtension)base.Extension;
         private string? ConnectionString => Extension.Connection == null ?
-                                                ConnectionString :
+                                                Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }
 

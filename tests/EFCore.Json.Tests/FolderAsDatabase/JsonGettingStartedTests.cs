@@ -30,14 +30,14 @@ public class JsonGettingStartedTests
     public void Update_UpdateBlogAddPost()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Update_UpdateBlogAddPost(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Delete_DeleteBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Delete_DeleteBlog(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId));
     }
 
 

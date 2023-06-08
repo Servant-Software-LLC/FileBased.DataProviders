@@ -7,10 +7,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="ServantSoftware.Data.Csv" />
-	</ItemGroup>
 
-	<ItemGroup>
+	  <!-- ServantSoftware.Data.Csv : Debug uses csproj / Release uses NuGet package -->	
+	  <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Csv\Data.Csv.csproj" Condition="'$(Configuration)'=='Debug'"/>
+	  <PackageReference Include="ServantSoftware.Data.Csv" Condition="'$(Configuration)'=='Release'" />
+
 	  <ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
 	</ItemGroup>
 </Project>

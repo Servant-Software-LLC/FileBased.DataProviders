@@ -28,9 +28,17 @@ public class CsvTypeMappingSource : RelationalTypeMappingSource
 
         if (clrType != null)
         {
+            if (clrType == typeof(int))
+                return new IntTypeMapping("INTEGER", System.Data.DbType.Int32);
+            if (clrType == typeof(double))
+                return new DoubleTypeMapping("REAL", System.Data.DbType.Double);
+            if (clrType == typeof(string))
                 return new StringTypeMapping("TEXT", System.Data.DbType.String);
+            if (clrType == typeof(byte[]))
+                return new ByteArrayTypeMapping("BLOB", System.Data.DbType.Binary);
         }
 
-        return base.FindMapping(mappingInfo);
+        var baseMapping = base.FindMapping(mappingInfo);
+        return baseMapping;
     }
 }

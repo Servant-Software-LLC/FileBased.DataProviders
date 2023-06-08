@@ -53,7 +53,7 @@ public class JsonOptionsExtension : RelationalOptionsExtension
 
         public override JsonOptionsExtension Extension => (JsonOptionsExtension)base.Extension;
         private string? ConnectionString => Extension.Connection == null ?
-                                                ConnectionString :
+                                                Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }
 

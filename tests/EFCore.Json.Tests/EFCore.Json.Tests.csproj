@@ -32,7 +32,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Sources\" />
+    <None Update="Sources\GettingStarted.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStarted\Blogs.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStarted\Posts.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

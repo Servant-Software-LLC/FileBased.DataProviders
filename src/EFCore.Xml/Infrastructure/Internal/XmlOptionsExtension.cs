@@ -53,7 +53,7 @@ public class XmlOptionsExtension : RelationalOptionsExtension
 
         public override XmlOptionsExtension Extension => (XmlOptionsExtension)base.Extension;
         private string? ConnectionString => Extension.Connection == null ?
-                                                ConnectionString :
+                                                Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }
 

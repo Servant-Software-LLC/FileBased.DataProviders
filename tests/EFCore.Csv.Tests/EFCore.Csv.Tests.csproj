@@ -35,4 +35,13 @@
     <Folder Include="Sources\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Sources\GettingStarted\Blogs.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStarted\Posts.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

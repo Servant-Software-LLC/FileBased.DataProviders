@@ -30,14 +30,14 @@ public class XmlGettingStartedTests
     public void Update_UpdateBlogAddPost()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Update_UpdateBlogAddPost(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Delete_DeleteBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Delete_DeleteBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
     }
 
 }
