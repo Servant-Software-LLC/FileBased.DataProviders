@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.EFCore.Json</PackageId>
+    <Title>ServantSoftware.EFCore.Json</Title>
+    <Product>EFCore Json Data Provider</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  
+    <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Json\Data.Json.csproj" />
+	<ProjectReference Include="..\EFCore.Common\EFCore.Common.DebugADO.csproj" />
+
+  </ItemGroup>
+</Project>

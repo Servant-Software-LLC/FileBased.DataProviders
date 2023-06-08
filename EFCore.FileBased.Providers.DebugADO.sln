@@ -3,28 +3,36 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Csv", "src\EFCore.Csv\EFCore.Csv.csproj", "{CC6FE92F-4A9E-4BF5-88B1-969F05D45A42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Csv", "src\EFCore.Csv\EFCore.Csv.DebugADO.csproj", "{CC6FE92F-4A9E-4BF5-88B1-969F05D45A42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Json", "src\EFCore.Json\EFCore.Json.csproj", "{91FF9493-88B7-4944-8EC5-95E2438B3EE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Json", "src\EFCore.Json\EFCore.Json.DebugADO.csproj", "{91FF9493-88B7-4944-8EC5-95E2438B3EE5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Xml", "src\EFCore.Xml\EFCore.Xml.csproj", "{45A4E45B-F112-42C5-B1A7-5364DBD92429}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Xml", "src\EFCore.Xml\EFCore.Xml.DebugADO.csproj", "{45A4E45B-F112-42C5-B1A7-5364DBD92429}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{84B78929-EFA4-44BB-A6D8-A9BD2777DA04}"
 	ProjectSection(SolutionItems) = preProject
 		Packages.props = Packages.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Csv.Tests", "tests\EFCore.Csv.Tests\EFCore.Csv.Tests.csproj", "{0FC13174-DB8C-4AAF-931D-9675E671B734}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Csv.Tests", "tests\EFCore.Csv.Tests\EFCore.Csv.Tests.DebugADO.csproj", "{0FC13174-DB8C-4AAF-931D-9675E671B734}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Json.Tests", "tests\EFCore.Json.Tests\EFCore.Json.Tests.csproj", "{90C6F120-064E-4CDF-8600-8BEF96A14F8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Json.Tests", "tests\EFCore.Json.Tests\EFCore.Json.Tests.DebugADO.csproj", "{90C6F120-064E-4CDF-8600-8BEF96A14F8A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Xml.Tests", "tests\EFCore.Xml.Tests\EFCore.Xml.Tests.csproj", "{026A2A7A-1BC1-4E3B-AE1A-10750B972392}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Xml.Tests", "tests\EFCore.Xml.Tests\EFCore.Xml.Tests.DebugADO.csproj", "{026A2A7A-1BC1-4E3B-AE1A-10750B972392}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common.Tests", "tests\EFCore.Common.Tests\EFCore.Common.Tests.csproj", "{A1E4CE1F-645E-43FF-9653-C1E3C6C8046D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common.Tests", "tests\EFCore.Common.Tests\EFCore.Common.Tests.DebugADO.csproj", "{A1E4CE1F-645E-43FF-9653-C1E3C6C8046D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{57DBF22F-675D-4C64-BCBF-B27B5751AB9E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common", "src\EFCore.Common\EFCore.Common.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.Common", "src\EFCore.Common\EFCore.Common.DebugADO.csproj", "{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Common", "..\ADO.NET.FileBased.DataProviders\src\Data.Common\Data.Common.csproj", "{5878CD99-F35E-4672-A7FF-0DD27FA5D5C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Csv", "..\ADO.NET.FileBased.DataProviders\src\Data.Csv\Data.Csv.csproj", "{39192467-4F39-4315-871A-D22461C9D0CE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Json", "..\ADO.NET.FileBased.DataProviders\src\Data.Json\Data.Json.csproj", "{73C6AB4E-C017-4CD5-BC35-D83FC9547332}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Xml", "..\ADO.NET.FileBased.DataProviders\src\Data.Xml\Data.Xml.csproj", "{9D0889D1-46C6-4FD8-81C4-09979129AC55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +72,22 @@ Global
 		{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A9FF67B-20D2-42E9-9A3F-0BE39035A682}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5878CD99-F35E-4672-A7FF-0DD27FA5D5C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5878CD99-F35E-4672-A7FF-0DD27FA5D5C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5878CD99-F35E-4672-A7FF-0DD27FA5D5C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5878CD99-F35E-4672-A7FF-0DD27FA5D5C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39192467-4F39-4315-871A-D22461C9D0CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39192467-4F39-4315-871A-D22461C9D0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39192467-4F39-4315-871A-D22461C9D0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39192467-4F39-4315-871A-D22461C9D0CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73C6AB4E-C017-4CD5-BC35-D83FC9547332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73C6AB4E-C017-4CD5-BC35-D83FC9547332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73C6AB4E-C017-4CD5-BC35-D83FC9547332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73C6AB4E-C017-4CD5-BC35-D83FC9547332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D0889D1-46C6-4FD8-81C4-09979129AC55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D0889D1-46C6-4FD8-81C4-09979129AC55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D0889D1-46C6-4FD8-81C4-09979129AC55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D0889D1-46C6-4FD8-81C4-09979129AC55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

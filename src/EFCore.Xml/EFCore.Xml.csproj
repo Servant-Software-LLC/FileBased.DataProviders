@@ -8,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<!-- ServantSoftware.Data.Xml : Debug uses csproj / Release uses NuGet package -->
-	<ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Xml\Data.Xml.csproj" Condition="'$(Configuration)'=='Debug'" />
-    <PackageReference Include="ServantSoftware.Data.Xml" Condition="'$(Configuration)'=='Release'" />	
+    <PackageReference Include="ServantSoftware.Data.Xml" />	
 
 	<ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
   </ItemGroup>

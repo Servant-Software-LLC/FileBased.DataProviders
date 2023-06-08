@@ -11,7 +11,7 @@
   <ItemGroup>
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
 
-	<PackageReference Include="ServantSoftware.Data.Common" />
+    <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Common\Data.Common.csproj" />
 
   </ItemGroup>
 	

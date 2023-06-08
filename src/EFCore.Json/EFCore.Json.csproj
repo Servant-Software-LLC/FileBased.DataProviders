@@ -6,11 +6,8 @@
     <Product>EFCore Json Data Provider</Product>
   </PropertyGroup>
 
-  <ItemGroup>
-	  
-	<!-- ServantSoftware.Data.Json : Debug uses csproj / Release uses NuGet package -->
-    <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Json\Data.Json.csproj" Condition="'$(Configuration)'=='Debug'" />
-    <PackageReference Include="ServantSoftware.Data.Json" Condition="'$(Configuration)'=='Release'" />	
+  <ItemGroup>	  
+    <PackageReference Include="ServantSoftware.Data.Json" />	
         
 	<ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
   </ItemGroup>

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<PackageId>ServantSoftware.EFCore.Csv</PackageId>
+		<Title>ServantSoftware.EFCore.Csv</Title>
+		<Product>EFCore Csv Data Provider</Product>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\ADO.NET.FileBased.DataProviders\src\Data.Csv\Data.Csv.csproj" />
+
+	  <ProjectReference Include="..\EFCore.Common\EFCore.Common.DebugADO.csproj" />
+	</ItemGroup>
+</Project>

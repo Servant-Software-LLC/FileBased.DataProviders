@@ -3,17 +3,13 @@
 	  <SSDataVersion>1.0.0.151</SSDataVersion>
 	  <EFCoreVersion>6.0.10</EFCoreVersion>
   </PropertyGroup>
-	
-  <!-- ServantSoftware.Data ADO.NET provider NuGet packages to only be included in RELEASE mode. -->
-  <ItemGroup Condition="'$(Configuration)'=='Release'">
-	  <PackageReference Update="ServantSoftware.Data.Common" Version="$(SSDataVersion)" />
-	  <PackageReference Update="ServantSoftware.Data.Json" Version="$(SSDataVersion)" />
-	  <PackageReference Update="ServantSoftware.Data.Csv" Version="$(SSDataVersion)" />
-	  <PackageReference Update="ServantSoftware.Data.Xml" Version="$(SSDataVersion)" />
-  </ItemGroup>
-	
+		
   <ItemGroup>
 	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
+	<PackageReference Update="ServantSoftware.Data.Common" Version="$(SSDataVersion)" />
+	<PackageReference Update="ServantSoftware.Data.Json" Version="$(SSDataVersion)" />
+	<PackageReference Update="ServantSoftware.Data.Csv" Version="$(SSDataVersion)" />
+	<PackageReference Update="ServantSoftware.Data.Xml" Version="$(SSDataVersion)" />
 
 
 	<!-- Unit Tests -->
