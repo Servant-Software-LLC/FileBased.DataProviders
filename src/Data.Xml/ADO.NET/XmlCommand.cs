@@ -1,4 +1,6 @@
-﻿namespace System.Data.XmlClient;
+﻿using Data.Common.Utils;
+
+namespace System.Data.XmlClient;
 
 public class XmlCommand : FileCommand<XmlParameter>
 {
@@ -37,7 +39,7 @@ public class XmlCommand : FileCommand<XmlParameter>
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override XmlDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements) => 
-        new(fileStatements, ((XmlConnection)Connection!).FileReader, CreateWriter);
+    protected override XmlDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 
+        new(fileStatements, FileConnection.FileReader, CreateWriter, loggerServices);
 
 }

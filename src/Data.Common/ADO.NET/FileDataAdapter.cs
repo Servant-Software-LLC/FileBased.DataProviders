@@ -1,8 +1,12 @@
-﻿namespace System.Data.FileClient;
+﻿using Microsoft.Extensions.Logging;
+
+namespace System.Data.FileClient;
 
 public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+    private ILogger<FileDataAdapter<TFileParameter>> log => connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
+
     private DataRow? lastDataRowChanged;
     private FileConnection<TFileParameter>? connection;
 
@@ -67,7 +71,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
+        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
+
+        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         dataTable = GetTable(dataTable, selectQuery);
@@ -104,7 +110,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        var selectQuery = FileStatement.Create((FileCommand<TFileParameter>)SelectCommand);
+        log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
+
+        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
         var dataTable = fileReader.ReadFile(selectQuery, true);
         var cols = GetColumns(dataTable, selectQuery);
@@ -163,7 +171,9 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        var query = FileStatement.Create((FileCommand<TFileParameter>)UpdateCommand);
+        log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
+
+        var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
         if (query is not FileUpdate updateStatement)
         {
             throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");

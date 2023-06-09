@@ -1,4 +1,6 @@
-﻿namespace Data.Common.Interfaces;
+﻿using Data.Common.Utils;
+
+namespace Data.Common.Interfaces;
 
 public interface IFileConnection : IDbConnection
 {
@@ -8,4 +10,5 @@ public interface IFileConnection : IDbConnection
     bool FolderAsDatabase { get; }
     bool AdminMode { get; }
     FileReader FileReader { get; }
+    LoggerServices LoggerServices { get; }
 }

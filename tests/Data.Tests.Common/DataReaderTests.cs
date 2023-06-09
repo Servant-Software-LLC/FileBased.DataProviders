@@ -327,25 +327,20 @@ public static class DataReaderTests
         connection.Open();
 
         // Act - Query the locations table
+
+        //NOTE:  ADO.NET provider behavior is that statements will get executed in turn until a resultset is
+        //produced.  Therefore, the ExecuteReader() method call here will execute both the INSERT and SELECT.
+        //(i.e. in other words for this scenario, NextResult() does not have to be called.
         var command = connection.CreateCommand("INSERT INTO locations (id, city, state, zip) VALUES (50, 'New Braunfels', 'Texas', 78132); SELECT * FROM locations");
         var reader = command.ExecuteReader();
 
         // Assert (on locations SELECT)
-        Assert.False(reader.Read());
-        Assert.Equal(1, reader.RecordsAffected);
-        Assert.Equal(0, reader.FieldCount);
-
-        //Act - Get the next resultset.
-        var nextResult = reader.NextResult();
-
-        // Assert
-        Assert.True(nextResult);
         Assert.True(reader.Read());
-        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(1, reader.RecordsAffected);
         Assert.Equal(4, reader.FieldCount);
 
         //Act - There are no more resultsets.
-        nextResult = reader.NextResult();
+        var nextResult = reader.NextResult();
 
         Assert.False(nextResult);
 
@@ -367,28 +362,23 @@ public static class DataReaderTests
         connection.Open();
 
         // Act - Query the locations table
+
+        //NOTE:  ADO.NET provider behavior is that statements will get executed in turn until a resultset is
+        //produced.  Therefore, the ExecuteReader() method call here will execute both the INSERT and SELECT.
+        //(i.e. in other words for this scenario, NextResult() does not have to be called.
         var command = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('New Braunfels', 'Texas', 78132); SELECT LAST_INSERT_ID() WHERE ROW_COUNT() = 1");
         var reader = command.ExecuteReader();
 
         // Assert (on locations SELECT)
-        Assert.False(reader.Read());
-        Assert.Equal(1, reader.RecordsAffected);
-        Assert.Equal(0, reader.FieldCount);
-
-        //Act - Get the next resultset.
-        var nextResult = reader.NextResult();
-
-        // Assert
-        Assert.True(nextResult);
         Assert.True(reader.Read());
-        Assert.Equal(-1, reader.RecordsAffected);
+        Assert.Equal(1, reader.RecordsAffected);
         Assert.Equal(1, reader.FieldCount);
 
         //Make sure that the new identity value for locations.id was created.
         Assert.Equal(3, reader.GetInt32(0));
 
         //Act - There are no more resultsets.
-        nextResult = reader.NextResult();
+        var nextResult = reader.NextResult();
 
         Assert.False(nextResult);
 

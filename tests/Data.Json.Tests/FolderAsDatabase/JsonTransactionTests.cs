@@ -41,4 +41,13 @@ public partial class JsonTransactionTests
         TransactionTests.
             Transaction_ShouldRollbackWhenExceptionIsThrown(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Transaction_MultipleInserts_GeneratingIdentity()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        TransactionTests.
+            Transaction_MultipleInserts_GeneratingIdentity(() => new JsonConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)));
+    }
+
 }

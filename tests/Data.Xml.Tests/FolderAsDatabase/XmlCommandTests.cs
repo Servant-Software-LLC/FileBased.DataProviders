@@ -1,4 +1,4 @@
-using Data.Csv.Tests.FolderAsDatabase;
+using Data.Tests.Common;
 using Data.Tests.Common.Utils;
 using System.Data.XmlClient;
 using Xunit;

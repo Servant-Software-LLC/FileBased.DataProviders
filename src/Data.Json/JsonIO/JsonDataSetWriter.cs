@@ -1,7 +1,12 @@
-﻿namespace Data.Json.JsonIO;
+﻿using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Xml;
+
+namespace Data.Json.JsonIO;
 
 internal class JsonDataSetWriter : IDataSetWriter
 {
+    private ILogger<JsonDataSetWriter> log => ((IFileConnection)fileConnection).LoggerServices.CreateLogger<JsonDataSetWriter>();
     private readonly IFileConnection fileConnection;
     private readonly FileStatement fileQuery;
 
@@ -67,6 +72,8 @@ internal class JsonDataSetWriter : IDataSetWriter
 
     private void SaveToFile(DataSet dataSet)
     {
+        log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
+
         using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
         using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false}))
         {
@@ -88,6 +95,7 @@ internal class JsonDataSetWriter : IDataSetWriter
         foreach (DataTable table in tablesToWrite)
         {
             var path = fileConnection.GetTablePath(table.TableName);
+            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
             using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
             using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
             {

@@ -3,7 +3,7 @@ using Data.Tests.Common.Utils;
 using System.Data.FileClient;
 using Xunit;
 
-namespace Data.Csv.Tests.FolderAsDatabase;
+namespace Data.Tests.Common;
 
 /// <summary>
 /// Tests that exercise the <see cref="FileCommand"/> class while using the 'Folder as Database' approach.
@@ -20,21 +20,26 @@ public static class CommandTests
         connection.Open();
         var command = connection.CreateCommand();
         command.CommandText = query;
-        var reader = command.ExecuteReader();
-        Assert.True(reader.Read());
-        var fieldCount = reader.FieldCount;
-        Assert.Equal(2, fieldCount);
-        var expectedValue = reader[0];
+        using (var reader = command.ExecuteReader())
+        {
+            Assert.True(reader.Read());
+            var fieldCount = reader.FieldCount;
+            Assert.Equal(2, fieldCount);
+            var expectedValue = reader[0];
 
-        // Act - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
-        //       "Executes the query, and returns the first column of the first row in the resultset returned
-        //       by the query. Extra columns or rows are ignored."
-        var scalarCommand = connection.CreateCommand();
-        scalarCommand.CommandText = query;
-        var value = scalarCommand.ExecuteScalar();
+            //NOTE: EF Core provider calls Dispose() twice, so this was added to test this case.
+            ((IDisposable)reader).Dispose();
 
-        // Assert
-        Assert.Equal(expectedValue, value);
+            // Act - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
+            //       "Executes the query, and returns the first column of the first row in the resultset returned
+            //       by the query. Extra columns or rows are ignored."
+            var scalarCommand = connection.CreateCommand();
+            scalarCommand.CommandText = query;
+            var value = scalarCommand.ExecuteScalar();
+
+            // Assert
+            Assert.Equal(expectedValue, value);
+        }
 
         // Close the connection
         connection.Close();

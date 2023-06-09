@@ -1,6 +1,9 @@
-﻿namespace System.Data.JsonClient;
+﻿using Microsoft.Extensions.Logging;
+
+namespace System.Data.JsonClient;
 public class JsonTransaction : FileTransaction<JsonParameter>
 {
+    private ILogger<JsonTransaction> log => ((IFileConnection)connection).LoggerServices.CreateLogger<JsonTransaction>();
     private readonly JsonConnection connection;
 
     public JsonTransaction(JsonConnection connection, IsolationLevel isolationLevel = 0) 
@@ -9,5 +12,9 @@ public class JsonTransaction : FileTransaction<JsonParameter>
         this.connection = connection;
     }
 
-    public override JsonCommand CreateCommand(string cmdText) => new(cmdText, connection, this);
+    public override JsonCommand CreateCommand(string cmdText)
+    {
+        log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
+        return new(cmdText, connection, this);
+    }
 }

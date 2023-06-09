@@ -1,4 +1,4 @@
-﻿namespace Data.Xml.JsonJoin;
+﻿namespace Data.Common.FileJoin;
 
 public class Join
 {

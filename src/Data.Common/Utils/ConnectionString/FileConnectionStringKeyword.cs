@@ -1,8 +1,10 @@
 ﻿namespace Data.Common.Utils.ConnectionString;
 
-public enum FileConnectionStringKeywords
+public enum FileConnectionStringKeyword
 {
     [Alias("Data Source")]
     DataSource,
-    Formatted
+    Formatted,
+    [Alias("Log")]
+    LogLevel
 }

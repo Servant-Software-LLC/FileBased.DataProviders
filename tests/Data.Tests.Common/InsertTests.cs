@@ -1,5 +1,5 @@
 ﻿using Data.Common.Extension;
-using Data.Tests.Common.Utils;
+using System.Data;
 using System.Data.FileClient;
 using Xunit;
 
@@ -44,6 +44,50 @@ public static class InsertTests
         }
     }
 
+    public static void Insert_ShouldInsertDataIntoEmptyTables<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        //Extra assertions to verify that our JSON tables now have a schema 
+        using (var connection = createFileConnection())
+        {
+            //Copy the contents of the tables into a DataSet
+            var adapter = connection.CreateDataAdapter("SELECT * FROM locations");
+            var dataset = new DataSet();
+            adapter.Fill(dataset);
+
+            //Verify that the DataColumns are of the correct schema type.
+            //Table: locations
+            var locationsTable = dataset.Tables[0];
+            var idColumn = locationsTable.Columns["id"];
+            Assert.Equal(typeof(decimal), idColumn.DataType);
+            var cityColumn = locationsTable.Columns["city"];
+            Assert.Equal(typeof(string), cityColumn.DataType);
+            var stateColumn = locationsTable.Columns["state"];
+            Assert.Equal(typeof(string), stateColumn.DataType);
+            var zipColumn = locationsTable.Columns["zip"];
+            Assert.Equal(typeof(decimal), zipColumn.DataType);
+
+            adapter = connection.CreateDataAdapter("SELECT * FROM employees");
+            adapter.Fill(dataset);
+
+            //Table: employees
+            var employeesTable = dataset.Tables[0];
+            var nameColumn = employeesTable.Columns["name"];
+            Assert.Equal(typeof(string), nameColumn.DataType);
+            var emailColumn = employeesTable.Columns["email"];
+            Assert.Equal(typeof(string), emailColumn.DataType);
+            var salaryColumn = employeesTable.Columns["salary"];
+            Assert.Equal(typeof(decimal), salaryColumn.DataType);
+            var marriedColumn = employeesTable.Columns["married"];
+
+            //NOTE:  When https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/22 is solved, then 
+            //       this assert will fail, because it needs to have an expectation of:
+            // Assert.Equal(typeof(boolean), marriedColumn.DataType);
+            Assert.Equal(typeof(string), marriedColumn.DataType);
+        }
+
+    }
+
     public static void Insert_ShouldBeFormatted<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
@@ -86,14 +130,14 @@ public static class InsertTests
             connection.Open();
 
             // Act - Insert a new record into the locations table
-            var command = connection.CreateCommand($"INSERT INTO Blogs(Url) VALUES ('https://www.theminimalists.com/blog/')");
+            var command = connection.CreateCommand($"INSERT INTO \"Blogs\" (\"Url\") VALUES ('https://www.theminimalists.com/blog/')");
             var rowsAffected = command.ExecuteNonQuery();
 
             // Assert
             Assert.Equal(1, rowsAffected);
 
             // Act - Verify that we now have a row with a BlogId == 1
-            command = connection.CreateCommand($"SELECT * FROM [Blogs]");
+            command = connection.CreateCommand($"SELECT * FROM \"Blogs\"");
 
             using (var reader = command.ExecuteReader())
             {

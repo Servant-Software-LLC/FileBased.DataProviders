@@ -1,8 +1,12 @@
-﻿namespace System.Data.FileClient;
+﻿using Data.Common.Utils;
+using Microsoft.Extensions.Logging;
+
+namespace System.Data.FileClient;
 
 public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
+    private ILogger<FileCommand<TFileParameter>> log => FileConnection.LoggerServices.CreateLogger<FileCommand<TFileParameter>>();
 
     public override string? CommandText { get; set; } = string.Empty;
     public override int CommandTimeout { get; set; }
@@ -56,35 +60,27 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
 
     public FileCommand()
-    {
-    }
+        : this(null, null, null) { }
 
     public FileCommand(string command)
-    {
-        CommandText = command;
-    }
+        : this(command, null, null) { }
 
     public FileCommand(FileConnection<TFileParameter> connection)
-    {
-        FileConnection = connection;
-    }
+        : this(null, connection, null) { }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection)
-    {
-        CommandText = cmdText;
-        FileConnection = connection;
-    }
+        :this(cmdText, connection, null) { }
 
     public FileCommand(string cmdText, FileConnection<TFileParameter> connection, FileTransaction<TFileParameter> transaction)
     {
-        CommandText = cmdText;
-        FileConnection = connection;
-        FileTransaction = transaction;
+        if (cmdText != null) CommandText = cmdText;
+        if (connection != null) FileConnection = connection;
+        if (transaction != null) FileTransaction = transaction;
     }
 
     public override void Cancel()
     {
-
+        log.LogDebug($"{GetType()}.{nameof(Cancel)} () called.");
     }
 
     /// <summary>
@@ -106,6 +102,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
     public void Dispose()
     {
+        log.LogInformation($"{GetType()}.{nameof(Dispose)}() called.  CommandText = {CommandText}");
+
         FileConnection?.Close();
         CommandText = string.Empty;
         Parameters.Clear();
@@ -113,6 +111,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
     public override int ExecuteNonQuery()
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteNonQuery)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection!.State != ConnectionState.Open)
@@ -123,7 +123,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         if (FileConnection.AdminMode)
             return ExecuteAdminNonQuery();
 
-        var fileStatement = FileStatement.Create(this);
+        var fileStatement = FileStatementCreator.Create(this, log);
 
         var fileWriter = CreateWriter(fileStatement);
 
@@ -137,7 +137,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     }
 
     protected abstract FileWriter CreateWriter(FileStatement fileStatement);
-    protected abstract FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements);
+    protected abstract FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices);
 
     /// <summary>
     /// Executes the command text against the connection.
@@ -145,6 +145,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     /// <returns>A task representing the operation.</returns>
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection.AdminMode)
@@ -152,20 +154,66 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         //When calling ExecuteDbDataReader, the CommandText property of a DbCommand can contain
         //multiple commands separated by semicolons
-        var fileStatements = FileStatement.CreateMultiCommandSupport(this);
+        var fileStatements = FileStatementCreator.CreateMultiCommandSupport(this, log);
+        
+        ProvideColumnNameHints(fileStatements);
 
         if (FileConnection!.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        return CreateDataReader(fileStatements);
+        return CreateDataReader(fileStatements, FileConnection.LoggerServices);
     }
 
-    public override void Prepare() => throw new NotImplementedException();
+    /// <summary>
+    /// If we have an INSERT statement followed by SELECT statements to the same table, then
+    /// the SELECT statement can be used to determine columns that should be part of the schema
+    /// of the table (in the case of the JSON provider where columns are only determined by rows
+    /// in the table).  This is especially necessary to get 'right' when a column is the identity
+    /// column.  EF Core provider has this as a common scenario with SQL statements together like
+    /// so:
+    ///   INSERT INTO Blogs(Url) VALUES (@p0); SELECT BlogId FROM Blogs WHERE ROW_COUNT() = 1 AND BlogId=LAST_INSERT_ID();
+    /// 
+    /// Here, if we look ahead to the SELECT statement, we can infer that there is not only a Url column, but also 
+    /// a BlogId column that is an identity.
+    /// </summary>
+    /// <param name="fileStatements"></param>
+    private void ProvideColumnNameHints(IList<FileStatement> fileStatements)
+    {
+        for (int iInsert = 0; iInsert < fileStatements.Count; iInsert++)
+        {
+            //Look for an INSERT statement.
+            if (fileStatements[iInsert] is FileInsert fileInsert)
+            {
+                //Now that an INSERT is found, look through the rest of the statements for any SELECTs
+                for (int iSelect = iInsert + 1; iSelect < fileStatements.Count; iSelect++)
+                {
+                    //
+                    if (fileStatements[iSelect] is FileSelect fileSelect && 
+                        string.Compare(fileSelect.TableName, fileInsert.TableName, true) == 0 &&
+                        fileSelect.GetFileJoin() == null)
+                    {
+                        foreach(var column in fileSelect.GetColumnNames())
+                        {
+                            fileInsert.ColumnNameHints.Add(column);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public override void Prepare()
+    {
+        log.LogDebug($"{GetType()}.{nameof(Prepare)} () called.");
+    }
+
 
     public override object? ExecuteScalar()
     {
+        log.LogInformation($"{GetType()}.{nameof(ExecuteScalar)}() called.  CommandText = {CommandText}");
+
         ThrowOnInvalidExecutionState();
 
         if (FileConnection.AdminMode)
@@ -174,7 +222,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         //ExecuteScalar method of a class deriving from DbCommand is designed to execute a single command and
         //return the scalar value from the first column of the first row of the result set. It is not intended
         //to process multiple commands or handle multiple result sets.
-        var fileStatement = FileStatement.Create(this);
+        var fileStatement = FileStatementCreator.Create(this, log);
         if (fileStatement is not FileSelect selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 

@@ -53,6 +53,12 @@
     <None Update="Sources\eCom\Products.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Sources\EmptyDatabase\employees.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\EmptyDatabase\locations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Sources\Folder\employees.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

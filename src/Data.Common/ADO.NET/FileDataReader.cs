@@ -1,17 +1,27 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.FileStatements;
+using Data.Common.Utils;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data.FileClient;
 
 public abstract class FileDataReader : DbDataReader
 {
+    private ILogger<FileDataReader> log => loggerServices.CreateLogger<FileDataReader>();
+
     private readonly IEnumerator<FileStatement> statementEnumerator;
     private readonly FileReader fileReader;
     private readonly Func<FileStatement, FileWriter> createWriter;
+    private readonly LoggerServices loggerServices;
     private Result previousWriteResult;
+    private Dictionary<string, List<DataRow>> transactionScopedRows = new();
+
     private Result result;
     
-    protected FileDataReader(IEnumerable<FileStatement> fileStatements, FileReader fileReader, Func<FileStatement, FileWriter> createWriter)
+    protected FileDataReader(IEnumerable<FileStatement> fileStatements, 
+                             FileReader fileReader, 
+                             Func<FileStatement, FileWriter> createWriter,
+                             LoggerServices loggerServices)
     {
         if (fileStatements == null)
             throw new ArgumentNullException(nameof(fileStatements));
@@ -19,13 +29,25 @@ public abstract class FileDataReader : DbDataReader
         statementEnumerator = fileStatements.GetEnumerator();
         this.fileReader = fileReader ?? throw new ArgumentNullException(nameof(fileReader));
         this.createWriter = createWriter ?? throw new ArgumentNullException(nameof(createWriter));
+        this.loggerServices = loggerServices ?? throw new ArgumentNullException(nameof(loggerServices));
 
         NextResult();
     }
 
     public override int Depth => 0;
     public override bool IsClosed => result.IsClosed;
-    public override int RecordsAffected => result.RecordsAffected;
+
+    //Copying SQL Server ADO.NET provider's behavior here.  It retains the RowsAffected value
+    //from the last executed non-query command when moving to the next result set using NextResult().
+    public override int RecordsAffected
+    {
+        get
+        {
+            var returnValue = previousWriteResult != null ? previousWriteResult.RecordsAffected : -1;
+            log.LogDebug($"{GetType()}.{nameof(RecordsAffected)} = {returnValue}");
+            return returnValue;
+        }
+    }
 
     /// <summary>
     /// Returns an <see cref="IEnumerator"/> that can be used to iterate through the rows in the data reader.
@@ -40,8 +62,74 @@ public abstract class FileDataReader : DbDataReader
 
     public override void Close() => Dispose();
 
+    public override bool NextResult()
+    {
+        log.LogInformation($"{GetType()}.{nameof(NextResult)}() called.");
+
+        try
+        {
+            bool isSelectStatement;
+            do
+            {
+                if (!statementEnumerator.MoveNext())
+                {
+                    log.LogInformation($"{GetType()}.{nameof(NextResult)}(). No more results to enumerate.");
+                    return false;
+                }
+
+                //Create the DataTable which is our working resultset
+                var fileStatement = statementEnumerator.Current;
+
+                //Log the executing statement as well as its parameters (if any)
+                log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Executing statement: {fileStatement.Statement}");
+                if (fileStatement.Parameters.Count > 0)
+                {
+                    log.LogInformation($"{fileStatement.Parameters[0].GetType().Name} Parameters (Count: {fileStatement.Parameters.Count}):");
+                    foreach(DbParameter parameter in fileStatement.Parameters)
+                    {
+                        log.LogInformation($"  {parameter.ParameterName}: {parameter.Value}");
+                    }
+                }
+
+                result = new Result(fileStatement, fileReader, createWriter, previousWriteResult, transactionScopedRows, log);
+
+                //Save the last write statement that we executed to evaluate built-in functions.
+                isSelectStatement = fileStatement is FileSelect;
+                if (!isSelectStatement)
+                {
+                    previousWriteResult = result;
+                    log.LogDebug($"Saving previous WriteResult. RowsAffected: {previousWriteResult.RecordsAffected}. Statement: {previousWriteResult.Statement}");
+
+                    //If this result has an addition row from an INSERT that is in the middle of a transaction..
+                    if (result.TransactionScopedRow.HasValue)
+                    {
+                        var tableName = result.TransactionScopedRow.Value.TableName;
+                        if (!transactionScopedRows.TryGetValue(tableName, out List<DataRow> additionalRows))
+                        {
+                            additionalRows = new List<DataRow>();
+                            transactionScopedRows[tableName] = additionalRows;
+                        }
+
+                        additionalRows.Add(result.TransactionScopedRow.Value.Row);
+                    }
+
+                }
+
+            } while (!isSelectStatement);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            log.LogError($"{GetType()}.{nameof(NextResult)}(). Exception occurred. {ex}");
+            throw;
+        }
+    }
+
     public override DataTable GetSchemaTable()
     {
+        log.LogDebug($"{GetType()}.{nameof(GetSchemaTable)}() called.");
+
         var workingResultSet = result.WorkingResultSet;
         if (workingResultSet == null)
             return null;
@@ -174,31 +262,37 @@ public abstract class FileDataReader : DbDataReader
         return tempSchemaTable;
     }
 
-    public override bool NextResult()
+    public override bool Read()
     {
-        //Save the last write statement that we executed to evaluate built-in functions.
-        if (statementEnumerator.Current is not FileSelect)
-            previousWriteResult = result;
-
-        if (!statementEnumerator.MoveNext())
-            return false;
-
-        //Create the DataTable which is our working resultset
-        var fileStatement = statementEnumerator.Current;
-        result = new Result(fileStatement, fileReader, createWriter, previousWriteResult);
-        return true;
+        log.LogDebug($"{GetType()}.{nameof(Read)}() called.");
+        return result.Read();
     }
 
-    public override bool Read() => result.Read();
+    public override int FieldCount
+    {
+        get
+        {
+            log.LogDebug($"{GetType()}.{nameof(FieldCount)}() getter called.");
+            return result.FieldCount;
+        }
+    }
 
-    public override int FieldCount => result.FieldCount;
+    public override bool GetBoolean(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetBoolean)}() called.");
+        return GetValueAsType<bool>(i);
+    }
 
-    public override bool GetBoolean(int i) => GetValueAsType<bool>(i);
-
-    public override byte GetByte(int i) => GetValueAsType<byte>(i);
+    public override byte GetByte(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetByte)}() called.");
+        return GetValueAsType<byte>(i);
+    }
 
     public override long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetBytes)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
@@ -237,10 +331,16 @@ public abstract class FileDataReader : DbDataReader
 
     }
 
-    public override char GetChar(int i) => GetValueAsType<char>(i);
+    public override char GetChar(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetChar)}() called.");
+        return GetValueAsType<char>(i);
+    }
 
     public override long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetChars)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
@@ -281,25 +381,73 @@ public abstract class FileDataReader : DbDataReader
     }
 
 
-    public override string GetDataTypeName(int i) => GetValueAsType<string>(i).GetType().Name;
-    public override DateTime GetDateTime(int i) => GetValueAsType<DateTime>(i);
-    public override decimal GetDecimal(int i) => GetValueAsType<decimal>(i);
-    public override double GetDouble(int i) => GetValueAsType<double>(i);
+    public override string GetDataTypeName(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetDataTypeName)}() called.");
+        return GetValueAsType<string>(i).GetType().Name;
+    }
+
+    public override DateTime GetDateTime(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetDateTime)}() called.");
+        return GetValueAsType<DateTime>(i);
+    }
+
+    public override decimal GetDecimal(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetDecimal)}() called.");
+        return GetValueAsType<decimal>(i);
+    }
+
+    public override double GetDouble(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetDouble)}() called.");
+        return GetValueAsType<double>(i);
+    }
+
     public override Type GetFieldType(int i)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetFieldType)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
         return result.FileEnumerator.GetType(i);
     }
-    public override float GetFloat(int i) => GetValueAsType<float>(i);
-    public override Guid GetGuid(int i) => GetValueAsType<Guid>(i);
-    public override short GetInt16(int i) => GetValueAsType<short>(i);
-    public override int GetInt32(int i) => GetValueAsType<int>(i);
-    public override long GetInt64(int i) => GetValueAsType<long>(i);
-    
+    public override float GetFloat(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetFloat)}() called.");
+        return GetValueAsType<float>(i);
+    }
+
+    public override Guid GetGuid(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetGuid)}() called.");
+        return GetValueAsType<Guid>(i);
+    }
+
+    public override short GetInt16(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetInt16)}() called.");
+        return GetValueAsType<short>(i);
+    }
+
+    public override int GetInt32(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetInt32)}() called.");
+        return GetValueAsType<int>(i);
+    }
+
+    public override long GetInt64(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetInt64)}() called.");
+        return GetValueAsType<long>(i);
+    }
+
     public override string GetName(int i)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetName)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
@@ -308,16 +456,25 @@ public abstract class FileDataReader : DbDataReader
 
     public override int GetOrdinal(string name)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetOrdinal)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
         return result.FileEnumerator.GetOrdinal(name);
     }
 
-    public override string GetString(int i) => GetValueAsType<string>(i);
+    public override string GetString(int i)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetString)}() called.");
+
+        return GetValueAsType<string>(i);
+    }
 
     public override object GetValue(int i)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetValue)}() called.");
+
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
@@ -327,6 +484,8 @@ public abstract class FileDataReader : DbDataReader
 
     public override int GetValues(object[] values)
     {
+        log.LogDebug($"{GetType()}.{nameof(GetValues)}() called.");
+
         var currentDataRow = result.CurrentDataRow;
         if (currentDataRow == null)
             return 0;
@@ -337,13 +496,29 @@ public abstract class FileDataReader : DbDataReader
 
     public override bool IsDBNull(int i)
     {
+        log.LogDebug($"{GetType()}.{nameof(IsDBNull)}() called.");
+
         var currentDataRow = result.CurrentDataRow;
 
         return currentDataRow is not null ? currentDataRow[i] == null
                                           : throw new ArgumentNullException(nameof(currentDataRow));
     }
 
-    protected new void Dispose() => fileReader.Dispose();
+    public T GetValueAsType<T>(int index)
+    {
+        log.LogDebug($"{GetType()}.{nameof(GetValueAsType)}<{typeof(T).Name}>() called.");
+
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return (T)Convert.ChangeType(result.CurrentDataRow![index], typeof(T))!;
+    }
+
+    protected new void Dispose()
+    {
+        log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
+        fileReader.Dispose();
+    }
 
     /// <summary>
     /// Gets the value of the specified column as an instance of <see cref="object"/>.
@@ -354,24 +529,24 @@ public abstract class FileDataReader : DbDataReader
     {
         get
         {
+            log.LogDebug($"{GetType()}.this[] called. Name = {name}");
+
             int ordinal = GetOrdinal(name);
             return GetValue(ordinal);
         }
     }
-
-    public T GetValueAsType<T>(int index)
-    {
-        if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
-
-        return (T)Convert.ChangeType(result.CurrentDataRow![index], typeof(T))!;
-    }
-
 
     /// <summary>
     /// Gets the value of the specified column as an instance of <see cref="object"/>.
     /// </summary>
     /// <param name="ordinal">The zero-based column ordinal.</param>
     /// <returns>The value of the specified column.</returns>
-    public override object this[int ordinal] => GetValue(ordinal);
+    public override object this[int ordinal]
+    {
+        get
+        {
+            log.LogDebug($"{GetType()}.this[] called. Ordinal = {ordinal}");
+            return GetValue(ordinal);
+        }
+    }
 }

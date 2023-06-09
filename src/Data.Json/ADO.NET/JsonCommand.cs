@@ -1,4 +1,6 @@
-﻿namespace System.Data.JsonClient;
+﻿using Data.Common.Utils;
+
+namespace System.Data.JsonClient;
 
 public class JsonCommand : FileCommand<JsonParameter>
 {
@@ -37,7 +39,7 @@ public class JsonCommand : FileCommand<JsonParameter>
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements) => 
-        new(fileStatements, ((JsonConnection)Connection!).FileReader, CreateWriter);
+    protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 
+        new(fileStatements, FileConnection.FileReader, CreateWriter, loggerServices);
 
 }

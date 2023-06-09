@@ -1,18 +1,23 @@
 ﻿using Data.Common.FileIO.Write;
+using Microsoft.Extensions.Logging;
 
 namespace Data.Common.Utils;
 
 internal class Result
 {
+    private readonly ILogger log;
+
     public DataTable WorkingResultSet { get; }
     public FileEnumerator FileEnumerator { get; }
 
     public object?[]? CurrentDataRow { get; private set; }
     public string Statement { get; }
 
-    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, Result previousWriteResult)
+    public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, 
+                  Result previousWriteResult, Dictionary<string, List<DataRow>> transactionScopedRows, ILogger log)
     {
         Statement = fileStatement.Statement;
+        this.log = log;
 
         //If SELECT statement
         if (fileStatement is FileSelect fileSelect)
@@ -20,27 +25,30 @@ internal class Result
             //Normal SELECT query with a FROM <table> clause
             if (!string.IsNullOrEmpty(fileStatement.TableName))
             {
-                WorkingResultSet = fileReader.ReadFile(fileStatement, true);
+                log.LogDebug("Normal SELECT query with a FROM <table> clause");
+                WorkingResultSet = fileReader.ReadFile(fileStatement, true, transactionScopedRows);
             }
             else //SELECT query with no FROM clause
             {
+                log.LogDebug("SELECT query with no FROM clause");
                 WorkingResultSet = GetSingleRowTable(fileSelect, previousWriteResult);
             }
 
             if (WorkingResultSet == null)
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
+            log.LogDebug("Determine filter if any.");
             var filter = fileStatement!.Filter;
-            if (filter is FuncFilter funcFilter)
+            if (filter != null)
             {
-                if (previousWriteResult is null)
-                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause { funcFilter } because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
+                if (previousWriteResult is not null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
+                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
 
-                funcFilter.EvaluateFunction(previousWriteResult);
+                log.LogDebug("Resolving built-in functions.");
+                filter.ResolveFunctions(previousWriteResult);
             }
 
-
-            FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter);
+            FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter, log);
 
             RecordsAffected = -1;
             return;
@@ -52,7 +60,10 @@ internal class Result
         RecordsAffected = fileWriter.Execute();
 
         if (fileWriter is FileInsertWriter fileInsertWriter)
+        {
             LastInsertIdentity = fileInsertWriter.LastInsertIdentity;
+            TransactionScopedRow = fileInsertWriter.TransactionScopedRow;
+        }
     }
 
     public int FieldCount => FileEnumerator == null ? 0 : FileEnumerator.FieldCount;
@@ -63,7 +74,7 @@ internal class Result
 
     public int RecordsAffected { get; private set; }
     public object? LastInsertIdentity { get; private set; }
-
+    public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
     public bool Read()
     {
         if (FileEnumerator == null)

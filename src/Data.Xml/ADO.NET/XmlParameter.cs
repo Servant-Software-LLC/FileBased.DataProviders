@@ -19,6 +19,6 @@ public class XmlParameter : FileParameter<XmlParameter>
     {
     }
 
-    public override XmlParameter Clone() => new(ParameterName, DbType, SourceColumn);
+    public override XmlParameter Clone() => new(ParameterName, Value) { SourceColumn = SourceColumn };
 
 }

@@ -42,4 +42,13 @@ public partial class XmlTransactionTests
                 Transaction_ShouldRollbackWhenExceptionIsThrown(
             () => new XmlConnection(ConnectionStrings.Instance.FileAsDB));
     }
+
+    [Fact]
+    public void Transaction_MultipleInserts_GeneratingIdentity()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        TransactionTests.
+            Transaction_MultipleInserts_GeneratingIdentity(() => new XmlConnection(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId)));
+    }
+
 }

@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 
 namespace Data.Common.Utils.ConnectionString;
 
@@ -13,22 +15,32 @@ public class FileConnectionString : IConnectionStringProperties
 
     public string ConnectionString 
     {
-        get =>
-            Formatted == null ?
-                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource};" :
-                $"{nameof(FileConnectionStringKeywords.DataSource)}={DataSource}; {nameof(FileConnectionStringKeywords.Formatted)}={Formatted.Value};";
+        get
+        {
+            StringBuilder stringBuilder = new($"{nameof(FileConnectionStringKeyword.DataSource)}={DataSource};");
+
+            if (Formatted != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeyword.Formatted)}={Formatted.Value};");
+
+            if (LogLevel != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeyword.LogLevel)}={LogLevel};");
+
+            return stringBuilder.ToString();
+        }
 
         set => Parse(value); 
     }
 
     public string DataSource { get; set; }
     public bool? Formatted { get; set; }
+    public LogLevel? LogLevel { get; set; }
 
     public FileConnectionString Clone() =>
         new()
         {
             DataSource = DataSource,
-            Formatted = Formatted
+            Formatted = Formatted,
+            LogLevel = LogLevel
         };
 
     public FileConnectionString AddFormatted(bool? formatted) => new(this) { Formatted = formatted };
@@ -42,36 +54,49 @@ public class FileConnectionString : IConnectionStringProperties
         connectionStringBuilder.ConnectionString = connectionString;
 
         //DataSource
-        if (TryGetValue(connectionStringBuilder, FileConnectionStringKeywords.DataSource, out object? dataSource))
+        if (TryGetValue(connectionStringBuilder, FileConnectionStringKeyword.DataSource, out object? dataSource))
         {
             if (dataSource is not string sDataSource)
-                throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.DataSource)} was not a string.", nameof(connectionString));
+                throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.DataSource)} was not a string.", nameof(connectionString));
 
             DataSource = sDataSource;
         }
         else
         {
-            throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.DataSource)} is a required connection string name/value pair.", nameof(connectionString));
+            throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.DataSource)} is a required connection string name/value pair.", nameof(connectionString));
         }
 
         foreach (KeyValuePair<string, object> keyValuePair in connectionStringBuilder)
         {
             //Any required keywords (like DataSource) have already been addressed above.
-            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeywords.DataSource))
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.DataSource))
                 continue;
 
 
             //Formatted
-            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeywords.Formatted))
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.Formatted))
             {
                 if (keyValuePair.Value == null)
-                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.Formatted)} was null.", nameof(connectionString));
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.Formatted)} was null.", nameof(connectionString));
 
                 var bFormatted = ConvertToBoolean(keyValuePair.Value);
                 if (!bFormatted.HasValue)
-                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeywords.Formatted)} was not a boolean value.", nameof(connectionString));
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.Formatted)} was not a boolean value.", nameof(connectionString));
 
                 Formatted = bFormatted.Value;
+                continue;
+            }
+
+            //Log
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.LogLevel))
+            {
+                if (keyValuePair.Value == null)
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.Formatted)} was null.", nameof(connectionString));
+
+                if (!System.Enum.TryParse<LogLevel>(keyValuePair.Value.ToString(), true, out LogLevel logLevel))
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.LogLevel)} was not a {typeof(LogLevel)} enum value.", nameof(connectionString));
+
+                LogLevel = logLevel;
                 continue;
             }
 
@@ -109,7 +134,7 @@ public class FileConnectionString : IConnectionStringProperties
         }
     }
 
-    private bool TryGetValue(DbConnectionStringBuilder connectionStringBuilder, FileConnectionStringKeywords connectionStringKeyword, out object? value)
+    private bool TryGetValue(DbConnectionStringBuilder connectionStringBuilder, FileConnectionStringKeyword connectionStringKeyword, out object? value)
     {
         if (connectionStringBuilder.TryGetValue(connectionStringKeyword.ToString(), out value))
             return true;
@@ -124,7 +149,7 @@ public class FileConnectionString : IConnectionStringProperties
         return false;
     }
 
-    private static bool IsKeyword(string keyword, FileConnectionStringKeywords connectionStringKeyword) 
+    private static bool IsKeyword(string keyword, FileConnectionStringKeyword connectionStringKeyword) 
     {
         if (string.Compare(keyword, connectionStringKeyword.ToString(), true) == 0)
             return true;
@@ -138,9 +163,9 @@ public class FileConnectionString : IConnectionStringProperties
         return false;
     }
 
-    private static IEnumerable<string> GetAliases(FileConnectionStringKeywords keyword)
+    private static IEnumerable<string> GetAliases(FileConnectionStringKeyword keyword)
     {
-        var enumType = typeof(FileConnectionStringKeywords);
+        var enumType = typeof(FileConnectionStringKeyword);
         var memberInfos = enumType.GetMember(keyword.ToString());
 
         var enumValueMemberInfo = memberInfos.FirstOrDefault(m => m.DeclaringType == enumType);

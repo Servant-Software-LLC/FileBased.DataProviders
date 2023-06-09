@@ -1,4 +1,6 @@
-﻿namespace Data.Common.FileFilter;
+﻿using Data.Common.Utils;
+
+namespace Data.Common.FileFilter;
 
 public class OrFilter : Filter
 {
@@ -11,6 +13,16 @@ public class OrFilter : Filter
     }
     public override string Evaluate() => ToString();
     public override string ToString() => $"{Left.Evaluate()} OR {Right.Evaluate()}";
+
+    internal override void ResolveFunctions(Result previousWriteResult)
+    {
+        Left.ResolveFunctions(previousWriteResult);
+        Right.ResolveFunctions(previousWriteResult);
+
+        if ((Left.ContainsBuiltinFunction.HasValue && Left.ContainsBuiltinFunction.Value) ||
+            (Right.ContainsBuiltinFunction.HasValue && Right.ContainsBuiltinFunction.Value))
+            ContainsBuiltinFunction = true;
+    }
 }
 
 

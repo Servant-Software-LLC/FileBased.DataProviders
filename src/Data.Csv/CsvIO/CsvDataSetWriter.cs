@@ -1,9 +1,11 @@
 ﻿using CsvHelper;
+using Microsoft.Extensions.Logging;
 
 namespace Data.Csv.CsvIO;
 
 internal class CsvDataSetWriter : IDataSetWriter
 {
+    private ILogger<CsvDataSetWriter> log => ((IFileConnection)fileConnection).LoggerServices.CreateLogger<CsvDataSetWriter>();
     private readonly IFileConnection fileConnection;
     private readonly FileStatement fileQuery;
 
@@ -34,6 +36,7 @@ internal class CsvDataSetWriter : IDataSetWriter
         foreach (DataTable table in tablesToWrite)
         {
             var path = fileConnection.GetTablePath(table.TableName);
+            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
             using (var textWriter = File.CreateText(path))
             {
                 using (CsvWriter csv = new CsvWriter(textWriter, System.Globalization.CultureInfo.CurrentCulture))

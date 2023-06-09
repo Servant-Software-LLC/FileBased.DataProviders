@@ -19,5 +19,5 @@ public class CsvParameter : FileParameter<CsvParameter>
     {
     }
 
-    public override CsvParameter Clone() => new(ParameterName, DbType, SourceColumn);
+    public override CsvParameter Clone() => new(ParameterName, Value) { SourceColumn = SourceColumn };
 }

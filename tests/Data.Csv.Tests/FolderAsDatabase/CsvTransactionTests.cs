@@ -41,4 +41,12 @@ public partial class CsvTransactionTests
         TransactionTests.
                 Transaction_ShouldRollbackWhenExceptionIsThrown(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Transaction_MultipleInserts_GeneratingIdentity()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        TransactionTests.
+                Transaction_MultipleInserts_GeneratingIdentity(() => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)), true);
+    }
 }

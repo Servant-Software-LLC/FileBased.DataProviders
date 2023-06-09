@@ -1,10 +1,14 @@
-﻿namespace Data.Common.FileIO.Write;
+﻿using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices.JavaScript;
+
+namespace Data.Common.FileIO.Write;
 
 public abstract class FileInsertWriter : FileWriter
 {
-    private readonly FileStatements.FileInsert fileStatement;
+    private ILogger<FileInsertWriter> log => fileConnection.LoggerServices.CreateLogger<FileInsertWriter>();
+    private readonly FileInsert fileStatement;
 
-    public FileInsertWriter(FileStatements.FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
+    public FileInsertWriter(FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
         : base(fileConnection, fileCommand, fileStatement)
     {
         this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
@@ -20,11 +24,19 @@ public abstract class FileInsertWriter : FileWriter
     /// </summary>
     public object? LastInsertIdentity { get; private set; }
 
+    public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
+
     public override int Execute()
     {
+        log.LogDebug($"{nameof(FileInsertWriter)}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
+
         if (IsTransactedLater)
         {
             fileTransaction!.Writers.Add(this);
+
+            //Call PrepareRow() in order to determine the identity value
+            var results = PrepareRow(fileStatement);
+            TransactionScopedRow = (results.Table.TableName, results.Row);
             return 1;
         }
         try
@@ -36,22 +48,8 @@ public abstract class FileInsertWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(fileStatement);
-            
-            //Check if we need to add columns on the first INSERT of data into this table.
-            if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
-            {
-                AddMissingColumns(dataTable);
-            }
-
-            var row = dataTable!.NewRow();
-            foreach (var val in fileStatement.GetValues())
-            {
-                row[val.Key] = val.Value;
-            }
-
-            AddMissingIdentityValues(dataTable, row);
-            dataTable.Rows.Add(row);
+            var results = PrepareRow(fileStatement);
+            results.Table.Rows.Add(results.Row);
         }
         finally
         {
@@ -64,6 +62,26 @@ public abstract class FileInsertWriter : FileWriter
             }
         }
         return 1;
+    }
+
+    private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
+    {
+        var dataTable = fileReader.ReadFile(fileStatement);
+
+        //Check if we need to add columns on the first INSERT of data into this table.
+        if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
+        {
+            AddMissingColumns(dataTable);
+        }
+
+        var row = dataTable!.NewRow();
+        foreach (var val in fileStatement.GetValues())
+        {
+            row[val.Key] = val.Value;
+        }
+
+        AddMissingIdentityValues(dataTable, row);
+        return (dataTable, row);
     }
 
     protected abstract object DefaultIdentityValue();
@@ -146,6 +164,17 @@ public abstract class FileInsertWriter : FileWriter
         {
             var jsonType = GetJsonType(val.Value);
             dataTable.Columns.Add(val.Key, jsonType);
+        }
+
+        foreach (var columnNameHint in fileStatement.ColumnNameHints)
+        {
+            if (dataTable.Columns.Contains(columnNameHint))
+                continue;
+
+            if (ColumnNameIndicatesIdentity(columnNameHint))
+                dataTable.Columns.Add(columnNameHint, typeof(decimal));
+            else
+                dataTable.Columns.Add(columnNameHint);
         }
     }
 
