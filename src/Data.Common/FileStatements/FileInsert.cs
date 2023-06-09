@@ -8,6 +8,8 @@ public class FileInsert : FileStatement
     {
     }
 
+    public HashSet<string> ColumnNameHints { get; } = new();
+
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
         var cols = GetColumnNames();

@@ -12,6 +12,7 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     protected virtual string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{Extension}");
     public virtual string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{Extension}");
     public virtual string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
+    protected virtual string FolderEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "EmptyDatabase");
     protected virtual string FileEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyDatabase.{Extension}");
     public virtual string gettingStartedFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted.{Extension}");
     public virtual string gettingStartedFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted");
@@ -20,6 +21,8 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = File };
+
+    public virtual FileConnectionString EmptyWithTablesFolderAsDB => new FileConnectionString() { DataSource = FolderEmptyWithTables };
     public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = FileEmptyWithTables };
 
     public virtual FileConnectionString eComFileDB => new FileConnectionString() { DataSource = eComFileDataBase };

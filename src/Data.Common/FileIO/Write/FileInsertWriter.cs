@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace Data.Common.FileIO.Write;
 
 public abstract class FileInsertWriter : FileWriter
 {
     private ILogger<FileInsertWriter> log => fileConnection.LoggerServices.CreateLogger<FileInsertWriter>();
-    private readonly FileStatements.FileInsert fileStatement;
+    private readonly FileInsert fileStatement;
 
-    public FileInsertWriter(FileStatements.FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
+    public FileInsertWriter(FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
         : base(fileConnection, fileCommand, fileStatement)
     {
         this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
@@ -63,7 +64,7 @@ public abstract class FileInsertWriter : FileWriter
         return 1;
     }
 
-    private (DataTable Table, DataRow Row) PrepareRow(FileStatements.FileInsert fileStatement)
+    private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
     {
         var dataTable = fileReader.ReadFile(fileStatement);
 
@@ -163,6 +164,17 @@ public abstract class FileInsertWriter : FileWriter
         {
             var jsonType = GetJsonType(val.Value);
             dataTable.Columns.Add(val.Key, jsonType);
+        }
+
+        foreach (var columnNameHint in fileStatement.ColumnNameHints)
+        {
+            if (dataTable.Columns.Contains(columnNameHint))
+                continue;
+
+            if (ColumnNameIndicatesIdentity(columnNameHint))
+                dataTable.Columns.Add(columnNameHint, typeof(decimal));
+            else
+                dataTable.Columns.Add(columnNameHint);
         }
     }
 

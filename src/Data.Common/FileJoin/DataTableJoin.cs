@@ -1,4 +1,5 @@
-﻿namespace Data.Xml.JsonJoin;
+﻿namespace Data.Common.FileJoin;
+
 public class DataTableJoin
 {
     private readonly IEnumerable<Join> dataTableInnerJoins;

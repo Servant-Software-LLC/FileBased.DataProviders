@@ -155,6 +155,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         //When calling ExecuteDbDataReader, the CommandText property of a DbCommand can contain
         //multiple commands separated by semicolons
         var fileStatements = FileStatementCreator.CreateMultiCommandSupport(this, log);
+        
+        ProvideColumnNameHints(fileStatements);
 
         if (FileConnection!.State != ConnectionState.Open)
         {
@@ -162,6 +164,44 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         }
 
         return CreateDataReader(fileStatements, FileConnection.LoggerServices);
+    }
+
+    /// <summary>
+    /// If we have an INSERT statement followed by SELECT statements to the same table, then
+    /// the SELECT statement can be used to determine columns that should be part of the schema
+    /// of the table (in the case of the JSON provider where columns are only determined by rows
+    /// in the table).  This is especially necessary to get 'right' when a column is the identity
+    /// column.  EF Core provider has this as a common scenario with SQL statements together like
+    /// so:
+    ///   INSERT INTO Blogs(Url) VALUES (@p0); SELECT BlogId FROM Blogs WHERE ROW_COUNT() = 1 AND BlogId=LAST_INSERT_ID();
+    /// 
+    /// Here, if we look ahead to the SELECT statement, we can infer that there is not only a Url column, but also 
+    /// a BlogId column that is an identity.
+    /// </summary>
+    /// <param name="fileStatements"></param>
+    private void ProvideColumnNameHints(IList<FileStatement> fileStatements)
+    {
+        for (int iInsert = 0; iInsert < fileStatements.Count; iInsert++)
+        {
+            //Look for an INSERT statement.
+            if (fileStatements[iInsert] is FileInsert fileInsert)
+            {
+                //Now that an INSERT is found, look through the rest of the statements for any SELECTs
+                for (int iSelect = iInsert + 1; iSelect < fileStatements.Count; iSelect++)
+                {
+                    //
+                    if (fileStatements[iSelect] is FileSelect fileSelect && 
+                        string.Compare(fileSelect.TableName, fileInsert.TableName, true) == 0 &&
+                        fileSelect.GetFileJoin() == null)
+                    {
+                        foreach(var column in fileSelect.GetColumnNames())
+                        {
+                            fileInsert.ColumnNameHints.Add(column);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public override void Prepare()

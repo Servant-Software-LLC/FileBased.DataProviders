@@ -248,7 +248,7 @@ public static class TransactionTests
 
             var secondRow = dataSet.Tables[0].Rows[1];
             Assert.Equal(dataTypeAlwaysString ? "2" : 2m, secondRow["BlogId"]);
-            Assert.Equal("https://www.billboard.com/", firstRow["Url"]);
+            Assert.Equal("https://www.billboard.com/", secondRow["Url"]);
 
         }
     }
