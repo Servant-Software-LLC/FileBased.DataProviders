@@ -11,8 +11,8 @@ public class OrElseFilter : Filter
         Left = left;
         Right = right;
     }
-    public override string ToString() => $"{Left.Evaluate()} || ({Right.Evaluate()})";
-    public override string Evaluate() => ToString();
+    public override string ToString() => $"{Left} || ({Right})";
+    public override string Evaluate() => $"{Left.Evaluate()} || ({Right.Evaluate()})";
 
     internal override void ResolveFunctions(Result previousWriteResult)
     {

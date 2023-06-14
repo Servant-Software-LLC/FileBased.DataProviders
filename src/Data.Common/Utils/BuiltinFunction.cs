@@ -14,7 +14,7 @@ static class BuiltinFunction
             return previousWriteResult.LastInsertIdentity;
         }
 
-        return null;
+        throw new InvalidOperationException($"Unknown function {funcName} in SQL statement.");
     }
 
 }

@@ -13,8 +13,8 @@ public class AndAlsoFilter : Filter
         Right = right;
     }
 
-    public override string ToString() => $"{Left.Evaluate()} AND ({Right.Evaluate()})";
-    public override string Evaluate() => ToString();
+    public override string ToString() => $"{Left} AND ({Right})";
+    public override string Evaluate() => $"{Left.Evaluate()} AND ({Right.Evaluate()})";
 
     internal override void ResolveFunctions(Result previousWriteResult)
     {

@@ -41,11 +41,14 @@ internal class Result
             var filter = fileStatement!.Filter;
             if (filter != null)
             {
-                if (previousWriteResult is not null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
+                if (previousWriteResult != null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
                     throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
 
-                log.LogDebug("Resolving built-in functions.");
-                filter.ResolveFunctions(previousWriteResult);
+                if (previousWriteResult != null)
+                {
+                    log.LogDebug($"Resolving built-in functions.  Previous write result statement: {previousWriteResult.Statement}");
+                    filter.ResolveFunctions(previousWriteResult);
+                }
             }
 
             FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter, log);
