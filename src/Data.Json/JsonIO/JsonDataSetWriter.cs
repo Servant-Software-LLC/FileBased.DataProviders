@@ -83,6 +83,9 @@ internal class JsonDataSetWriter : IDataSetWriter
                 WriteTable(jsonWriter, table, true);
             }
             jsonWriter.WriteEndObject();
+
+            jsonWriter.Flush();
+            fileStream.Flush();
         }
     }
 
