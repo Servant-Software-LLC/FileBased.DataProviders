@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Xml;
+using System.Text;
 
 namespace Data.Json.JsonIO;
 
@@ -74,18 +73,28 @@ internal class JsonDataSetWriter : IDataSetWriter
     {
         log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
 
-        using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
-        using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false}))
-        {
-            jsonWriter.WriteStartObject();
-            foreach (DataTable table in dataSet!.Tables)
+        string jsonString;
+        using (var stream = new MemoryStream())
+        { 
+            using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
             {
-                WriteTable(jsonWriter, table, true);
+                jsonWriter.WriteStartObject();
+                foreach (DataTable table in dataSet!.Tables)
+                {
+                    log.LogDebug($"Processing DataTable {table.TableName}");
+                    WriteTable(jsonWriter, table, true);
+                }
+                jsonWriter.WriteEndObject();
             }
-            jsonWriter.WriteEndObject();
+            jsonString = Encoding.UTF8.GetString(stream.ToArray());
+        }
 
-            jsonWriter.Flush();
-            fileStream.Flush();
+        log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
+
+        using (var stream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
+        using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+        {
+            writer.Write(jsonString);
         }
     }
 
