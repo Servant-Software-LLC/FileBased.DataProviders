@@ -71,48 +71,65 @@ internal class JsonDataSetWriter : IDataSetWriter
 
     private void SaveToFile(DataSet dataSet)
     {
-        log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
-
-        string jsonString;
-        using (var stream = new MemoryStream())
-        { 
-            using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
-            {
-                jsonWriter.WriteStartObject();
-                foreach (DataTable table in dataSet!.Tables)
-                {
-                    log.LogDebug($"Processing DataTable {table.TableName}");
-                    WriteTable(jsonWriter, table, true);
-                }
-                jsonWriter.WriteEndObject();
-            }
-            jsonString = Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-        log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
-
-        using (var stream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
-        using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+        try
         {
-            writer.Write(jsonString);
+            log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
+
+            string jsonString;
+            using (var stream = new MemoryStream())
+            {
+                using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
+                {
+                    jsonWriter.WriteStartObject();
+                    foreach (DataTable table in dataSet!.Tables)
+                    {
+                        log.LogDebug($"Processing DataTable {table.TableName}");
+                        WriteTable(jsonWriter, table, true);
+                    }
+                    jsonWriter.WriteEndObject();
+                }
+                jsonString = Encoding.UTF8.GetString(stream.ToArray());
+            }
+
+            log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
+
+            using (var stream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
+            using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+            {
+                writer.Write(jsonString);
+            }
+        }
+        catch (Exception ex)
+        {
+            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveToFile)}().  Error: {ex}");
+            throw;
         }
     }
 
     private void SaveFolderAsDB(string? tableName, DataSet dataSet)
     {
-        var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
-        if (!string.IsNullOrEmpty(tableName))
-            tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
-
-        foreach (DataTable table in tablesToWrite)
+        try
         {
-            var path = fileConnection.GetTablePath(table.TableName);
-            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
-            using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
-            using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
+            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            if (!string.IsNullOrEmpty(tableName))
+                tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
+
+            foreach (DataTable table in tablesToWrite)
             {
-                WriteTable(jsonWriter, table, false);
+                var path = fileConnection.GetTablePath(table.TableName);
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
+                using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
+                {
+                    WriteTable(jsonWriter, table, false);
+                }
             }
         }
+        catch (Exception ex)
+        {
+            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveToFile)}().  Error: {ex}");
+            throw;
+        }
+
     }
 }

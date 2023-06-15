@@ -28,27 +28,43 @@ internal class XmlDataSetWriter : IDataSetWriter
 
     private void SaveToFile(DataSet dataSet)
     {
-        log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
-        using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
+        try
         {
-            dataSet.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+            log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
+            using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
+            {
+                dataSet.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+            }
+        }
+        catch (Exception ex)
+        {
+            log.LogError($"Failed to XmlDataSetWriter.{nameof(SaveToFile)}().  Error: {ex}");
+            throw;
         }
     }
 
     private void SaveFolderAsDB(string? tableName, DataSet dataSet)
     {
-        var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
-        if (!string.IsNullOrEmpty(tableName))
-            tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
-
-        foreach (DataTable table in tablesToWrite)
+        try
         {
-            var path = fileConnection.GetTablePath(table.TableName);
-            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
-            using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            if (!string.IsNullOrEmpty(tableName))
+                tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
+
+            foreach (DataTable table in tablesToWrite)
             {
-                table.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+                var path = fileConnection.GetTablePath(table.TableName);
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
+                using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    table.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            log.LogError($"Failed to XmlDataSetWriter.{nameof(SaveFolderAsDB)}().  Error: {ex}");
+            throw;
         }
     }
 }

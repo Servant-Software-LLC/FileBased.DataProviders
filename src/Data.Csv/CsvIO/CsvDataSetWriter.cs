@@ -29,32 +29,42 @@ internal class CsvDataSetWriter : IDataSetWriter
 
     private void SaveFolderAsDB(string? tableName, DataSet dataSet)
     {
-        var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
-        if (!string.IsNullOrEmpty(tableName))
-            tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
-
-        foreach (DataTable table in tablesToWrite)
+        try
         {
-            var path = fileConnection.GetTablePath(table.TableName);
-            log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
-            using (var textWriter = File.CreateText(path))
-            {
-                using (CsvWriter csv = new CsvWriter(textWriter, System.Globalization.CultureInfo.CurrentCulture))
-                {
-                    // Write columns
-                    foreach (DataColumn column in table.Columns)
-                        csv.WriteField(column.ColumnName);
-                    csv.NextRecord();
+            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            if (!string.IsNullOrEmpty(tableName))
+                tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
-                    // Write row values
-                    foreach (DataRow row in table.Rows)
+            foreach (DataTable table in tablesToWrite)
+            {
+                var path = fileConnection.GetTablePath(table.TableName);
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
+                using (var textWriter = File.CreateText(path))
+                {
+                    using (CsvWriter csv = new CsvWriter(textWriter, System.Globalization.CultureInfo.CurrentCulture))
                     {
-                        for (var i = 0; i < table.Columns.Count; i++)
-                            csv.WriteField(row[i]);
+                        // Write columns
+                        foreach (DataColumn column in table.Columns)
+                            csv.WriteField(column.ColumnName);
                         csv.NextRecord();
+
+                        // Write row values
+                        foreach (DataRow row in table.Rows)
+                        {
+                            for (var i = 0; i < table.Columns.Count; i++)
+                                csv.WriteField(row[i]);
+                            csv.NextRecord();
+                        }
                     }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            log.LogError($"Failed to CsvDataSetWriter.{nameof(SaveFolderAsDB)}().  Error: {ex}");
+
+            throw;
+        }
+
     }
 }
