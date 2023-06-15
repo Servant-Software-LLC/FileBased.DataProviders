@@ -27,8 +27,9 @@ internal class JsonDataSetWriter : IDataSetWriter
         }
     }
 
-    private static void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
+    private void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
     {
+        log.LogDebug($"Writing array start.");
         if (writeTableName)
             jsonWriter.WriteStartArray(table.TableName);
         else
@@ -36,10 +37,12 @@ internal class JsonDataSetWriter : IDataSetWriter
 
         foreach (DataRow row in table.Rows)
         {
+            log.LogDebug($"Writing object start for DataRow.");
             jsonWriter.WriteStartObject();
             foreach (DataColumn column in table.Columns)
             {
                 var dataType = column.DataType.Name;
+                log.LogDebug($"Column: {column.ColumnName}. Data type: {dataType}");
                 if (row.IsNull(column.ColumnName))
                 {
                     dataType = "Null";
@@ -62,10 +65,14 @@ internal class JsonDataSetWriter : IDataSetWriter
                         throw new NotSupportedException($"Data type {column.DataType.Name} is not supported.");
                 }
 
-                //jsonWriter.WriteString(column.ColumnName, row[column].ToString());
+                log.LogDebug($"Value written to jsonWriter.");
             }
+
+            log.LogDebug($"Writing object end for DataRow.");
             jsonWriter.WriteEndObject();
         }
+
+        log.LogDebug($"Writing array start.");
         jsonWriter.WriteEndArray();
     }
 
