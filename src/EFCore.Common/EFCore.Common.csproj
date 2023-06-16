@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.EFCore.FileBasedProviders.Common</PackageId>
+    <Title>ServantSoftware.EFCore.FileBasedProviders.Common</Title>
+    <Product>EFCore Common Data Provider</Product>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+	
+</Project>

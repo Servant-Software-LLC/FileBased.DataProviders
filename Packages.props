@@ -1,5 +1,9 @@
 <Project>
-  <ItemGroup>
+	<PropertyGroup>
+		<EFCoreVersion>6.0.10</EFCoreVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
     <!-- Data.Common -->
     <PackageReference Update="Irony" Version="1.1.0" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="7.0.0" />
@@ -7,6 +11,9 @@
 	  
     <!-- Data.Csv -->
     <PackageReference Update="CsvHelper" Version="30.0.1" />
+
+    <!-- EF Core Providers -->
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
 
     <!-- Unit Tests -->
 	<PackageReference Update="FluentAssertions" Version="6.0.0" />
@@ -19,5 +26,10 @@
 	<PackageReference Update="XunitXml.TestLogger" Version="3.0.70" />
     <PackageReference Update="Dapper" Version="2.0.123" />
     <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
+	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />
   </ItemGroup>
 </Project>
+
+
+  
