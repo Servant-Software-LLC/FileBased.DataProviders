@@ -17,9 +17,7 @@ public class JsonUpdateSqlGenerator : UpdateSqlGenerator
         if (columnModification == null)
             throw new ArgumentNullException(nameof(columnModification));
 
-        SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, "rowid");
-        commandStringBuilder.Append(" = ")
-            .Append("last_insert_rowid()");
+        commandStringBuilder.AppendFormat("{0}=LAST_INSERT_ID()", SqlGenerationHelper.DelimitIdentifier(columnModification.ColumnName));
     }
 
     protected override ResultSetMapping AppendSelectAffectedCountCommand(
@@ -34,7 +32,7 @@ public class JsonUpdateSqlGenerator : UpdateSqlGenerator
             throw new ArgumentNullException(nameof(name));
 
         commandStringBuilder
-            .Append("SELECT changes()")
+            .Append("SELECT ROW_COUNT()")
             .AppendLine(SqlGenerationHelper.StatementTerminator)
             .AppendLine();
 
@@ -46,7 +44,9 @@ public class JsonUpdateSqlGenerator : UpdateSqlGenerator
         if (commandStringBuilder == null)
             throw new ArgumentNullException(nameof(commandStringBuilder));
 
-        commandStringBuilder.Append("changes() = ").Append(expectedRowsAffected);
+        commandStringBuilder
+          .Append("ROW_COUNT() = " + expectedRowsAffected)
+          .AppendLine();
     }
 
     public override string GenerateNextSequenceValueOperation(string name, string? schema)

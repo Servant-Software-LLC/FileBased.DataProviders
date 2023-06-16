@@ -1,5 +1,6 @@
 ﻿using Data.Common.Extension;
 using EFCore.Json.Tests.Utils;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 using Xunit;
 using GettingStarted = EFCore.Common.Tests.GettingStartedTests<EFCore.Json.Tests.Models.BloggingContext>;
@@ -16,7 +17,7 @@ public class JsonGettingStartedTests
     public void Create_AddBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Create_AddBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Create_AddBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug));
     }
 
     [Fact]
