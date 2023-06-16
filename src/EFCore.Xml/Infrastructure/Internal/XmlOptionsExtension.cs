@@ -18,7 +18,7 @@ public class XmlOptionsExtension : RelationalOptionsExtension
 
     public override void ApplyServices(IServiceCollection services)
     {
-        services.AddEntityFrameworkMyCustom();
+        services.AddEntityFrameworkXml();
     }
 
 

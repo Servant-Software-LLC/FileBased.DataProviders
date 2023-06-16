@@ -18,7 +18,7 @@ public class CsvOptionsExtension : RelationalOptionsExtension
 
     public override void ApplyServices(IServiceCollection services)
     {
-        services.AddEntityFrameworkMyCustom();
+        services.AddEntityFrameworkCsv();
     }
 
 

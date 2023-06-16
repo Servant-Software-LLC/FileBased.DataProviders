@@ -14,6 +14,7 @@
 
     <!-- EF Core Providers -->
     <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />
 
     <!-- Unit Tests -->
 	<PackageReference Update="FluentAssertions" Version="6.0.0" />
