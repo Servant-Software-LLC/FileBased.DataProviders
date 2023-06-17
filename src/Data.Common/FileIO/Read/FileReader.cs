@@ -178,16 +178,16 @@ public abstract class FileReader : IDisposable
 
         foreach (string tableName in allTableNames)
         {
-            AddRowToSchemaTable(informationSchemaTable, tableName);
+            AddRowToSchemaTable(informationSchemaTable, tableName, fileConnection.FolderAsDatabase);
         }
 
         return informationSchemaTable;
     }
 
-    private void AddRowToSchemaTable(DataTable schemaTable, string tableName)
+    private void AddRowToSchemaTable(DataTable schemaTable, string tableName, bool folderAsDatabase)
     {
         var row = schemaTable.NewRow();
-        row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);
+        row["TABLE_CATALOG"] = folderAsDatabase ? Path.GetFileName(fileConnection.Database) : Path.GetFileNameWithoutExtension(fileConnection.Database);
         row["TABLE_NAME"] = tableName;
         row["TABLE_TYPE"] = "BASE TABLE";
         schemaTable.Rows.Add(row);
@@ -196,7 +196,6 @@ public abstract class FileReader : IDisposable
 
     private DataTable GenerateInformationSchemaColumn()
     {
-        var databaseName = Path.GetFileNameWithoutExtension(fileConnection.Database);
         var informationSchemaColumn = new DataTable(SchemaColumn);
 
         // Add columns to the DataTable
