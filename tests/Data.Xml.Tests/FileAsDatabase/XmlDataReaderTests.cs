@@ -23,6 +23,20 @@ public class XmlDataReaderTests
     }
 
     [Fact]
+    public void Reader_Limit_ShouldReturnOnlyFirstRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
+       new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlySecondRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
+       new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
     public void Reader_ShouldReturnSchemaTablesData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>

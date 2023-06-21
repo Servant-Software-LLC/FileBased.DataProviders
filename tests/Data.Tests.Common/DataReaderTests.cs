@@ -82,6 +82,81 @@ public static class DataReaderTests
         connection.Close();
     }
 
+    public static void Reader_Limit_ShouldReturnOnlyFirstRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM [employees] LIMIT 1");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(4, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.Equal("Joe", reader["name"]);
+            Assert.IsType<string>(reader["name"]);
+            Assert.Equal("Joe@gmail.com", reader["email"]);
+            Assert.IsType<string>(reader["email"]);
+            Assert.Equal(dataTypeAlwaysString ? "56000" : 56000M, reader["salary"]);
+            Assert.Equal(dataTypeAlwaysString ? "True" : true, reader["married"]);
+            if (!dataTypeAlwaysString)
+            {
+                Assert.IsType<bool>(reader["married"]);
+            }
+            
+            //No second row
+            Assert.False(reader.Read());
+        }
+
+        connection.Close();
+    }
+
+    public static void Reader_Limit_ShouldReturnOnlySecondRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM [employees] LIMIT 1,1");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(4, reader.FieldCount);
+
+            //Second row in Table, but first row in reader.
+            Assert.True(reader.Read());
+            Assert.Equal("Bob", reader["name"]);
+            Assert.IsType<string>(reader["name"]);
+            Assert.Equal("bob32@gmail.com", reader["email"]);
+            Assert.IsType<string>(reader["email"]);
+            Assert.Equal(dataTypeAlwaysString ? "95000" : 95000M, reader["salary"]);
+            //this will be dbnull not bool?
+            if (!dataTypeAlwaysString)
+            {
+                Assert.IsType<DBNull>(reader["married"]);
+                Assert.IsType<decimal>(reader["salary"]);
+                Assert.IsType<decimal>(reader["salary"]);
+                Assert.Equal(DBNull.Value, reader["married"]);
+                Assert.IsType<DBNull>(reader["married"]);
+            }
+
+            //No more rows
+            Assert.False(reader.Read());
+        }
+
+        connection.Close();
+    }
+
+
     public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

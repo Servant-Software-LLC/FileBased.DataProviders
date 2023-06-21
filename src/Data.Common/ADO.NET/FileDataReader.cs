@@ -11,15 +11,17 @@ public abstract class FileDataReader : DbDataReader
 
     private readonly IEnumerator<FileStatement> statementEnumerator;
     private readonly FileReader fileReader;
+    private readonly TransactionScopedRows transactionScopedRows;
     private readonly Func<FileStatement, FileWriter> createWriter;
     private readonly LoggerServices loggerServices;
     private Result previousWriteResult;
-    private Dictionary<string, List<DataRow>> transactionScopedRows = new();
 
     private Result result;
-    
+
+
     protected FileDataReader(IEnumerable<FileStatement> fileStatements, 
-                             FileReader fileReader, 
+                             FileReader fileReader,
+                             TransactionScopedRows transactionScopedRows,
                              Func<FileStatement, FileWriter> createWriter,
                              LoggerServices loggerServices)
     {
@@ -28,6 +30,7 @@ public abstract class FileDataReader : DbDataReader
 
         statementEnumerator = fileStatements.GetEnumerator();
         this.fileReader = fileReader ?? throw new ArgumentNullException(nameof(fileReader));
+        this.transactionScopedRows = transactionScopedRows;  //Note:  This value may be null.
         this.createWriter = createWriter ?? throw new ArgumentNullException(nameof(createWriter));
         this.loggerServices = loggerServices ?? throw new ArgumentNullException(nameof(loggerServices));
 

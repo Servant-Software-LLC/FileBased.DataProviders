@@ -191,7 +191,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         var columns = selectQuery.GetColumnNames();
         var reader = FileConnection!.FileReader ;
 
-        var dataTable = reader.ReadFile(fileStatement, true);
+        var transactionScopedRows = FileTransaction == null ? null : FileTransaction.TransactionScopedRows;
+        var dataTable = reader.ReadFile(fileStatement, transactionScopedRows, true);
         var dataView = new DataView(dataTable);
 
         if (fileStatement.Filter!=null)

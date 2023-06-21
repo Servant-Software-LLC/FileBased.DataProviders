@@ -124,8 +124,14 @@ public class SqlGrammar : Grammar
         var funArgs = new NonTerminal("funArgs");
         var inStmt = new NonTerminal("inStmt");
         var join = new NonTerminal("join");
-        
+
         //var tableAlias = new NonTerminal("joinTableAlias");
+
+        var limitArgs = new NonTerminal("limitArgs");
+        limitArgs.Rule = number | number + comma + number;
+        var limitClauseOpt = new NonTerminal("limitClauseOpt");
+        limitClauseOpt.Rule = Empty | "LIMIT" + limitArgs;
+
 
         //BNF Rules
         this.Root = stmtList;
@@ -193,7 +199,7 @@ public class SqlGrammar : Grammar
 
         //Select stmt
         selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
-                            groupClauseOpt + havingClauseOpt + orderClauseOpt;
+                            groupClauseOpt + havingClauseOpt + orderClauseOpt + limitClauseOpt;
         selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
         selList.Rule = columnItemList | "*";
         columnItemList.Rule = MakePlusRule(columnItemList, comma, columnItem);

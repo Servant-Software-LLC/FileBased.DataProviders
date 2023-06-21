@@ -1,4 +1,6 @@
-﻿namespace Data.Common.FileJoin;
+﻿using Data.Common.Utils;
+
+namespace Data.Common.FileJoin;
 
 public class DataTableJoin
 {
@@ -11,7 +13,7 @@ public class DataTableJoin
         this.mainTable = mainTable;
     }
 
-    public DataTable Join(DataSet database, Dictionary<string, List<DataRow>> transactionScopedRows)
+    public DataTable Join(DataSet database, TransactionScopedRows transactionScopedRows, int? rowOffset, int? rowCount)
     {
         var resultTable = new DataTable();
         foreach (DataTable table in database.Tables)
@@ -49,7 +51,9 @@ public class DataTableJoin
                          rows,
                          transactionScopedRows);
             }
-            foreach (var item in rows)
+
+            var limitedRows = FileReader.LimitRows(rows, rowOffset, rowCount);
+            foreach (var item in limitedRows)
             {
                 resultTable.Rows.Add(item);
             }

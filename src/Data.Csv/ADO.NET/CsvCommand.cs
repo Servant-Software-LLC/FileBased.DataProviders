@@ -40,6 +40,6 @@ public class CsvCommand : FileCommand<CsvParameter>
     };
 
     protected override CsvDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 
-        new(fileStatements, FileConnection.FileReader, CreateWriter, loggerServices);
+        new(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
 
 }

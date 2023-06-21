@@ -21,7 +21,7 @@ public abstract class FileDeleteWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(query);
+            var dataTable = fileReader.ReadFile(query, fileTransaction?.TransactionScopedRows);
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);

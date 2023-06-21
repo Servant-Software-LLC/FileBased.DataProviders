@@ -9,7 +9,29 @@ public class FileSelect : FileStatement
     public FileSelect(ParseTreeNode tree, DbParameterCollection parameters, string statement)
         : base(tree, parameters, statement)
     {
+        //LIMIT clause 
+        var limitClauseOpt = node.ChildNodes[9];
+        if (limitClauseOpt.Term.Name == nameof(limitClauseOpt) && limitClauseOpt.ChildNodes.Count > 0)
+        {
+            var limitArgs = limitClauseOpt.ChildNodes[1];
+            switch (limitArgs.ChildNodes.Count)
+            {
+                case 1:
+                    RowCount = (int)limitArgs.ChildNodes[0].Token.Value;
+                    break;
+                case 2:
+                    RowOffset = (int)limitArgs.ChildNodes[0].Token.Value;
+                    RowCount = (int)limitArgs.ChildNodes[1].Token.Value;
+                    break;
+                default:
+                    throw new Exception($"{nameof(limitArgs)} did not have 1 or 2 ChildNodes.  Count = {limitArgs.ChildNodes.Count}");
+            }
+        }
     }
+
+    //Arguments of LIMIT 
+    public int? RowOffset { get; set; }
+    public int? RowCount { get; set; }
 
     public override IEnumerable<string> GetColumnNames()
     {

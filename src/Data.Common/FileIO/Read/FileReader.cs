@@ -1,4 +1,6 @@
-﻿namespace Data.Common.FileIO.Read;
+﻿using Data.Common.Utils;
+
+namespace Data.Common.FileIO.Read;
 
 public abstract class FileReader : IDisposable
 {
@@ -49,8 +51,7 @@ public abstract class FileReader : IDisposable
         tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
-    public DataTable ReadFile(FileStatement fileStatement, bool shouldLock = false, 
-                              Dictionary<string, List<DataRow>> transactionScopedRows = null)
+    public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
     {
         DataTable returnValue;
 
@@ -68,12 +69,21 @@ public abstract class FileReader : IDisposable
 
                 if (newTables.Count == 1)
                 {
+                    int? rowOffset = null;
+                    int? rowCount = null;
+
+                    if (fileStatement is FileSelect fileSelectQuery)
+                    {
+                        rowOffset = fileSelectQuery.RowOffset;
+                        rowCount = fileSelectQuery.RowCount;
+                    }
+
                     //If table is INFORMATION_SCHEMA.TABLES, we don't need to load all the tables, because the
                     //names of the tables are just files on disk and we can just do a Directory.GetFiles() to
                     //get their names.
                     var newTableName = newTables.First();
                     if (IsSchemaTable(newTableName))
-                        return GenerateInformationSchemaTable();
+                        return GenerateInformationSchemaTable(rowOffset, rowCount);
 
                     //If table is INFORMATION_SCHEMA.COLUMNS, we need to load all tables, because the column
                     //information is within each table file.
@@ -133,7 +143,7 @@ public abstract class FileReader : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileStatement fileQueryParser, Dictionary<string, List<DataRow>> transactionScopedRows)
+    private DataTable CheckIfSelect(FileStatement fileQueryParser, TransactionScopedRows transactionScopedRows)
     {
         if (fileQueryParser is FileSelect fileSelect)
         {
@@ -143,18 +153,18 @@ public abstract class FileReader : IDisposable
             if (dataTableJoin == null)
             {
                 //No table join.
-                return GetDataTable(fileQueryParser.TableName, transactionScopedRows)!;
+                return GetDataTable(fileQueryParser.TableName, transactionScopedRows, fileSelect.RowOffset, fileSelect.RowCount)!;
             }
 
             //NOTE:  No support yet for INFORMATION_SCHEMA.TABLES table in SQL queries that have JOIN
-            return dataTableJoin.Join(DataSet!, transactionScopedRows);
+            return dataTableJoin.Join(DataSet!, transactionScopedRows, fileSelect.RowOffset, fileSelect.RowCount);
         }
 
         //Parser is not a FileSelect
-        return GetDataTable(fileQueryParser!.TableName, transactionScopedRows)!;
+        return GetDataTable(fileQueryParser!.TableName, transactionScopedRows, null, null)!;
     }
 
-    private DataTable GenerateInformationSchemaTable()
+    private DataTable GenerateInformationSchemaTable(int? rowOffset, int? rowCount)
     {
         var informationSchemaTable = new DataTable(SchemaTable);
 
@@ -176,6 +186,7 @@ public abstract class FileReader : IDisposable
             allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
         }
 
+        allTableNames = LimitRows(allTableNames, rowOffset, rowCount);
         foreach (string tableName in allTableNames)
         {
             AddRowToSchemaTable(informationSchemaTable, tableName, fileConnection.FolderAsDatabase);
@@ -194,7 +205,7 @@ public abstract class FileReader : IDisposable
     }
 
 
-    private DataTable GenerateInformationSchemaColumn()
+    private DataTable GenerateInformationSchemaColumn(int? rowOffset, int? rowCount)
     {
         var informationSchemaColumn = new DataTable(SchemaColumn);
 
@@ -207,9 +218,10 @@ public abstract class FileReader : IDisposable
         //Get all table colums sorted in order of the primary key (database, table, column)
         var allTableColumns = DataSet.Tables.Cast<DataTable>()
             .SelectMany(table => table.Columns.Cast<DataColumn>().Select(column => (Table: table, Column: column)))
-            .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).ToList();
+            .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).AsEnumerable();
 
-        //TODO: When we upgrade to C# 12, use specify an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
+        //TODO: When we upgrade to C# 12, use an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
+        allTableColumns = LimitRows(allTableColumns, rowOffset, rowCount);
         foreach ((DataTable Table, DataColumn Column) columnTuple in allTableColumns)
         {
 
@@ -230,13 +242,13 @@ public abstract class FileReader : IDisposable
     }
 
 
-    private DataTable GetDataTable(string tableName, Dictionary<string, List<DataRow>> transactionScopedRows)
+    private DataTable GetDataTable(string tableName, TransactionScopedRows transactionScopedRows, int? rowOffset, int? rowCount)
     {
         if (IsSchemaTable(tableName))
-            return GenerateInformationSchemaTable();
+            return GenerateInformationSchemaTable(rowOffset, rowCount);
 
         if (IsSchemaColumn(tableName))
-            return GenerateInformationSchemaColumn();
+            return GenerateInformationSchemaColumn(rowOffset, rowCount);
 
         var table = DataSet!.Tables[tableName]!;
         if (table == null)
@@ -258,6 +270,16 @@ public abstract class FileReader : IDisposable
 
                 table.Rows.Add(newRow);
             }
+        }
+
+        //Check for LIMIT arguments.
+        if (rowOffset.HasValue || rowCount.HasValue)
+        {
+            //Don't touch the source table.  Clone it and add rows to it.
+            var sourceRows = table.Rows.Cast<DataRow>();
+            sourceRows = LimitRows(sourceRows, rowOffset, rowCount);
+
+            table = sourceRows.CopyToDataTable();
         }
 
         return table;
@@ -285,15 +307,15 @@ public abstract class FileReader : IDisposable
     }
   
 
-    private HashSet<string> GetTableNames(FileStatement jsonQueryParser)
+    private HashSet<string> GetTableNames(FileStatement fileStatement)
     {
         //Start with the name of the first table in the JOIN
-        var tableNames = new HashSet<string> { jsonQueryParser!.TableName };
+        var tableNames = new HashSet<string> { fileStatement!.TableName };
 
         //If this is a SELECT with JOINs and is directory-based storage 
-        if (jsonQueryParser is FileSelect fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
+        if (fileStatement is FileSelect fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
         {
-            foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != jsonQueryParser.TableName.ToLower()))
+            foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != fileStatement.TableName.ToLower()))
             {
                 tableNames.Add(jsonFile);
             }
@@ -307,6 +329,18 @@ public abstract class FileReader : IDisposable
         throw new ArgumentException($"The file connection for {GetType()} doesn't have a DataSource which is a folder.");
 
     private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
+
+    internal static IEnumerable<T> LimitRows<T>(IEnumerable<T> values, int? rowOffset, int? rowCount)
+    {
+        if (rowOffset.HasValue)
+            values = values.Skip(rowOffset.Value);
+
+        if (rowCount.HasValue)
+            values = values.Take(rowCount.Value);
+
+        return values;
+    }
+
 
     /// <summary>
     /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>

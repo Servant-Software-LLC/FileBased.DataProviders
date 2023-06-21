@@ -14,7 +14,7 @@ internal class Result
     public string Statement { get; }
 
     public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, 
-                  Result previousWriteResult, Dictionary<string, List<DataRow>> transactionScopedRows, ILogger log)
+                  Result previousWriteResult, TransactionScopedRows transactionScopedRows, ILogger log)
     {
         Statement = fileStatement.Statement;
         this.log = log;
@@ -26,7 +26,7 @@ internal class Result
             if (!string.IsNullOrEmpty(fileStatement.TableName))
             {
                 log.LogDebug("Normal SELECT query with a FROM <table> clause");
-                WorkingResultSet = fileReader.ReadFile(fileStatement, true, transactionScopedRows);
+                WorkingResultSet = fileReader.ReadFile(fileStatement, transactionScopedRows, true);
             }
             else //SELECT query with no FROM clause
             {

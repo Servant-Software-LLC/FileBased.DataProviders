@@ -40,6 +40,6 @@ public class JsonCommand : FileCommand<JsonParameter>
     };
 
     protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 
-        new(fileStatements, FileConnection.FileReader, CreateWriter, loggerServices);
+        new(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
 
 }

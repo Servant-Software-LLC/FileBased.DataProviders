@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace Data.Common.FileIO.Write;
 
@@ -66,7 +65,7 @@ public abstract class FileInsertWriter : FileWriter
 
     private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
     {
-        var dataTable = fileReader.ReadFile(fileStatement);
+        var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
 
         //Check if we need to add columns on the first INSERT of data into this table.
         if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
@@ -180,11 +179,11 @@ public abstract class FileInsertWriter : FileWriter
 
     private Type GetJsonType(object value) => value switch
     {
-        int intValue => typeof(decimal),
-        long longValue => typeof(decimal),
-        decimal decimalValue => typeof(decimal),
-        string stringValue => typeof(string),
-        bool boolValue => typeof(bool),
+        int => typeof(decimal),
+        long => typeof(decimal),
+        decimal => typeof(decimal),
+        string => typeof(string),
+        bool => typeof(bool),
         null => typeof(string),
         _ => throw new InvalidOperationException("query not supported")
     };

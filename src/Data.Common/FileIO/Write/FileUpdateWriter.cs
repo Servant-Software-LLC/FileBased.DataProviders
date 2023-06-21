@@ -20,7 +20,7 @@ public class FileUpdateWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(fileStatement);
+            var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
             var values = fileStatement.GetValues();
 
             //Create a DataView to work with just for this operation

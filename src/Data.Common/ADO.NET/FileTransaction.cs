@@ -1,4 +1,4 @@
-﻿using Data.Common.Interfaces;
+﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
@@ -10,7 +10,6 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
 
     private readonly FileConnection<TFileParameter> connection;
     private readonly IsolationLevel isolationLevel;
-    public bool TransactionDone { get; private set; } = false;
 
     public FileTransaction(FileConnection<TFileParameter> connection, IsolationLevel isolationLevel = default)
     {
@@ -20,7 +19,12 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         log.LogInformation($"{GetType()} constructed.");
     }
 
+    public bool TransactionDone { get; private set; } = false;
+
     public List<FileWriter> Writers { get; } = new();
+
+    public TransactionScopedRows TransactionScopedRows { get; } = new();
+
 
     public override IsolationLevel IsolationLevel => isolationLevel;
     public override void Commit()

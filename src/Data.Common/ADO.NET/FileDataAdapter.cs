@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Data.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
 
@@ -73,9 +74,14 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
+        var selectQuery = FileStatementCreator.Create(fileCommand, log);
         var fileReader = connection.FileReader;
-        var dataTable = fileReader.ReadFile(selectQuery, true);
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
         dataTable = GetTable(dataTable, selectQuery);
 
         var cols = GetColumns(dataTable, selectQuery);
@@ -110,11 +116,16 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
         log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
         var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
-        var dataTable = fileReader.ReadFile(selectQuery, true);
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()
