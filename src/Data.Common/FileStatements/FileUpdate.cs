@@ -17,7 +17,7 @@ public class FileUpdate : FileStatement
         return cols;
     }
 
-    public override string GetTable() => node.ChildNodes[1].ChildNodes[0].Token.ValueString;
+    public override SqlTable GetTable() => Parsing.TableName.Create(node.ChildNodes[1]);
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {

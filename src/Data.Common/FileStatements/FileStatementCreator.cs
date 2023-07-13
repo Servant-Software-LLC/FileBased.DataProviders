@@ -1,6 +1,7 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks;
 using System.Text;
 
 namespace Data.Common.FileStatements;
@@ -42,7 +43,7 @@ internal class FileStatementCreator
             ThrowHelper.ThrowQuerySyntaxException(errorMessage, commandText);
         }
 
-
+        var sqlDefinition = Stmt.Create(parseTree.Root, databaseConnectionProvider, tableSchemaProvider);
         if (log.IsEnabled(LogLevel.Debug))
         {
             log.LogDebug($"Parsed tree: {ParseTreeToString(parseTree.Root)}");

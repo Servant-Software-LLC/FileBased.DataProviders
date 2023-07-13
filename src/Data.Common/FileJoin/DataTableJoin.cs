@@ -1,13 +1,14 @@
 ﻿using Data.Common.Utils;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileJoin;
 
 public class DataTableJoin
 {
-    private readonly IEnumerable<Join> dataTableInnerJoins;
+    private readonly IEnumerable<SqlJoin> dataTableInnerJoins;
     private readonly string mainTable;
 
-    public DataTableJoin(IEnumerable<Join> dataTableInnerJoins, string mainTable)
+    public DataTableJoin(IEnumerable<SqlJoin> dataTableInnerJoins, string mainTable)
     {
         this.dataTableInnerJoins = dataTableInnerJoins;
         this.mainTable = mainTable;
@@ -63,7 +64,7 @@ public class DataTableJoin
 
     public List<DataRow> JoinRows(DataRow sourceRow,
                                   DataTable resultTable,
-                                  Join dataTableInnerJoin,
+                                  SqlJoin dataTableInnerJoin,
                                   DataSet database,
                                   List<DataRow> dataRows,
                                   Dictionary<string, List<DataRow>> transactionScopedRows)

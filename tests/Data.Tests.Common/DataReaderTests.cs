@@ -109,7 +109,7 @@ public static class DataReaderTests
             {
                 Assert.IsType<bool>(reader["married"]);
             }
-            
+
             //No second row
             Assert.False(reader.Read());
         }
@@ -177,7 +177,7 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var firstTableName = reader["TABLE_NAME"].ToString();
-            Assert.True(string.Compare(firstTableName, "employees", true) == 0 || 
+            Assert.True(string.Compare(firstTableName, "employees", true) == 0 ||
                         string.Compare(firstTableName, "locations", true) == 0);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
 
@@ -185,7 +185,7 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var secondTableName = reader["TABLE_NAME"].ToString();
-            Assert.True(string.Compare(secondTableName, "employees", true) == 0 || 
+            Assert.True(string.Compare(secondTableName, "employees", true) == 0 ||
                         string.Compare(secondTableName, "locations", true) == 0);
             Assert.NotEqual(firstTableName, secondTableName);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
@@ -461,4 +461,20 @@ public static class DataReaderTests
         connection.Close();
     }
 
+    public static void Reader_TableAlias<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+
+        //NOTE:  ADO.NET provider behavior is that statements will get executed in turn until a resultset is
+        //produced.  Therefore, the ExecuteReader() method call here will execute both the INSERT and SELECT.
+        //(i.e. in other words for this scenario, NextResult() does not have to be called.
+        var command = connection.CreateCommand("SELECT \"b\".\"BlogId\", \"b\".\"Url\"\r\n    FROM \"Blogs\" AS \"b\"\r\n    ORDER BY \"b\".\"BlogId\"\r\n    LIMIT 1");
+        var reader = command.ExecuteReader();
+
+    }
 }

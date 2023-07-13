@@ -1,6 +1,5 @@
 ﻿global using System.Data;
 global using Data.Json.Extension;
-global using Data.Common.FileFilter;
 global using System.Text.Json;
 global using Data.Json.JsonIO.Read;
 global using Data.Json.JsonIO.Write;
