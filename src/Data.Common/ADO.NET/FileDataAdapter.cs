@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace System.Data.FileClient;
 
@@ -221,30 +223,40 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
     private DataTable GetTable(DataTable dataTable, FileStatement query)
     {
-        var filters = query.GetFilters();
+        var filters = query.Filter;
         var view = new DataView(dataTable);
         if (filters != null)
         {
-            view.RowFilter = filters.Evaluate();
+            view.RowFilter = filters.ToString();
         }
         return view.ToTable();
     }
 
     private IEnumerable<string> GetColumns(DataTable dataTable, FileStatement query)
     {
-        var cols = query.GetColumnNames()
-            .ToList();
-
-        if (cols!.FirstOrDefault()?.Trim() == "*" && cols != null)
+        List<string> columnNames = new();
+        foreach(ISqlColumn iSqlColumn in query.Columns)
         {
-            cols.Clear();
-            foreach (DataColumn column in dataTable.Columns)
+            switch(iSqlColumn)
             {
-                cols.Add(column.ColumnName);
+                case SqlAllColumns sqlAllColumns:
+                    columnNames.Clear();
+                    foreach (DataColumn dataColumn in dataTable.Columns)
+                    {
+                        columnNames.Add(dataColumn.ColumnName);
+                    }
+                    return columnNames;
+
+                case SqlColumn sqlColumn:
+                    columnNames.Add(sqlColumn.ColumnName);
+                    break;
+
+                default:
+                    throw new Exception($"Column was of an unresolved type that was unexpected: {iSqlColumn}({iSqlColumn.GetType()})");
             }
         }
 
-        return cols!;
+        return columnNames;
     }
 
     public void Dispose()

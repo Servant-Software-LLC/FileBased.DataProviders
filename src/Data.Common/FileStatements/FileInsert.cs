@@ -1,13 +1,12 @@
 ﻿using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
-using SqlBuildingBlocks.Utils;
 
 namespace Data.Common.FileStatements;
 
 public class FileInsert : FileStatement
 {
-    public FileInsert(SqlInsertDefinition sqlInsertDefinition, DbParameterCollection parameters, string statement) 
-        : base(sqlInsertDefinition.Table, null, parameters, statement)
+    public FileInsert(SqlInsertDefinition sqlInsertDefinition, string statement) 
+        : base(null, statement)
     {
         if (sqlInsertDefinition == null)
             throw new ArgumentNullException(nameof(sqlInsertDefinition));
@@ -15,13 +14,14 @@ public class FileInsert : FileStatement
         if (sqlInsertDefinition.Columns.Count != sqlInsertDefinition.Values.Count)
             throw new ArgumentException($"In the INSERT, the number of columns is {sqlInsertDefinition.Columns.Count}, but the number of VALUES is {sqlInsertDefinition.Values.Count}. Their counts must be the same.");
 
+        Tables = new SqlTable[] { sqlInsertDefinition.Table };
         Columns = sqlInsertDefinition.Columns.Cast<ISqlColumn>().ToList();
-
-        SetValues(sqlInsertDefinition.Values, parameters);
+        SetValues(sqlInsertDefinition.Values);
     }
 
+    public override IEnumerable<SqlTable> Tables { get; }
     public override IList<ISqlColumn> Columns { get; }
-    public IList<SqlLiteralValue> Values { get; }
+    public IList<SqlLiteralValue> Values { get; private set; }
     public HashSet<string> ColumnNameHints { get; } = new();
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
@@ -31,20 +31,18 @@ public class FileInsert : FileStatement
         return result!;
     }
 
-    // Resolve any parameters in order to set Values property
-    private void SetValues(IList<SqlExpression> values, DbParameterCollection parameters)
+    private void SetValues(IList<SqlExpression> values)
     {
         List<SqlLiteralValue> sqlLiteralValues = new();
-        ResolveParametersVisitor resolveParametersVisitor = new(parameters);
         foreach (var value in values)
         {
-            value.Accept(resolveParametersVisitor);
-
             if (value.Value == null)
                 throw new Exception($"SqlExpression value of {value} does not contain a {typeof(SqlLiteralValue)}");
 
             sqlLiteralValues.Add(value.Value);
         }
+
+        Values = sqlLiteralValues;
     }
 
 }

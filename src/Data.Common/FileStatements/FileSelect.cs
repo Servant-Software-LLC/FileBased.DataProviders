@@ -1,17 +1,14 @@
-﻿using Data.Common.FileJoin;
-using SqlBuildingBlocks.Interfaces;
+﻿using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileStatements;
 
 public class FileSelect : FileStatement
 {
-    private readonly IList<SqlJoin> sqlJoins;
-
-    public FileSelect(SqlSelectDefinition sqlSelectDefinition, DbParameterCollection parameters, string statement)
-        : base(sqlSelectDefinition.Table, sqlSelectDefinition.WhereClause, parameters, statement)
+    public FileSelect(SqlSelectDefinition sqlSelectDefinition, string statement)
+        : base(sqlSelectDefinition.WhereClause, statement)
     {
-        Limit = sqlSelectDefinition.Limit;
+        SqlSelect = sqlSelectDefinition;
         IsCountQuery = sqlSelectDefinition.Columns.Any(col =>
         {
             if (col is SqlAggregate sqlAggregate && sqlAggregate.AggregateName == "COUNT")
@@ -23,19 +20,23 @@ public class FileSelect : FileStatement
 
             return false;
         });
-        Columns = sqlSelectDefinition.Columns;
-        sqlJoins = sqlSelectDefinition.Joins;
+
+        Tables = sqlSelectDefinition.Table == null ? null : new SqlTable[] { sqlSelectDefinition.Table };
+
+        if (sqlSelectDefinition.Joins != null)
+            Tables = Tables.Concat(sqlSelectDefinition.Joins.Select(join => join.Table));
     }
 
-    public SqlLimitOffset Limit { get; }
+    public SqlSelectDefinition SqlSelect { get; }
+    public override IEnumerable<SqlTable> Tables { get; }
+    public override IList<ISqlColumn> Columns => SqlSelect.Columns;
+    public IList<SqlJoin> Joins => SqlSelect.Joins;
+    public SqlLimitOffset Limit => SqlSelect.Limit;
 
-    public override IList<ISqlColumn> Columns { get; }
 
     /// <summary>
     /// Is a column a COUNT(*)?
     /// </summary>
     public bool IsCountQuery { get; }
     
-    public DataTableJoin GetFileJoin() => new DataTableJoin(sqlJoins, Table.TableName);
-
 }

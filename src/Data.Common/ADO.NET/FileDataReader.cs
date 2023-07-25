@@ -84,14 +84,6 @@ public abstract class FileDataReader : DbDataReader
 
                 //Log the executing statement as well as its parameters (if any)
                 log.LogInformation($"{GetType()}.{nameof(NextResult)}(). Executing statement: {fileStatement.Statement}");
-                if (fileStatement.Parameters.Count > 0)
-                {
-                    log.LogInformation($"{fileStatement.Parameters[0].GetType().Name} Parameters (Count: {fileStatement.Parameters.Count}):");
-                    foreach(DbParameter parameter in fileStatement.Parameters)
-                    {
-                        log.LogInformation($"  {parameter.ParameterName}: {parameter.Value}");
-                    }
-                }
 
                 result = new Result(fileStatement, fileReader, createWriter, previousWriteResult, transactionScopedRows, log);
 

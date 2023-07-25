@@ -5,23 +5,26 @@ namespace Data.Common.FileStatements;
 
 public abstract class FileStatement
 {    
-    protected FileStatement(SqlTable sqlTable, SqlBinaryExpression filter, DbParameterCollection parameters, string statement)
+    protected FileStatement(SqlBinaryExpression filter, string statement)
     {
-        Table = sqlTable;
-        Parameters = parameters;
         Filter = filter;
         Statement = statement;
     }
 
-    protected SqlTable Table { get; }
-    public string TableName => Table.TableName;
+    public SqlTable FromTable => Tables != null ? Tables.FirstOrDefault() : null;
     public SqlBinaryExpression? Filter { get; }
+
+    /// <summary>
+    /// List of all tables involved in the SQL statement
+    /// </summary>
+    public abstract IEnumerable<SqlTable> Tables { get; }
 
     /// <summary>
     /// SQL statement that created this instance.
     /// </summary>
     public string Statement { get; }
-    public DbParameterCollection Parameters { get; }
 
+
+    //TODO:  Do we need this (abstract) property at this level?
     public abstract IList<ISqlColumn> Columns { get; }
 }

@@ -1,37 +1,20 @@
-﻿using Irony.Parsing;
+﻿using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
+
 namespace Data.Common.FileStatements;
 
 public class FileUpdate : FileStatement
 {
-    public FileUpdate(ParseTreeNode tree, DbParameterCollection parameters, string statement) 
-        : base(tree, parameters, statement)
+    public FileUpdate(SqlUpdateDefinition sqlUpdateDefinition, string statement) 
+        : base(sqlUpdateDefinition.WhereClause, statement)
     {
+        Tables = new SqlTable[] { sqlUpdateDefinition.Table };
+        Assignments = sqlUpdateDefinition.Assignments;
     }
 
-    public override IEnumerable<string> GetColumnNames()
-    {
-        var cols = node
-     .ChildNodes[3].ChildNodes
-     .Select(item => item.ChildNodes[0].ChildNodes[0].Token.ValueString);
+    public override IEnumerable<SqlTable> Tables { get; }
+    public IList<SqlAssignment> Assignments { get; }
 
-        return cols;
-    }
+    public override IList<ISqlColumn> Columns => throw new NotImplementedException();
 
-    public override SqlTable GetTable() => Parsing.TableName.Create(node.ChildNodes[1]);
-
-    public IEnumerable<KeyValuePair<string, object>> GetValues()
-    {
-        var cols = GetColumnNames();
-        var assignList = node.ChildNodes[3];
-        var values = assignList.ChildNodes.Select(item => base.GetValue(item.ChildNodes[2]));
-        
-        if (cols.Count() != values.Count())
-        {
-            throw new InvalidOperationException("The supplied values are not matched");
-        }
-
-        var result = cols.Zip(values, (name, value) => KeyValuePair.Create(name, value));
-
-        return result!;
-    }
 }

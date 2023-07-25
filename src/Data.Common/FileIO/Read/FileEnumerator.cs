@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileIO.Read;
 
@@ -11,7 +13,7 @@ internal class FileEnumerator : IEnumerator<object?[]>
     private object?[] currentRow = Array.Empty<object>();
     private bool endOfResultset;
 
-    public FileEnumerator(IEnumerable<string> resultSetColumnNames, DataTable workingResultset, Filter? filter, ILogger log)
+    public FileEnumerator(IList<ISqlColumn> columns, DataTable workingResultset, SqlBinaryExpression? filter, ILogger log)
     {
         if (workingResultset == null) 
             throw new ArgumentNullException(nameof(workingResultset));
@@ -24,7 +26,7 @@ internal class FileEnumerator : IEnumerator<object?[]>
         {
             try
             {
-                var sFilter = filter.Evaluate();
+                var sFilter = filter.ToString();
                 log.LogDebug($"Filter: {sFilter}");
                 workingDataView.RowFilter = sFilter;
             }
@@ -34,14 +36,33 @@ internal class FileEnumerator : IEnumerator<object?[]>
             }
         }
 
-        Columns.AddRange(resultSetColumnNames);
-        if (Columns.FirstOrDefault()?.Trim() == "*" && Columns != null)
+        //If there is an asterisk indicating to show all columns.
+        if (columns.Any(col => col.GetType() == typeof(SqlAllColumns))) 
         {
-            Columns.Clear();
             foreach (DataColumn column in workingResultset.Columns)
             {
                 Columns.Add(column.ColumnName);
             }
+        }
+        else
+        {
+            //TODO:  Temporary code again.  Eventually the QueryEngine will replace of all this specific code.
+            //These columns need the column names (and not aliases) to get the values out of the workingResultset.  At
+            //this point it is assumed that all columns are SqlColumnRef, because the FileBased provider has yet to 
+            //support such things like SqlLiteralValueColumn instances.
+            foreach (ISqlColumn sqlColumn in columns)
+            {
+                switch(sqlColumn)
+                {
+                    case SqlColumnRef sqlColumnRef:
+                        Columns.Add(sqlColumnRef.ColumnName);
+                        break;
+
+                    default:
+                        throw new ArgumentException($"The {nameof(FileEnumerator)} expected all columns provided to be of type {typeof(SqlColumnRef)}.  Type was {sqlColumn.GetType()}");
+                }
+            }
+
         }
 
         log.LogDebug($"FileEnumerator created.");

@@ -1,5 +1,6 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace System.Data.FileClient;
 
@@ -188,7 +189,8 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         if (fileStatement is not FileSelect selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
-        var columns = selectQuery.GetColumnNames();
+
+        var columns = selectQuery.Columns.Select(col => ((SqlColumnRef)col).ColumnName);
         var reader = FileConnection!.FileReader ;
 
         var transactionScopedRows = FileTransaction == null ? null : FileTransaction.TransactionScopedRows;
@@ -196,7 +198,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         var dataView = new DataView(dataTable);
 
         if (fileStatement.Filter!=null)
-            dataView.RowFilter = fileStatement.Filter.Evaluate();
+            dataView.RowFilter = fileStatement.Filter.ToString();
 
         object? result = null;
         
@@ -245,12 +247,14 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
                 //Now that an INSERT is found, look through the rest of the statements for any SELECTs
                 for (int iSelect = iInsert + 1; iSelect < fileStatements.Count; iSelect++)
                 {
-                    //
+                    //If there is a future SELECT in the statements for the same table as this INSERT..
                     if (fileStatements[iSelect] is FileSelect fileSelect &&
-                        string.Compare(fileSelect.TableName, fileInsert.TableName, true) == 0 &&
-                        fileSelect.GetFileJoin() == null)
+                        fileSelect.FromTable == fileInsert.FromTable &&
+                        fileSelect.Joins.Count == 0)
                     {
-                        foreach (var column in fileSelect.GetColumnNames())
+                        //Provide column name hints to be used for the JSON provider, because when a table has no data
+                        //in it to start out with, then it doesn't know the schema of its table columns.
+                        foreach (var column in fileSelect.Columns.Select(col => ((SqlColumnRef)col).ColumnName))
                         {
                             fileInsert.ColumnNameHints.Add(column);
                         }

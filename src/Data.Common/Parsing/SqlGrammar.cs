@@ -1,5 +1,7 @@
 ﻿using Irony.Parsing;
 using SqlBuildingBlocks;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.Parsing;
 
@@ -14,27 +16,30 @@ public class SqlGrammar : Grammar
         SimpleId simpleId = new(this);
         AliasOpt aliasOpt = new(simpleId, this);
         Id id = new(simpleId, this);
+        LiteralValue literalValue = new();
         IdList idList = new(id, this);
         TableName tableName = new(aliasOpt, id, simpleId, this);
-        Expression expression = new();
-        ExprList exprList = new(expression, this);
-        FuncCall builtinFunc = new(id, exprList, this);
+        Expr expr = new();
+        ExprList exprList = new(expr, this);
+        FuncCall funcCall = new(id, exprList, this);
         Parameter parameter = new(this);
-        JoinChainOpt joinChainOpt = new(tableName, expression, this);
-        WhereClauseOpt whereClauseOpt = new(expression, this);
+        JoinChainOpt joinChainOpt = new(tableName, expr, this);
+        WhereClauseOpt whereClauseOpt = new(expr, this);
         OrderByList orderByList = new(id, this);
         SelectStmt selectStmt = new();
 
-        expression.InitializeRule(selectStmt, id, exprList, builtinFunc, parameter, this);
-        selectStmt.InitializeRule(id, idList, expression, exprList, builtinFunc, aliasOpt, tableName, joinChainOpt, whereClauseOpt, orderByList, this);
+        expr.InitializeRule(selectStmt, id, literalValue, exprList, funcCall, parameter, this);
+        selectStmt.InitializeRule(id, idList, expr, exprList, funcCall, aliasOpt, tableName, joinChainOpt, whereClauseOpt, orderByList, this);
 
         InsertStmt insertStmt = new(id, idList, exprList, selectStmt, this);
-        UpdateStmt updateStmt = new(id, expression, tableName, whereClauseOpt, this);
+        UpdateStmt updateStmt = new(id, literalValue, parameter, funcCall, tableName, whereClauseOpt, this);
         DeleteStmt deleteStmt = new(tableName, whereClauseOpt, this);
 
         Stmt stmt = new(selectStmt, insertStmt, updateStmt, deleteStmt, this);
-
         Root = stmt;
     }
+
+    public virtual SqlDefinition Create(ParseTreeNode selectStmt) =>
+        ((Stmt)Root).Create(selectStmt);
 
 }

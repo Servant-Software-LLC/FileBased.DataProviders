@@ -3,5 +3,6 @@
 public interface IFileCommand : IDbCommand
 {
     IFileConnection FileConnection { get; }
-    IFileTransaction FileTransaction { get; }   
+    IFileTransaction FileTransaction { get; }
+    new DbParameterCollection Parameters { get; }
 }
