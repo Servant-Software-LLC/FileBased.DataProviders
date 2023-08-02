@@ -13,6 +13,7 @@
 	  <PackageReference Include="Serilog.Sinks.File" />
 	  <PackageReference Include="SqlBuildingBlocks.Core" />
 	  <PackageReference Include="SqlBuildingBlocks.Grammars.MySQL" />
+	  <PackageReference Include="SqlBuildingBlocks.Grammars.SQLServer" />
   </ItemGroup>  
 
 </Project>

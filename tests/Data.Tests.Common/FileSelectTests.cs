@@ -1,8 +1,6 @@
-﻿using Data.Common.FileStatements;
-using Data.Common.Parsing;
+﻿using Data.Common.Parsing;
+using Data.Tests.Common.Utils;
 using Irony.Parsing;
-using SqlBuildingBlocks.LogicalEntities;
-using System.Linq.Expressions;
 using Xunit;
 
 namespace Data.Tests.Common;
@@ -12,13 +10,11 @@ public class FileSelectTests
     [Fact]
     public void ctor_InterpretAstWithFunctions()
     {
-        var commandText = "SELECT \"BlogId\"\r\nFROM \"Blogs\"\r\nWHERE ROW_COUNT() = 1\r\n AND \"BlogId\"=LAST_INSERT_ID()";
         var grammar = new SqlGrammar();
-        var parser = new Parser(grammar);
-        var parseTree = parser.Parse(commandText);
-        Assert.False(parseTree.HasErrors());
+        var commandText = "SELECT \"BlogId\"\r\nFROM \"Blogs\"\r\nWHERE ROW_COUNT() = 1\r\n AND \"BlogId\"=LAST_INSERT_ID()";
+        var parseTreeNode = GrammarParser.Parse(grammar, commandText);
 
-        var sqlDefinition = grammar.Create(parseTree.Root);
+        var sqlDefinition = grammar.Create(parseTreeNode);
 
         Assert.NotNull(sqlDefinition.Select);
         Assert.NotNull(sqlDefinition.Select!.WhereClause);

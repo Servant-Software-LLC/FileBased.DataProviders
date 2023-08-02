@@ -1,6 +1,5 @@
 ﻿using Irony.Parsing;
 using SqlBuildingBlocks;
-using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.Parsing;
@@ -13,7 +12,8 @@ public class SqlGrammar : Grammar
     {
         Comment.Register(this);
 
-        SimpleId simpleId = new(this);
+        SqlBuildingBlocks.Grammars.SQLServer.SimpleId simpleId = new(this);
+
         AliasOpt aliasOpt = new(simpleId, this);
         Id id = new(simpleId, this);
         LiteralValue literalValue = new();
@@ -26,7 +26,7 @@ public class SqlGrammar : Grammar
         JoinChainOpt joinChainOpt = new(tableName, expr, this);
         WhereClauseOpt whereClauseOpt = new(expr, this);
         OrderByList orderByList = new(id, this);
-        SelectStmt selectStmt = new();
+        SqlBuildingBlocks.Grammars.MySQL.SelectStmt selectStmt = new();
 
         expr.InitializeRule(selectStmt, id, literalValue, exprList, funcCall, parameter, this);
         selectStmt.InitializeRule(id, idList, expr, exprList, funcCall, aliasOpt, tableName, joinChainOpt, whereClauseOpt, orderByList, this);

@@ -1,5 +1,4 @@
-﻿using Data.Common.FileStatements;
-using Data.Common.Utils;
+﻿using Data.Common.Utils;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
@@ -65,7 +64,9 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             if (fileConnection.FolderAsDatabase)
             {
                 DataSet ??= new DataSet();
-                var newTables = fileStatement.Tables.Select(table => table.TableName).ToHashSet();
+
+                //Get table names that aren't schema tables.
+                var newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
 
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
             }
@@ -126,10 +127,13 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             DatabaseConnectionProvider databaseConnectionProvider = new(fileConnection);
             fileSelect.SqlSelect.ResolveReferences(databaseConnectionProvider, this, null);
 
+            if (fileSelect.SqlSelect.InvalidReferences)
+                throw new InvalidOperationException($"Unable to resolve the references with the SELECT statement.  Reason: {fileSelect.SqlSelect.InvalidReferenceReason}");
+
             List<DataSet> dataSets = new();
 
             //Get a DataSet of all the tables in this query (minus the INFORMATION_SCHEMA tables requested)
-            TransactionLevelData transactionLevelData = new(DataSet, fileConnection.Database, transactionScopedRows);
+            TransactionLevelData transactionLevelData = new(DataSet, databaseConnectionProvider.DefaultDatabase, transactionScopedRows);
             var databaseData = transactionLevelData.Compose(fileStatement.Tables);
             dataSets.Add(databaseData);
 
@@ -290,6 +294,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
 
+    private static bool IsSchemaTable(SqlTable sqlTable) => string.Compare(sqlTable.DatabaseName, SchemaDatabase) == 0;
+
     private (bool IncludeTableSchema, bool IncludeColumnSchema) NeedsSchemaMetadata(IEnumerable<SqlTable> tablesInvolvedInSqlStatement)
     {
         bool includeTableSchema = false;
@@ -298,7 +304,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         foreach (SqlTable table in tablesInvolvedInSqlStatement)
         {
             //If the table requested is not in the INFORMATION_SCHEMA database
-            if (string.Compare(table.DatabaseName, SchemaDatabase) != 0)
+            if (!IsSchemaTable(table))
                 continue;
 
             includeTableSchema = includeTableSchema || string.Compare(table.TableName, SchemaTable) == 0;

@@ -94,10 +94,10 @@ public static class DataAdapterTests
     {
         // Arrange
         string query = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] " +
-            "FROM [Customers c] " +
-            "INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] " +
-            "INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] " +
-            "INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
+            "FROM Customers c " +
+            "INNER JOIN Orders o ON [c].[ID] = [o].[CustomerID] " +
+            "INNER JOIN OrderItems oi ON [o].[ID] = [oi].[OrderID] " +
+            "INNER JOIN Products p ON [p].[ID] = [oi].[ProductID]";
 
         // Act
         using (var connection = createFileConnection())

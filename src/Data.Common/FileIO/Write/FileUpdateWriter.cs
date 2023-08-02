@@ -26,7 +26,7 @@ public class FileUpdateWriter : FileWriter
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = fileUpdate.Filter?.ToString();
+            dataView.RowFilter = fileUpdate.Filter?.ToExpressionString();
 
             var rowsAffected = dataView.Count;
 

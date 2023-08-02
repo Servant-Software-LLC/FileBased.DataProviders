@@ -210,40 +210,39 @@ public abstract class FileDataReader : DbDataReader
         tempSchemaTable.Columns.Add(BaseTableNamespace);
         tempSchemaTable.Columns.Add(BaseColumnNamespace);
 
-        foreach (string cl in result.FileEnumerator.Columns)
+        foreach (DataColumn dataColumn in result.FileEnumerator.Columns)
         {
-            DataColumn dc = workingResultSet.Columns[cl]!;
-            DataRow dr = tempSchemaTable.NewRow();
+            DataRow dataRow = tempSchemaTable.NewRow();
 
-            dr[ColumnName] = dc.ColumnName;
-            dr[ColumnOrdinal] = dc.Ordinal;
-            dr[DataType] = dc.DataType;
+            dataRow[ColumnName] = dataColumn.ColumnName;
+            dataRow[ColumnOrdinal] = dataColumn.Ordinal;
+            dataRow[DataType] = dataColumn.DataType;
 
-            if (dc.DataType == typeof(string))
+            if (dataColumn.DataType == typeof(string))
             {
-                dr[ColumnSize] = dc.MaxLength;
+                dataRow[ColumnSize] = dataColumn.MaxLength;
             }
 
-            dr[AllowDBNull] = dc.AllowDBNull;
-            dr[IsReadOnly] = dc.ReadOnly;
-            dr[IsUnique] = dc.Unique;
+            dataRow[AllowDBNull] = dataColumn.AllowDBNull;
+            dataRow[IsReadOnly] = dataColumn.ReadOnly;
+            dataRow[IsUnique] = dataColumn.Unique;
 
-            if (dc.AutoIncrement)
+            if (dataColumn.AutoIncrement)
             {
-                dr[IsAutoIncrement] = true;
-                dr[AutoIncrementSeed] = dc.AutoIncrementSeed;
-                dr[AutoIncrementStep] = dc.AutoIncrementStep;
+                dataRow[IsAutoIncrement] = true;
+                dataRow[AutoIncrementSeed] = dataColumn.AutoIncrementSeed;
+                dataRow[AutoIncrementStep] = dataColumn.AutoIncrementStep;
             }
 
-            if (dc.DefaultValue != DBNull.Value)
+            if (dataColumn.DefaultValue != DBNull.Value)
             {
-                dr[DefaultValue] = dc.DefaultValue;
+                dataRow[DefaultValue] = dataColumn.DefaultValue;
             }
-            dr[ColumnMapping] = dc.ColumnMapping;
-            dr[BaseColumnName] = dc.ColumnName;
-            dr[BaseColumnNamespace] = dc.Namespace;
+            dataRow[ColumnMapping] = dataColumn.ColumnMapping;
+            dataRow[BaseColumnName] = dataColumn.ColumnName;
+            dataRow[BaseColumnNamespace] = dataColumn.Namespace;
 
-            tempSchemaTable.Rows.Add(dr);
+            tempSchemaTable.Rows.Add(dataRow);
         }
 
         foreach (DataColumn key in workingResultSet.PrimaryKey)

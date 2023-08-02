@@ -41,32 +41,7 @@ internal class Result
             if (WorkingResultSet == null)
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
-            log.LogDebug("Determine filter if any.");
-            var filter = fileStatement!.Filter;
-            if (filter != null)
-            {
-                //Check if any unsupported functions were provided.
-                FunctionsEncounteredVisitor encounteredFunctions = new(new HashSet<string> { BuiltinFunction.RowCountFuncName, BuiltinFunction.LastInsertIdFuncName });
-                filter.Accept(encounteredFunctions);
-                if (encounteredFunctions.Unspecified.Count > 0)
-                {
-                    var invalidFunctionNames = string.Join(", ", encounteredFunctions.Unspecified);
-                    throw new ArgumentException($"The following unsupported function names were encountered. {invalidFunctionNames}");
-                }
-
-                if (previousWriteResult != null && encounteredFunctions.Specified.Count > 0)
-                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
-
-                if (previousWriteResult != null)
-                {
-                    log.LogDebug($"Resolving built-in functions.  Previous write result statement: {previousWriteResult.Statement}");
-
-                    ResolveBuiltinFunctionsVisitor resolveBuiltinFunctionsVisitor = new(previousWriteResult);
-                    filter.Accept(resolveBuiltinFunctionsVisitor);
-                }
-            }
-
-            FileEnumerator = new FileEnumerator(fileStatement.Columns, WorkingResultSet, filter, log);
+            FileEnumerator = new FileEnumerator(WorkingResultSet, log);
 
             RecordsAffected = -1;
             return;

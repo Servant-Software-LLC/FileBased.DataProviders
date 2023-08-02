@@ -15,7 +15,7 @@ internal class TransactionLevelData
     {
         this.storedData = storedData ?? throw new ArgumentNullException(nameof(storedData));
         this.databaseName = !string.IsNullOrWhiteSpace(databaseName) ? databaseName : throw new ArgumentNullException(nameof(databaseName));
-        this.transactionScopedRows = transactionScopedRows ?? throw new ArgumentNullException(nameof(transactionScopedRows));
+        this.transactionScopedRows = transactionScopedRows;
     }
 
     public DataSet Compose(IEnumerable<SqlTable> tablesInvolvedInSqlStatement)

@@ -83,7 +83,6 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
         var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
-        dataTable = GetTable(dataTable, selectQuery);
 
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
@@ -219,17 +218,6 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         {
             lastDataRowChanged = e.Row;
         }
-    }
-
-    private DataTable GetTable(DataTable dataTable, FileStatement query)
-    {
-        var filters = query.Filter;
-        var view = new DataView(dataTable);
-        if (filters != null)
-        {
-            view.RowFilter = filters.ToString();
-        }
-        return view.ToTable();
     }
 
     private IEnumerable<string> GetColumns(DataTable dataTable, FileStatement query)

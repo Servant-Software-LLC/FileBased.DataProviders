@@ -23,7 +23,7 @@ public class FileSelect : FileStatement
 
         Tables = sqlSelectDefinition.Table == null ? null : new SqlTable[] { sqlSelectDefinition.Table };
 
-        if (sqlSelectDefinition.Joins != null)
+        if (Tables != null && sqlSelectDefinition.Joins != null)
             Tables = Tables.Concat(sqlSelectDefinition.Joins.Select(join => join.Table));
     }
 
