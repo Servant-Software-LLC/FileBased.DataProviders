@@ -13,13 +13,13 @@ public static class DataAdapterTests
         var connection = createFileConnection();
         connection.Open();
 
-        var locationInsertCommand = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', '90001')");
+        var locationInsertCommand = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', 90001)");
         var employeeInsertCommand = connection.CreateCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)");
 
-        var locationUpdateCommand = connection.CreateCommand("UPDATE locations SET zip = '32655' WHERE city = 'Boston'");
+        var locationUpdateCommand = connection.CreateCommand("UPDATE locations SET zip = 32655 WHERE city = 'Boston'");
         var employeeUpdateCommand = connection.CreateCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'");
 
-        var locationSelectCommand = connection.CreateCommand("SELECT city, state, zip FROM locations WHERE zip = '32655'");
+        var locationSelectCommand = connection.CreateCommand("SELECT city, state, zip FROM locations WHERE zip = 32655");
         var employeeSelectCommand = connection.CreateCommand("SELECT name, salary FROM employees WHERE name = 'Alice'");
 
         // Act - insert a row into locations and employees tables
@@ -71,7 +71,13 @@ public static class DataAdapterTests
         // Arrange
         var connection = createFileConnection(); ;
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]";
+        command.CommandText = @"
+SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] 
+   FROM [Customers] [c] 
+   INNER JOIN [Orders] [o] ON [c].[ID] = [o].[CustomerID] 
+   INNER JOIN [OrderItems] [oi] ON [o].[ID] = [oi].[OrderID] 
+   INNER JOIN [Products] [p] ON [p].[ID] = [oi].[ProductID]
+";
         var adapter = command.CreateAdapter();
         var dataSet = new DataSet();
         // Act
@@ -333,7 +339,7 @@ public static class DataAdapterTests
         // Arrange
         var connection = createFileConnection();
         var command = connection.CreateCommand("SELECT [Name], [Email] FROM [Customers] WHERE [ID] = @ID");
-        command.Parameters.Add(command.CreateParameter("@ID", 1));
+        command.Parameters.Add(command.CreateParameter("ID", 1));
         var adapter = command.CreateAdapter();
 
         // Act

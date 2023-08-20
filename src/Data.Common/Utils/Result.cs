@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
-using SqlBuildingBlocks.Visitors;
 
 namespace Data.Common.Utils;
 
@@ -26,6 +25,13 @@ internal class Result
         //If SELECT statement
         if (fileStatement is FileSelect fileSelect)
         {
+            if (previousWriteResult != null)
+            {
+                //Resolve the functions with values.
+                BuiltinFunctionProvider functionProvider = new(previousWriteResult);
+                fileSelect.SqlSelect.ResolveFunctions(functionProvider);
+            }
+
             //Normal SELECT query with a FROM <table> clause
             if (fileStatement.FromTable != null)
             {
@@ -105,25 +111,7 @@ internal class Result
                     throw new Exception($"A {nameof(SqlParameterColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
 
                 case SqlFunctionColumn functionColumn:
-
-                    var function = functionColumn.Function;
-
-                    //TODO: Temporary workaround.  Eventually, the QueryEngine should be taking on all the logic of this Result class
-                    if (function.CalculateColumnValue == null)
-                    {
-                        function.CalculateColumnValue = () => BuiltinFunction.EvaluateFunction(function.FunctionName, previousWriteResult);
-                    }
-
-                    if (function.CalculateColumnValue == null)
-                        throw new Exception($"A {nameof(SqlFunctionColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)} if the referenced {nameof(SqlFunction)} does not have the {nameof(SqlFunction.CalculateColumnValue)} property set.");
-
-                    if (string.IsNullOrEmpty(functionColumn.ColumnAlias))
-                    {
-                        functionColumn.ColumnAlias = $"Column{unnamedColumnIndex++}";
-                    }
-
-                    dataTable.Columns.Add(functionColumn.ColumnAlias);
-                    break;
+                    throw new Exception($"A {nameof(SqlFunctionColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
 
                 case ISqlColumnWithAlias columnWithAlias:
                     if (string.IsNullOrEmpty(columnWithAlias.ColumnAlias))
@@ -148,9 +136,7 @@ internal class Result
             switch (column)
             {
                 case SqlFunctionColumn functionColumn:
-                    //At this point, it has been guarded that functionColumn.Function.CalculateColumnValue is not null.
-                    value = functionColumn.Function.CalculateColumnValue();
-                    break;
+                    throw new Exception($"A {nameof(SqlFunctionColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
 
                 case SqlLiteralValueColumn literalValueColumn:
                     value = literalValueColumn.Value.Value;

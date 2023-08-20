@@ -16,6 +16,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     private readonly HashSet<string> tablesToUpdate = new();
 
     public DataSet? DataSet { get; protected set; }
+    public DataSet? SchemaDataSet { get; protected set; }
 
     public FileReader(IFileConnection fileConnection)
     {
@@ -61,13 +62,26 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         {
             EnsureFileSystemWatcher();
 
+            //Determine if we have any INFORMATION_SCHEMA tables
+            (bool includeTableSchema, bool includeColumnSchema) = NeedsSchemaMetadata(fileStatement.Tables);
+
             if (fileConnection.FolderAsDatabase)
             {
                 DataSet ??= new DataSet();
 
                 //Get table names that aren't schema tables.
-                var newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
-
+                HashSet<string> newTables;
+                if (includeColumnSchema)
+                {
+                    //If the column schema table is requested, then we need to load all the tables.
+                    newTables = GetTableNamesFromFolderAsDatabase().ToHashSet();
+                }
+                else
+                {
+                    //Load only the tables in the SQL statement.
+                    newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
+                }
+                
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
             }
             else if (DataSet == null)
@@ -77,6 +91,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
             //Reload any of the tables from disk?
             CheckForTableReload();
+
+            UpdateSchemaDataSet(includeTableSchema, includeColumnSchema);
 
             returnValue = GetResultset(fileStatement, transactionScopedRows);
         }
@@ -89,9 +105,26 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         return returnValue;
     }
 
+    private void UpdateSchemaDataSet(bool includeTableSchema, bool includeColumnSchema)
+    {
+        if (includeTableSchema || includeColumnSchema)
+        {
+            DataSet metadataDataSet = new(SchemaDatabase);
+            if (includeTableSchema)
+                metadataDataSet.Tables.Add(GenerateInformationSchemaTable(includeColumnSchema));
+
+            if (includeColumnSchema)
+                metadataDataSet.Tables.Add(GenerateInformationSchemaColumn());
+
+            SchemaDataSet = metadataDataSet;
+        }
+    }
+
     IEnumerable<DataColumn> ITableSchemaProvider.GetColumns(SqlTable table)
     {
-        var dataTable = DataSet.Tables[table.TableName];
+        var isSchemaTable = string.Compare(table.DatabaseName, SchemaDatabase, true) == 0;
+        var dataSet = isSchemaTable ? SchemaDataSet : DataSet;
+        var dataTable = dataSet.Tables[table.TableName];
         return dataTable.Columns.Cast<DataColumn>();
     }
 
@@ -125,6 +158,9 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             //We defered the resolution, so that we ensure that the schema of tables that we care about has already been loaded from disk
             //and we can just grab it from the DataSet property.
             DatabaseConnectionProvider databaseConnectionProvider = new(fileConnection);
+
+            //IFunctionProvider instance is not provided here, because resolution of the functions require state from previous command executions.
+            //This is accomplished calling SqlSelect.Accept() using ResolveBuiltinFunctionsVisitor instance as the parameter
             fileSelect.SqlSelect.ResolveReferences(databaseConnectionProvider, this, null);
 
             if (fileSelect.SqlSelect.InvalidReferences)
@@ -137,19 +173,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             var databaseData = transactionLevelData.Compose(fileStatement.Tables);
             dataSets.Add(databaseData);
 
-            //Determine if we have any INFORMATION_SCHEMA tables
-            (bool includeTableSchema, bool includeColumnSchema) = NeedsSchemaMetadata(fileStatement.Tables);
-            if (includeTableSchema || includeColumnSchema)
-            {
-                DataSet metadataDataSet = new(SchemaDatabase);
-                if (includeTableSchema)
-                    metadataDataSet.Tables.Add(GenerateInformationSchemaTable());
-
-                if (includeColumnSchema)
-                    metadataDataSet.Tables.Add(GenerateInformationSchemaColumn());
-
-                dataSets.Add(metadataDataSet);
-            }
+            if (SchemaDataSet != null)
+                dataSets.Add(SchemaDataSet);
 
             QueryEngine queryEngine = new(dataSets, fileSelect.SqlSelect);
             return queryEngine.QueryAsDataTable();
@@ -191,7 +216,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         return table;
     }
 
-    private DataTable GenerateInformationSchemaTable()
+    private DataTable GenerateInformationSchemaTable(bool includeColumnSchema)
     {
         var informationSchemaTable = new DataTable(SchemaTable);
 
@@ -201,16 +226,16 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         informationSchemaTable.Columns.Add("TABLE_TYPE", typeof(string));
 
         IEnumerable<string> allTableNames;
-        if (fileConnection.FolderAsDatabase)
+        if (includeColumnSchema || !fileConnection.FolderAsDatabase)
+        {
+            // If the COLUMNS table is requested or FileAsDatabase, then we've already loaded all the tables into the DataSet
+            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
+        }
+        else
         {
             //For FolderAsDatabase, we didn't want to force the costly operation of loading 
             //all files in the directory, when just trying to get a list of the tables.
             allTableNames = GetTableNamesFromFolderAsDatabase();
-        }
-        else
-        {
-            // If FileAsDatabase, then we've already loaded all the tables into the DataSet
-            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
         }
 
         foreach (string tableName in allTableNames)

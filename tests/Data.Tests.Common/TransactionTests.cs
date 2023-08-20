@@ -201,7 +201,7 @@ public static class TransactionTests
             {
                 var commandText = "INSERT INTO \"Blogs\" (\"Url\") VALUES (@p0); SELECT \"BlogId\" FROM \"Blogs\" WHERE ROW_COUNT() = 1 AND \"BlogId\"=LAST_INSERT_ID();";
                 var command = connection.CreateCommand(commandText);
-                command.Parameters.Add(command.CreateParameter("@p0", "http://blogs.msdn.com/adonet"));
+                command.Parameters.Add(command.CreateParameter("p0", "http://blogs.msdn.com/adonet"));
                 using (var reader = command.ExecuteReader())
                 {
                     // Assert
@@ -217,7 +217,7 @@ public static class TransactionTests
                 }
 
                 command.Parameters.Clear();
-                command.Parameters.Add(command.CreateParameter("@p0", "https://www.billboard.com/"));
+                command.Parameters.Add(command.CreateParameter("p0", "https://www.billboard.com/"));
                 using (var reader = command.ExecuteReader())
                 {
                     // Assert

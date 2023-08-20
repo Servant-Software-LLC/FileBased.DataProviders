@@ -1,4 +1,5 @@
-﻿using System.Data.FileClient;
+﻿using System.Data.Common;
+using System.Data.FileClient;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -214,7 +215,7 @@ public static class DataReaderTests
             Assert.Equal(4, reader.FieldCount);
 
             //First Row
-            Assert.True(reader.Read());
+            Assert.True(reader.Read(), $"Unable to read the first row of the {nameof(DbDataReader)} in INFORMATION_SCHEMA.COLUMNS");
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("email", reader["COLUMN_NAME"].ToString(), true) == 0);
@@ -310,7 +311,13 @@ public static class DataReaderTests
         connection.Open();
 
         // Act - Query two columns from the locations table
-        var command = connection.CreateCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]");
+        var command = connection.CreateCommand(@"
+SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] 
+  FROM [Customers] c 
+  INNER JOIN [Orders] o ON [c].[ID] = [o].[CustomerID] 
+  INNER JOIN [OrderItems] oi ON [o].[ID] = [oi].[OrderID] 
+  INNER JOIN [Products] p ON [p].[ID] = [oi].[ProductID]
+");
         var reader = command.ExecuteReader();
 
         // Assert
@@ -470,11 +477,11 @@ public static class DataReaderTests
 
         // Act - Query the locations table
 
-        //NOTE:  ADO.NET provider behavior is that statements will get executed in turn until a resultset is
-        //produced.  Therefore, the ExecuteReader() method call here will execute both the INSERT and SELECT.
-        //(i.e. in other words for this scenario, NextResult() does not have to be called.
-        var command = connection.CreateCommand("SELECT \"b\".\"BlogId\", \"b\".\"Url\"\r\n    FROM \"Blogs\" AS \"b\"\r\n    ORDER BY \"b\".\"BlogId\"\r\n    LIMIT 1");
+        var command = connection.CreateCommand("SELECT \"l\".\"id\", \"l\".\"city\"\r\n    FROM \"locations\" AS \"l\"\r\n    ORDER BY \"l\".\"id\"\r\n    LIMIT 1");
         var reader = command.ExecuteReader();
 
+        // Assert
+
+        //TODO
     }
 }

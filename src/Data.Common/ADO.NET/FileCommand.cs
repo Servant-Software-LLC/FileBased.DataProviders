@@ -243,7 +243,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
                     {
                         //Provide column name hints to be used for the JSON provider, because when a table has no data
                         //in it to start out with, then it doesn't know the schema of its table columns.
-                        foreach (var column in fileSelect.Columns.OfType<SqlColumnRef>().Select(col => ((SqlColumnRef)col).ColumnName))
+                        foreach (var column in fileSelect.Columns.OfType<SqlColumn>().Select(col => col.ColumnName))
                         {
                             fileInsert.ColumnNameHints.Add(column);
                         }
