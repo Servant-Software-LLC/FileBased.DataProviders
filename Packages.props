@@ -6,7 +6,6 @@
 
 	<ItemGroup>
     <!-- Data.Common -->
-    <PackageReference Update="Irony" Version="1.1.0" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="7.0.0" />
     <PackageReference Update="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Update="SqlBuildingBlocks.Core" Version="$(SqlBuildingBlocks)" />

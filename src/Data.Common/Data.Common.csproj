@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Irony" />
 	  <PackageReference Include="Serilog.Extensions.Logging" />
 	  <PackageReference Include="Serilog.Sinks.File" />
 	  <PackageReference Include="SqlBuildingBlocks.Core" />
