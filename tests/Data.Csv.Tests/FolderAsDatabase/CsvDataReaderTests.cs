@@ -96,4 +96,11 @@ public class CsvDataReaderTests
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
+
+    [Fact]
+    public void Reader_TableAlias()
+    {
+        DataReaderTests.Reader_TableAlias(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
 }

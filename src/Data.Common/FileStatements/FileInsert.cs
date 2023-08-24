@@ -1,47 +1,48 @@
-﻿using Irony.Parsing;
+﻿using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
+
 namespace Data.Common.FileStatements;
 
 public class FileInsert : FileStatement
 {
-    public FileInsert(ParseTreeNode node, DbParameterCollection parameters, string statement) 
-        : base(node, parameters, statement)
+    public FileInsert(SqlInsertDefinition sqlInsertDefinition, string statement) 
+        : base(null, statement)
     {
+        if (sqlInsertDefinition == null)
+            throw new ArgumentNullException(nameof(sqlInsertDefinition));
+
+        if (sqlInsertDefinition.Columns.Count != sqlInsertDefinition.Values.Count)
+            throw new ArgumentException($"In the INSERT, the number of columns is {sqlInsertDefinition.Columns.Count}, but the number of VALUES is {sqlInsertDefinition.Values.Count}. Their counts must be the same.");
+
+        Tables = new SqlTable[] { sqlInsertDefinition.Table };
+        Columns = sqlInsertDefinition.Columns.Cast<ISqlColumn>().ToList();
+        SetValues(sqlInsertDefinition.Values);
     }
 
+    public override IEnumerable<SqlTable> Tables { get; }
+    public override IList<ISqlColumn> Columns { get; }
+    public IList<SqlLiteralValue> Values { get; private set; }
     public HashSet<string> ColumnNameHints { get; } = new();
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
-        var cols = GetColumnNames();
-        var values = node
-            .ChildNodes[4]
-            .ChildNodes[1]
-            .ChildNodes.Select(x => x.ChildNodes.Count==0? x.Token.Value: GetInsertParameterValue(x.ChildNodes));
-        if (cols.Count() != values.Count())
-        {
-            throw new InvalidOperationException("The supplied values are not matched");
-        }
-
-        var result = cols.Zip(values, (name, value) => KeyValuePair.Create(name, value));
+        var result = Columns.Zip(Values, (name, literalValue) => KeyValuePair.Create(((SqlColumn)name).ColumnName, literalValue.Value));
 
         return result!;
     }
 
-    public override IEnumerable<string> GetColumnNames()
+    private void SetValues(IList<SqlExpression> values)
     {
-        var cols = node
-       .ChildNodes[3].ChildNodes[0].ChildNodes
-       .Select(item => item.ChildNodes[0].Token.ValueString);
-        return cols;
+        List<SqlLiteralValue> sqlLiteralValues = new();
+        foreach (var value in values)
+        {
+            if (value.Value == null)
+                throw new Exception($"SqlExpression value of {value} does not contain a {typeof(SqlLiteralValue)}");
+
+            sqlLiteralValues.Add(value.Value);
+        }
+
+        Values = sqlLiteralValues;
     }
 
-    public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
-
-    private object? GetInsertParameterValue(ParseTreeNodeList x)
-    {
-        if (x[0].Term.Name != "Parameter")
-            throw new InvalidOperationException($"Expected all calls to GetInsertParameterValue() to be Parameter");
-
-        return GetParameterValue(x[0].ChildNodes);
-    }
 }

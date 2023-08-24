@@ -1,13 +1,16 @@
 <Project>
 	<PropertyGroup>
 		<EFCoreVersion>6.0.10</EFCoreVersion>
+		<SqlBuildingBlocks>1.0.0.57</SqlBuildingBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
     <!-- Data.Common -->
-    <PackageReference Update="Irony" Version="1.1.0" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="7.0.0" />
     <PackageReference Update="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Update="SqlBuildingBlocks.Core" Version="$(SqlBuildingBlocks)" />
+    <PackageReference Update="SqlBuildingBlocks.Grammars.MySQL" Version="$(SqlBuildingBlocks)" />
+    <PackageReference Update="SqlBuildingBlocks.Grammars.SQLServer" Version="$(SqlBuildingBlocks)" />
 	  
     <!-- Data.Csv -->
     <PackageReference Update="CsvHelper" Version="30.0.1" />

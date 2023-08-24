@@ -11,4 +11,5 @@ public interface IFileConnection : IDbConnection
     bool AdminMode { get; }
     FileReader FileReader { get; }
     LoggerServices LoggerServices { get; }
+    bool CaseInsensitive { get; }
 }

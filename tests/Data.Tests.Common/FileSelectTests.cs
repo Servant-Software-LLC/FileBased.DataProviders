@@ -1,31 +1,37 @@
-﻿using Data.Common.FileStatements;
-using Data.Common.Parsing;
+﻿using Data.Common.Parsing;
+using Data.Tests.Common.Utils;
 using Irony.Parsing;
-using System.Data.FileClient;
 using Xunit;
 
 namespace Data.Tests.Common;
 
 public class FileSelectTests
 {
-    private class DummyParameter : FileParameter<DummyParameter>
-    {
-        public override DummyParameter Clone() => throw new NotImplementedException();
-    }
-
     [Fact]
     public void ctor_InterpretAstWithFunctions()
     {
+        var grammar = new SqlGrammar();
         var commandText = "SELECT \"BlogId\"\r\nFROM \"Blogs\"\r\nWHERE ROW_COUNT() = 1\r\n AND \"BlogId\"=LAST_INSERT_ID()";
-        var parser = new Parser(new SqlGrammar());
-        var parseTree = parser.Parse(commandText);
-        Assert.False(parseTree.HasErrors());
+        var parseTreeNode = GrammarParser.Parse(grammar, commandText);
 
-        var mainNode = parseTree.Root.ChildNodes[0];
-        Assert.Equal("selectStmt", mainNode.Term.Name);
-        var parameters = new FileParameterCollection<DummyParameter>();
-        var select = new FileSelect(mainNode, parameters, commandText);
+        var sqlDefinition = grammar.Create(parseTreeNode);
 
+        Assert.NotNull(sqlDefinition.Select);
+        Assert.NotNull(sqlDefinition.Select!.WhereClause);
 
+        var whereClause = sqlDefinition.Select!.WhereClause;
+        var left = whereClause.Left;
+        Assert.NotNull(left);
+        Assert.NotNull(left.BinExpr);
+        Assert.NotNull(left.BinExpr.Left.Function);
+        var rowCountFunc = left.BinExpr.Left.Function;
+        Assert.Equal("ROW_COUNT", rowCountFunc.FunctionName);
+
+        var right = whereClause.Right;
+        Assert.NotNull(right);
+        Assert.NotNull(right.BinExpr);
+        Assert.NotNull(right.BinExpr.Right.Function);
+        var lastInsertIdFunc = right.BinExpr.Right.Function;
+        Assert.Equal("LAST_INSERT_ID", lastInsertIdFunc.FunctionName);
     }
 }

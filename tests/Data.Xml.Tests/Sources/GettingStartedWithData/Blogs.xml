@@ -1,0 +1,27 @@
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="employees" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Blogs">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="BlogId" type="xs:decimal" minOccurs="0" />
+                <xs:element name="Url" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <Blogs>
+	<BlogId>2</BlogId>
+	<Url>https://www.billboard.com/</Url>
+  </Blogs>
+  <Blogs>
+	<BlogId>1</BlogId>
+	<Url>http://blogs.msdn.com/adonet</Url>
+  </Blogs>
+
+</NewDataSet>

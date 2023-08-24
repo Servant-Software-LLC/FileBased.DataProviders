@@ -1,5 +1,6 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace System.Data.FileClient;
 
@@ -188,35 +189,25 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         if (fileStatement is not FileSelect selectQuery)
             throw new ArgumentException($"'{CommandText}' must be a SELECT query to call {nameof(ExecuteScalar)}");
 
-        var columns = selectQuery.GetColumnNames();
+
+        var columns = selectQuery.Columns.Select(col => ((SqlColumn)col).ColumnName);
         var reader = FileConnection!.FileReader ;
 
         var transactionScopedRows = FileTransaction == null ? null : FileTransaction.TransactionScopedRows;
         var dataTable = reader.ReadFile(fileStatement, transactionScopedRows, true);
-        var dataView = new DataView(dataTable);
-
-        if (fileStatement.Filter!=null)
-            dataView.RowFilter = fileStatement.Filter.Evaluate();
 
         object? result = null;
         
-        //If COUNT(*) query
-        if (selectQuery.IsCountQuery)
-            return dataView.Count;
-
-
         //SELECT query - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
         //       "Executes the query, and returns the first column of the first row in the resultset returned
         //       by the query. Extra columns or rows are ignored."
-        if (dataView.Count > 0)
+        if (dataTable.Rows.Count > 0)
         {
-            var rowValues = dataView[0].Row.ItemArray;
-            var firstColumn = columns.FirstOrDefault();
-            if (firstColumn != null)
+            var rowValues = dataTable.Rows[0].ItemArray;
+            if (rowValues.Length > 0)
             {
-                var columnIndex = dataView.Table!.Columns.IndexOf(firstColumn);
-                result = rowValues[columnIndex];
-            }                    
+                result = rowValues[0];
+            }
         }
 
         return result;
@@ -245,12 +236,14 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
                 //Now that an INSERT is found, look through the rest of the statements for any SELECTs
                 for (int iSelect = iInsert + 1; iSelect < fileStatements.Count; iSelect++)
                 {
-                    //
+                    //If there is a future SELECT in the statements for the same table as this INSERT..
                     if (fileStatements[iSelect] is FileSelect fileSelect &&
-                        string.Compare(fileSelect.TableName, fileInsert.TableName, true) == 0 &&
-                        fileSelect.GetFileJoin() == null)
+                        fileSelect.FromTable == fileInsert.FromTable &&
+                        fileSelect.Joins.Count == 0)
                     {
-                        foreach (var column in fileSelect.GetColumnNames())
+                        //Provide column name hints to be used for the JSON provider, because when a table has no data
+                        //in it to start out with, then it doesn't know the schema of its table columns.
+                        foreach (var column in fileSelect.Columns.OfType<SqlColumn>().Select(col => col.ColumnName))
                         {
                             fileInsert.ColumnNameHints.Add(column);
                         }

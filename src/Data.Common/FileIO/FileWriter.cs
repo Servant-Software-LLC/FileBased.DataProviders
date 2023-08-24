@@ -34,6 +34,7 @@ public abstract class FileWriter
         {
             return true;
         }
+
         dataSetWriter!.WriteDataSet(fileReader.DataSet!);
       
         return true;

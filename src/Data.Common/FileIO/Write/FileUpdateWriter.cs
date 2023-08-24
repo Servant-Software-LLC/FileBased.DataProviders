@@ -1,12 +1,14 @@
-﻿namespace Data.Common.FileIO.Write;
+﻿using SqlBuildingBlocks.LogicalEntities;
+
+namespace Data.Common.FileIO.Write;
 public class FileUpdateWriter : FileWriter
 {
-    private readonly FileStatements.FileUpdate fileStatement;
+    private readonly FileUpdate fileUpdate;
 
-    public FileUpdateWriter(FileStatements.FileUpdate fileStatement, IFileConnection FileConnection, IFileCommand FileCommand) 
+    public FileUpdateWriter(FileUpdate fileStatement, IFileConnection FileConnection, IFileCommand FileCommand) 
         : base(FileConnection, FileCommand, fileStatement)
     {
-        this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
+        fileUpdate = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     public override int Execute()
@@ -20,12 +22,11 @@ public class FileUpdateWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
-            var values = fileStatement.GetValues();
+            var dataTable = fileReader.ReadFile(fileUpdate, fileTransaction?.TransactionScopedRows);
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = fileStatement.Filter?.Evaluate();
+            dataView.RowFilter = fileUpdate.Filter?.ToExpressionString();
 
             var rowsAffected = dataView.Count;
 
@@ -37,10 +38,18 @@ public class FileUpdateWriter : FileWriter
             }
             foreach (DataRowView dataRow in dataView)
             {
-                foreach (var val in values)
+                foreach (SqlAssignment assignment in fileUpdate.Assignments)
                 {
-                    dataTable.Columns[val.Key]!.ReadOnly = false;
-                    dataRow[val.Key] = val.Value;
+                    var columnName = assignment.Column.ColumnName;
+                    dataTable.Columns[columnName]!.ReadOnly = false;
+
+                    if (assignment.Value == null)
+                    {
+                        var assignmentRight = assignment.Parameter != null ? $"{assignment.Parameter}({nameof(assignment.Parameter)})" : assignment.Function != null ? $"{assignment.Function}({nameof(assignment.Function)})" : "Unknown type";
+                        throw new Exception($"Right side of the assigment did not supply a literal value.  Probably parameter or function wasn't resolved.  Right = {assignmentRight}");
+                    }
+
+                    dataRow[columnName] = assignment.Value.Value;
                 }
             }
 

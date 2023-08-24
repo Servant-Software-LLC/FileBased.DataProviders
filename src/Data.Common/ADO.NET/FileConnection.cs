@@ -51,6 +51,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
 
     public FileReader FileReader { get; protected set; }
 
+    public bool CaseInsensitive => true;
+
     public new abstract FileTransaction<TFileParameter> BeginTransaction();
 
     public new abstract FileTransaction<TFileParameter> BeginTransaction(IsolationLevel il);

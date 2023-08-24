@@ -1,16 +1,22 @@
 ﻿using Data.Common.Utils;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.QueryProcessing;
 
 namespace Data.Common.FileIO.Read;
 
-public abstract class FileReader : IDisposable
+public abstract class FileReader : ITableSchemaProvider, IDisposable
 {
-    private const string SchemaTable = "INFORMATION_SCHEMA.TABLES";
-    private const string SchemaColumn = "INFORMATION_SCHEMA.COLUMNS";
+    private const string SchemaDatabase = "INFORMATION_SCHEMA";
+    private const string SchemaTable = "TABLES";
+    private const string SchemaColumn = "COLUMNS";
+
     private FileSystemWatcher? fileWatcher;
     protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
     public DataSet? DataSet { get; protected set; }
+    public DataSet? SchemaDataSet { get; protected set; }
 
     public FileReader(IFileConnection fileConnection)
     {
@@ -34,12 +40,6 @@ public abstract class FileReader : IDisposable
             fileWatcher.Changed -= JsonWatcher_Changed;
     }
 
-    public static bool IsSchemaTable(string tableName) =>
-        string.Compare(tableName, SchemaTable, StringComparison.OrdinalIgnoreCase) == 0;
-
-    public static bool IsSchemaColumn(string tableName) =>
-        string.Compare(tableName, SchemaColumn, StringComparison.OrdinalIgnoreCase) == 0;
-
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         //we dont need to update anything if dataset is null
@@ -62,45 +62,27 @@ public abstract class FileReader : IDisposable
         {
             EnsureFileSystemWatcher();
 
+            //Determine if we have any INFORMATION_SCHEMA tables
+            (bool includeTableSchema, bool includeColumnSchema) = NeedsSchemaMetadata(fileStatement.Tables);
+
             if (fileConnection.FolderAsDatabase)
             {
                 DataSet ??= new DataSet();
-                var newTables = GetTableNames(fileStatement);
 
-                if (newTables.Count == 1)
+                //Get table names that aren't schema tables.
+                HashSet<string> newTables;
+                if (includeColumnSchema)
                 {
-                    int? rowOffset = null;
-                    int? rowCount = null;
-
-                    if (fileStatement is FileSelect fileSelectQuery)
-                    {
-                        rowOffset = fileSelectQuery.RowOffset;
-                        rowCount = fileSelectQuery.RowCount;
-                    }
-
-                    //If table is INFORMATION_SCHEMA.TABLES, we don't need to load all the tables, because the
-                    //names of the tables are just files on disk and we can just do a Directory.GetFiles() to
-                    //get their names.
-                    var newTableName = newTables.First();
-                    if (IsSchemaTable(newTableName))
-                        return GenerateInformationSchemaTable(rowOffset, rowCount);
-
-                    //If table is INFORMATION_SCHEMA.COLUMNS, we need to load all tables, because the column
-                    //information is within each table file.
-                    if (IsSchemaColumn(newTableName))
-                        newTables = GetTableNamesFromFolderAsDatabase().ToHashSet();
+                    //If the column schema table is requested, then we need to load all the tables.
+                    newTables = GetTableNamesFromFolderAsDatabase().ToHashSet();
                 }
-
-                //Be explicit about not supporting INFORMATION_SCHEMA.TABLES in JOINs yet.
-                if (newTables.Any(tableName => IsSchemaTable(tableName)))
-                    throw new ArgumentException($"This provider does not support using the {SchemaTable} table in a JOIN.");
-
-                //Be explicit about not supporting INFORMATION_SCHEMA.COLUMNS in JOINs yet.
-                if (newTables.Any(tableName => IsSchemaColumn(tableName)))
-                    throw new ArgumentException($"This provider does not support using the {SchemaColumn} table in a JOIN.");
-
+                else
+                {
+                    //Load only the tables in the SQL statement.
+                    newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
+                }
+                
                 ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
-
             }
             else if (DataSet == null)
             {
@@ -110,7 +92,9 @@ public abstract class FileReader : IDisposable
             //Reload any of the tables from disk?
             CheckForTableReload();
 
-            returnValue = CheckIfSelect(fileStatement, transactionScopedRows);
+            UpdateSchemaDataSet(includeTableSchema, includeColumnSchema);
+
+            returnValue = GetResultset(fileStatement, transactionScopedRows);
         }
         finally
         {
@@ -121,6 +105,28 @@ public abstract class FileReader : IDisposable
         return returnValue;
     }
 
+    private void UpdateSchemaDataSet(bool includeTableSchema, bool includeColumnSchema)
+    {
+        if (includeTableSchema || includeColumnSchema)
+        {
+            DataSet metadataDataSet = new(SchemaDatabase);
+            if (includeTableSchema)
+                metadataDataSet.Tables.Add(GenerateInformationSchemaTable(includeColumnSchema));
+
+            if (includeColumnSchema)
+                metadataDataSet.Tables.Add(GenerateInformationSchemaColumn());
+
+            SchemaDataSet = metadataDataSet;
+        }
+    }
+
+    IEnumerable<DataColumn> ITableSchemaProvider.GetColumns(SqlTable table)
+    {
+        var isSchemaTable = string.Compare(table.DatabaseName, SchemaDatabase, true) == 0;
+        var dataSet = isSchemaTable ? SchemaDataSet : DataSet;
+        var dataTable = dataSet.Tables[table.TableName];
+        return dataTable.Columns.Cast<DataColumn>();
+    }
 
     private void CheckForTableReload()
     {
@@ -143,117 +149,52 @@ public abstract class FileReader : IDisposable
 
     }
 
-    private DataTable CheckIfSelect(FileStatement fileQueryParser, TransactionScopedRows transactionScopedRows)
+    private DataTable GetResultset(FileStatement fileStatement, TransactionScopedRows transactionScopedRows)
     {
-        if (fileQueryParser is FileSelect fileSelect)
+        if (fileStatement is FileSelect fileSelect)
         {
             //Parser is FileSelect
 
-            var dataTableJoin = fileSelect.GetFileJoin();
-            if (dataTableJoin == null)
-            {
-                //No table join.
-                return GetDataTable(fileQueryParser.TableName, transactionScopedRows, fileSelect.RowOffset, fileSelect.RowCount)!;
-            }
+            //We defered the resolution, so that we ensure that the schema of tables that we care about has already been loaded from disk
+            //and we can just grab it from the DataSet property.
+            DatabaseConnectionProvider databaseConnectionProvider = new(fileConnection);
 
-            //NOTE:  No support yet for INFORMATION_SCHEMA.TABLES table in SQL queries that have JOIN
-            return dataTableJoin.Join(DataSet!, transactionScopedRows, fileSelect.RowOffset, fileSelect.RowCount);
+            //IFunctionProvider instance is not provided here, because resolution of the functions require state from previous command executions.
+            //This is accomplished calling SqlSelect.Accept() using ResolveBuiltinFunctionsVisitor instance as the parameter
+            fileSelect.SqlSelect.ResolveReferences(databaseConnectionProvider, this, null);
+
+            if (fileSelect.SqlSelect.InvalidReferences)
+                throw new InvalidOperationException($"Unable to resolve the references with the SELECT statement.  Reason: {fileSelect.SqlSelect.InvalidReferenceReason}");
+
+            List<DataSet> dataSets = new();
+
+            //Get a DataSet of all the tables in this query (minus the INFORMATION_SCHEMA tables requested)
+            TransactionLevelData transactionLevelData = new(DataSet, databaseConnectionProvider.DefaultDatabase, transactionScopedRows);
+            var databaseData = transactionLevelData.Compose(fileStatement.Tables);
+            dataSets.Add(databaseData);
+
+            if (SchemaDataSet != null)
+                dataSets.Add(SchemaDataSet);
+
+            QueryEngine queryEngine = new(dataSets, fileSelect.SqlSelect);
+            return queryEngine.QueryAsDataTable();
         }
 
         //Parser is not a FileSelect
-        return GetDataTable(fileQueryParser!.TableName, transactionScopedRows, null, null)!;
-    }
-
-    private DataTable GenerateInformationSchemaTable(int? rowOffset, int? rowCount)
-    {
-        var informationSchemaTable = new DataTable(SchemaTable);
-
-        // Add columns to the DataTable
-        informationSchemaTable.Columns.Add("TABLE_CATALOG", typeof(string));
-        informationSchemaTable.Columns.Add("TABLE_NAME", typeof(string));
-        informationSchemaTable.Columns.Add("TABLE_TYPE", typeof(string));
-
-        IEnumerable<string> allTableNames;
-        if (fileConnection.FolderAsDatabase)
-        {
-            //For FolderAsDatabase, we didn't want to force the costly operation of loading 
-            //all files in the directory, when just trying to get a list of the tables.
-            allTableNames = GetTableNamesFromFolderAsDatabase();
-        }
-        else
-        {
-            // If FileAsDatabase, then we've already loaded all the tables into the DataSet
-            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
-        }
-
-        allTableNames = LimitRows(allTableNames, rowOffset, rowCount);
-        foreach (string tableName in allTableNames)
-        {
-            AddRowToSchemaTable(informationSchemaTable, tableName, fileConnection.FolderAsDatabase);
-        }
-
-        return informationSchemaTable;
-    }
-
-    private void AddRowToSchemaTable(DataTable schemaTable, string tableName, bool folderAsDatabase)
-    {
-        var row = schemaTable.NewRow();
-        row["TABLE_CATALOG"] = folderAsDatabase ? Path.GetFileName(fileConnection.Database) : Path.GetFileNameWithoutExtension(fileConnection.Database);
-        row["TABLE_NAME"] = tableName;
-        row["TABLE_TYPE"] = "BASE TABLE";
-        schemaTable.Rows.Add(row);
+        //In this case, the FileWriter that made this call, needs the actual DataTable so that it can use a DataView to
+        //preform the write type of operations (DELETE, UPDATE, INSERT)
+        return GetDataTable(fileStatement!.FromTable.TableName, transactionScopedRows)!;
     }
 
 
-    private DataTable GenerateInformationSchemaColumn(int? rowOffset, int? rowCount)
+    private DataTable GetDataTable(string tableName, TransactionScopedRows transactionScopedRows)
     {
-        var informationSchemaColumn = new DataTable(SchemaColumn);
-
-        // Add columns to the DataTable
-        informationSchemaColumn.Columns.Add("TABLE_CATALOG", typeof(string));
-        informationSchemaColumn.Columns.Add("TABLE_NAME", typeof(string));
-        informationSchemaColumn.Columns.Add("COLUMN_NAME", typeof(string));
-        informationSchemaColumn.Columns.Add("DATA_TYPE", typeof(string));
-
-        //Get all table colums sorted in order of the primary key (database, table, column)
-        var allTableColumns = DataSet.Tables.Cast<DataTable>()
-            .SelectMany(table => table.Columns.Cast<DataColumn>().Select(column => (Table: table, Column: column)))
-            .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).AsEnumerable();
-
-        //TODO: When we upgrade to C# 12, use an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
-        allTableColumns = LimitRows(allTableColumns, rowOffset, rowCount);
-        foreach ((DataTable Table, DataColumn Column) columnTuple in allTableColumns)
-        {
-
-            AddRowToSchemaColumn(informationSchemaColumn, columnTuple.Table, columnTuple.Column);
-        }
-
-        return informationSchemaColumn;
-    }
-
-    private void AddRowToSchemaColumn(DataTable schemaTable, DataTable table, DataColumn column)
-    {
-        var row = schemaTable.NewRow();
-        row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);
-        row["TABLE_NAME"] = table.TableName;
-        row["COLUMN_NAME"] = column.ColumnName;
-        row["DATA_TYPE"] = column.DataType.FullName;
-        schemaTable.Rows.Add(row);
-    }
-
-
-    private DataTable GetDataTable(string tableName, TransactionScopedRows transactionScopedRows, int? rowOffset, int? rowCount)
-    {
-        if (IsSchemaTable(tableName))
-            return GenerateInformationSchemaTable(rowOffset, rowCount);
-
-        if (IsSchemaColumn(tableName))
-            return GenerateInformationSchemaColumn(rowOffset, rowCount);
-
         var table = DataSet!.Tables[tableName]!;
         if (table == null)
             throw new TableNotFoundException($"Table '{tableName}' not found in '{fileConnection.Database}'");
 
+        //TODO: Not clear if we need to add the transaction scoped rows or not.  Leaving for now, to follow same behavior as it was before 
+        //      SqlBuildingBlocks and the QueryEngine were introduced.
         if (transactionScopedRows != null && transactionScopedRows.TryGetValue(tableName, out List<DataRow> additionalRows))
         {
             table = table.Copy();
@@ -272,18 +213,83 @@ public abstract class FileReader : IDisposable
             }
         }
 
-        //Check for LIMIT arguments.
-        if (rowOffset.HasValue || rowCount.HasValue)
-        {
-            //Don't touch the source table.  Clone it and add rows to it.
-            var sourceRows = table.Rows.Cast<DataRow>();
-            sourceRows = LimitRows(sourceRows, rowOffset, rowCount);
-
-            table = sourceRows.CopyToDataTable();
-        }
-
         return table;
     }
+
+    private DataTable GenerateInformationSchemaTable(bool includeColumnSchema)
+    {
+        var informationSchemaTable = new DataTable(SchemaTable);
+
+        // Add columns to the DataTable
+        informationSchemaTable.Columns.Add("TABLE_CATALOG", typeof(string));
+        informationSchemaTable.Columns.Add("TABLE_NAME", typeof(string));
+        informationSchemaTable.Columns.Add("TABLE_TYPE", typeof(string));
+
+        IEnumerable<string> allTableNames;
+        if (includeColumnSchema || !fileConnection.FolderAsDatabase)
+        {
+            // If the COLUMNS table is requested or FileAsDatabase, then we've already loaded all the tables into the DataSet
+            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
+        }
+        else
+        {
+            //For FolderAsDatabase, we didn't want to force the costly operation of loading 
+            //all files in the directory, when just trying to get a list of the tables.
+            allTableNames = GetTableNamesFromFolderAsDatabase();
+        }
+
+        foreach (string tableName in allTableNames)
+        {
+            AddRowToSchemaTable(informationSchemaTable, tableName, fileConnection.FolderAsDatabase);
+        }
+
+        return informationSchemaTable;
+    }
+
+    private void AddRowToSchemaTable(DataTable schemaTable, string tableName, bool folderAsDatabase)
+    {
+        var row = schemaTable.NewRow();
+        row["TABLE_CATALOG"] = folderAsDatabase ? Path.GetFileName(fileConnection.Database) : Path.GetFileNameWithoutExtension(fileConnection.Database);
+        row["TABLE_NAME"] = tableName;
+        row["TABLE_TYPE"] = "BASE TABLE";
+        schemaTable.Rows.Add(row);
+    }
+
+
+    private DataTable GenerateInformationSchemaColumn()
+    {
+        var informationSchemaColumn = new DataTable(SchemaColumn);
+
+        // Add columns to the DataTable
+        informationSchemaColumn.Columns.Add("TABLE_CATALOG", typeof(string));
+        informationSchemaColumn.Columns.Add("TABLE_NAME", typeof(string));
+        informationSchemaColumn.Columns.Add("COLUMN_NAME", typeof(string));
+        informationSchemaColumn.Columns.Add("DATA_TYPE", typeof(string));
+
+        //Get all table colums sorted in order of the primary key (database, table, column)
+        var allTableColumns = DataSet.Tables.Cast<DataTable>()
+            .SelectMany(table => table.Columns.Cast<DataColumn>().Select(column => (Table: table, Column: column)))
+            .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).AsEnumerable();
+
+        //TODO: When we upgrade to C# 12, use an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
+        foreach ((DataTable Table, DataColumn Column) columnTuple in allTableColumns)
+        {
+            AddRowToSchemaColumn(informationSchemaColumn, columnTuple.Table, columnTuple.Column);
+        }
+
+        return informationSchemaColumn;
+    }
+
+    private void AddRowToSchemaColumn(DataTable schemaTable, DataTable table, DataColumn column)
+    {
+        var row = schemaTable.NewRow();
+        row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);
+        row["TABLE_NAME"] = table.TableName;
+        row["COLUMN_NAME"] = column.ColumnName;
+        row["DATA_TYPE"] = column.DataType.FullName;
+        schemaTable.Rows.Add(row);
+    }
+
 
     private void EnsureFileSystemWatcher()
     {
@@ -307,40 +313,31 @@ public abstract class FileReader : IDisposable
     }
   
 
-    private HashSet<string> GetTableNames(FileStatement fileStatement)
-    {
-        //Start with the name of the first table in the JOIN
-        var tableNames = new HashSet<string> { fileStatement!.TableName };
-
-        //If this is a SELECT with JOINs and is directory-based storage 
-        if (fileStatement is FileSelect fileSelectQuery && fileSelectQuery.GetFileJoin() != null && fileConnection.FolderAsDatabase)
-        {
-            foreach (string jsonFile in GetTableNamesFromFolderAsDatabase().Where(x => x.ToLower() != fileStatement.TableName.ToLower()))
-            {
-                tableNames.Add(jsonFile);
-            }
-        }
-
-        return tableNames;
-    }
-
     private IEnumerable<string> GetFilesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
         Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}") :
         throw new ArgumentException($"The file connection for {GetType()} doesn't have a DataSource which is a folder.");
 
     private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
 
-    internal static IEnumerable<T> LimitRows<T>(IEnumerable<T> values, int? rowOffset, int? rowCount)
+    private static bool IsSchemaTable(SqlTable sqlTable) => string.Compare(sqlTable.DatabaseName, SchemaDatabase) == 0;
+
+    private (bool IncludeTableSchema, bool IncludeColumnSchema) NeedsSchemaMetadata(IEnumerable<SqlTable> tablesInvolvedInSqlStatement)
     {
-        if (rowOffset.HasValue)
-            values = values.Skip(rowOffset.Value);
+        bool includeTableSchema = false;
+        bool includeColumnSchema = false;
 
-        if (rowCount.HasValue)
-            values = values.Take(rowCount.Value);
+        foreach (SqlTable table in tablesInvolvedInSqlStatement)
+        {
+            //If the table requested is not in the INFORMATION_SCHEMA database
+            if (!IsSchemaTable(table))
+                continue;
 
-        return values;
+            includeTableSchema = includeTableSchema || string.Compare(table.TableName, SchemaTable) == 0;
+            includeColumnSchema = includeColumnSchema || string.Compare(table.TableName, SchemaColumn) == 0;
+        }
+
+        return (includeTableSchema, includeColumnSchema);
     }
-
 
     /// <summary>
     /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>

@@ -13,12 +13,12 @@ internal class FileStatementCreator
     /// </summary>
     /// <param name="fileCommand"></param>
     /// <returns></returns>
-    public static IList<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand, ILogger log)
+    public static IList<FileStatement> CreateMultiCommandSupport(IFileCommand fileCommand, ILogger log)
     {
         var commandText = fileCommand.CommandText;
         var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        return commands.Select(command => CreateFromCommand(command, fileCommand.Parameters, log)).ToList();
+        return commands.Select(command => CreateFromCommand(command, fileCommand.FileConnection, fileCommand.Parameters, log)).ToList();
     }
 
     public static FileStatement Create(IFileCommand fileCommand, ILogger log)
@@ -26,14 +26,15 @@ internal class FileStatementCreator
         if (fileCommand.FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(Create)} method cannot be used with an admin connection.");
 
-        return CreateFromCommand(fileCommand.CommandText, fileCommand.Parameters as DbParameterCollection, log);
+        return CreateFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log);
     }
 
-    private static FileStatement CreateFromCommand(string commandText, DbParameterCollection parameters, ILogger log)
+    private static FileStatement CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
     {
         log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
 
-        var parser = new Parser(new SqlGrammar());
+        var grammar = new SqlGrammar();
+        var parser = new Parser(grammar);
         var parseTree = parser.Parse(commandText);
         if (parseTree.HasErrors())
         {
@@ -42,36 +43,30 @@ internal class FileStatementCreator
             ThrowHelper.ThrowQuerySyntaxException(errorMessage, commandText);
         }
 
-
+        //The function provider isn't provided here (i.e. null), because it needs state that is provided to the Result class via its ctor in a previousWriteResult variable.
+        var sqlDefinition = grammar.Create(parseTree.Root);
         if (log.IsEnabled(LogLevel.Debug))
         {
             log.LogDebug($"Parsed tree: {ParseTreeToString(parseTree.Root)}");
         }
 
-        //Catch any exceptions, since ASTs can vary a lot, these classes can end up throwing many exceptions
-        //in seldomly tested scenarios and when the grammar changes.
-        try
-        {
-            //In a transaction scenario in EF Core, it isn't clear why, but the parameters have DbParameterCollection.Clear() called before the DbTransaction.Commit() is called.
-            //Therefore, we need to clone this parameter collection, since it is used by are writers in the transaction's commit.
-            var cloneParameters = (parameters as IFileParameterCollection).Clone() as DbParameterCollection;
+        sqlDefinition.ResolveParameters(parameters);
 
-            var mainNode = parseTree.Root.ChildNodes[0];
-            switch (mainNode.Term.Name)
-            {
-                case "insertStmt":
-                    return new FileInsert(mainNode, cloneParameters, commandText);
-                case "deleteStmt":
-                    return new FileDelete(mainNode, cloneParameters, commandText);
-                case "updateStmt":
-                    return new FileUpdate(mainNode, cloneParameters, commandText);
-                case "selectStmt":
-                    return new FileSelect(mainNode, cloneParameters, commandText);
-            }
-        }
-        catch (Exception ex)
+        if (sqlDefinition.Insert != null)
+            return new FileInsert(sqlDefinition.Insert, commandText);
+
+        if (sqlDefinition.Delete != null)
+            return new FileDelete(sqlDefinition.Delete, commandText);
+            
+        if (sqlDefinition.Update != null)
+            return new FileUpdate(sqlDefinition.Update, commandText);
+
+        if (sqlDefinition.Select != null)
         {
-            log.LogError($"Error interpreting AST: {ex}");
+            if (sqlDefinition.Select.InvalidReferences)
+                ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+
+            return new FileSelect(sqlDefinition.Select, commandText);
         }
 
         throw ThrowHelper.GetQueryNotSupportedException();

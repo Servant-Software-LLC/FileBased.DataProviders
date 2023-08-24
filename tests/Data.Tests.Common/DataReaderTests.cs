@@ -1,4 +1,5 @@
-﻿using System.Data.FileClient;
+﻿using System.Data.Common;
+using System.Data.FileClient;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -109,7 +110,7 @@ public static class DataReaderTests
             {
                 Assert.IsType<bool>(reader["married"]);
             }
-            
+
             //No second row
             Assert.False(reader.Read());
         }
@@ -177,7 +178,7 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var firstTableName = reader["TABLE_NAME"].ToString();
-            Assert.True(string.Compare(firstTableName, "employees", true) == 0 || 
+            Assert.True(string.Compare(firstTableName, "employees", true) == 0 ||
                         string.Compare(firstTableName, "locations", true) == 0);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
 
@@ -185,7 +186,7 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var secondTableName = reader["TABLE_NAME"].ToString();
-            Assert.True(string.Compare(secondTableName, "employees", true) == 0 || 
+            Assert.True(string.Compare(secondTableName, "employees", true) == 0 ||
                         string.Compare(secondTableName, "locations", true) == 0);
             Assert.NotEqual(firstTableName, secondTableName);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
@@ -214,7 +215,7 @@ public static class DataReaderTests
             Assert.Equal(4, reader.FieldCount);
 
             //First Row
-            Assert.True(reader.Read());
+            Assert.True(reader.Read(), $"Unable to read the first row of the {nameof(DbDataReader)} in INFORMATION_SCHEMA.COLUMNS");
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("email", reader["COLUMN_NAME"].ToString(), true) == 0);
@@ -310,7 +311,13 @@ public static class DataReaderTests
         connection.Open();
 
         // Act - Query two columns from the locations table
-        var command = connection.CreateCommand("SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]");
+        var command = connection.CreateCommand(@"
+SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name] 
+  FROM [Customers] c 
+  INNER JOIN [Orders] o ON [c].[ID] = [o].[CustomerID] 
+  INNER JOIN [OrderItems] oi ON [o].[ID] = [oi].[OrderID] 
+  INNER JOIN [Products] p ON [p].[ID] = [oi].[ProductID]
+");
         var reader = command.ExecuteReader();
 
         // Assert
@@ -461,4 +468,20 @@ public static class DataReaderTests
         connection.Close();
     }
 
+    public static void Reader_TableAlias<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+
+        var command = connection.CreateCommand("SELECT \"l\".\"id\", \"l\".\"city\"\r\n    FROM \"locations\" AS \"l\"\r\n    ORDER BY \"l\".\"id\"\r\n    LIMIT 1");
+        var reader = command.ExecuteReader();
+
+        // Assert
+
+        //TODO
+    }
 }

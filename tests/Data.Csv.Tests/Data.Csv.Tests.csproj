@@ -52,6 +52,12 @@
     <None Update="Sources\Folder\locations.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Sources\GettingStartedWithData\Blogs.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStartedWithData\Posts.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Sources\GettingStarted\Blogs.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

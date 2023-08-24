@@ -1,17 +1,17 @@
-﻿using Irony.Parsing;
+﻿using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileStatements;
 
 public class FileDelete : FileStatement
 {
-    public FileDelete(ParseTreeNode tree, DbParameterCollection parameters, string statement) 
-        : base(tree, parameters, statement)
+    public FileDelete(SqlDeleteDefinition sqlDeleteDefinition, string statement) 
+        : base(sqlDeleteDefinition.WhereClause, statement)
     {
+        Tables = new SqlTable[] { sqlDeleteDefinition.Table };
     }
 
-    public override IEnumerable<string> GetColumnNames()
-    {
-        throw new NotImplementedException();
-    }
-    public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
+    public override IEnumerable<SqlTable> Tables { get; }
+
+    public override IList<ISqlColumn> Columns => throw new NotImplementedException();
 }

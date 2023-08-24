@@ -45,10 +45,17 @@ public abstract class FileInsertWriter : FileWriter
                 _rwLock.EnterWriteLock();
                 //as we have modified the json file so we don't need to update the tables
                 fileReader.StopWatching();
+
+                var results = PrepareRow(fileStatement);
+                results.Table.Rows.Add(results.Row);
+            }
+            else
+            {
+                var transactionScopedRow = TransactionScopedRow.Value;
+                var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
+                table.Rows.Add(transactionScopedRow.Row.ItemArray);
             }
 
-            var results = PrepareRow(fileStatement);
-            results.Table.Rows.Add(results.Row);
         }
         finally
         {

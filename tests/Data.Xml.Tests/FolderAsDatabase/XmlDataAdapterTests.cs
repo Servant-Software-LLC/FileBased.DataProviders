@@ -33,10 +33,10 @@ public partial class JsonDataAdapterTests
     }
 
     [Fact]
-    public void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB()
+    public void Adapter_ShouldFillDatasetWithInnerJoin()
     {
-        DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoinFileAsDB(
-                () => new XmlConnection(ConnectionStrings.Instance.eComFileDB));
+        DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(
+                () => new XmlConnection(ConnectionStrings.Instance.eComFolderDB));
     }
 
     [Fact]
