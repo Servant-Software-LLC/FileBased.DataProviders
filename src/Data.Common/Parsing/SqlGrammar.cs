@@ -18,7 +18,7 @@ public class SqlGrammar : Grammar
         Id id = new(simpleId, this);
         LiteralValue literalValue = new();
         IdList idList = new(id, this);
-        TableName tableName = new(aliasOpt, id, simpleId, this);
+        TableName tableName = new(aliasOpt, id, this);
         Expr expr = new();
         ExprList exprList = new(expr, this);
         FuncCall funcCall = new(id, exprList, this);
