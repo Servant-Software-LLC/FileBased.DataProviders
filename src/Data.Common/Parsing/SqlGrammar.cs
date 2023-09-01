@@ -12,6 +12,7 @@ public class SqlGrammar : Grammar
     {
         Comment.Register(this);
 
+        //NOTE: Using SQL Server's naming scheme.
         SqlBuildingBlocks.Grammars.SQLServer.SimpleId simpleId = new(this);
 
         AliasOpt aliasOpt = new(simpleId, this);
@@ -19,6 +20,7 @@ public class SqlGrammar : Grammar
         LiteralValue literalValue = new();
         IdList idList = new(id, this);
         TableName tableName = new(aliasOpt, id, this);
+        DataType dataType = new(this);
         Expr expr = new();
         ExprList exprList = new(expr, this);
         FuncCall funcCall = new(id, exprList, this);
@@ -26,6 +28,8 @@ public class SqlGrammar : Grammar
         JoinChainOpt joinChainOpt = new(tableName, expr, this);
         WhereClauseOpt whereClauseOpt = new(expr, this);
         OrderByList orderByList = new(id, this);
+
+        //NOTE: Using MySQL's LIMIT and OFFSET clauses
         SqlBuildingBlocks.Grammars.MySQL.SelectStmt selectStmt = new();
 
         expr.InitializeRule(selectStmt, id, literalValue, exprList, funcCall, parameter, this);
@@ -34,8 +38,9 @@ public class SqlGrammar : Grammar
         InsertStmt insertStmt = new(id, idList, exprList, selectStmt, this);
         UpdateStmt updateStmt = new(id, literalValue, parameter, funcCall, tableName, whereClauseOpt, this);
         DeleteStmt deleteStmt = new(tableName, whereClauseOpt, this);
+        CreateTableStmt createTableStmt = new(id, dataType, this);
 
-        Stmt stmt = new(selectStmt, insertStmt, updateStmt, deleteStmt, this);
+        Stmt stmt = new(selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt, this);
         Root = stmt;
     }
 
