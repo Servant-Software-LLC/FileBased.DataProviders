@@ -20,7 +20,9 @@ public class SqlGrammar : Grammar
         LiteralValue literalValue = new();
         IdList idList = new(id, this);
         TableName tableName = new(aliasOpt, id, this);
-        DataType dataType = new(this);
+
+        //NOTE: Using SQL Server's data types.
+        SqlBuildingBlocks.Grammars.SQLServer.DataType dataType = new(this);
         Expr expr = new();
         ExprList exprList = new(expr, this);
         FuncCall funcCall = new(id, exprList, this);
