@@ -14,39 +14,28 @@ public class SqlGrammar : Grammar
 
         //NOTE: Using SQL Server's naming scheme.
         SqlBuildingBlocks.Grammars.SQLServer.SimpleId simpleId = new(this);
-
-        AliasOpt aliasOpt = new(simpleId, this);
-        Id id = new(simpleId, this);
-        LiteralValue literalValue = new();
-        IdList idList = new(id, this);
-        TableName tableName = new(aliasOpt, id, this);
+        Id id = new(this, simpleId);
 
         //NOTE: Using SQL Server's data types.
         SqlBuildingBlocks.Grammars.SQLServer.DataType dataType = new(this);
-        Expr expr = new();
-        ExprList exprList = new(expr, this);
-        FuncCall funcCall = new(id, exprList, this);
-        Parameter parameter = new(this);
-        JoinChainOpt joinChainOpt = new(tableName, expr, this);
-        WhereClauseOpt whereClauseOpt = new(expr, this);
-        OrderByList orderByList = new(id, this);
 
         //NOTE: Using MySQL's LIMIT and OFFSET clauses
-        SqlBuildingBlocks.Grammars.MySQL.SelectStmt selectStmt = new();
+        SqlBuildingBlocks.Grammars.MySQL.SelectStmt selectStmt = new(this, id);
 
-        expr.InitializeRule(selectStmt, id, literalValue, exprList, funcCall, parameter, this);
-        selectStmt.InitializeRule(id, idList, expr, exprList, funcCall, aliasOpt, tableName, joinChainOpt, whereClauseOpt, orderByList, this);
+        selectStmt.Expr.InitializeRule(selectStmt, selectStmt.FuncCall);
 
-        InsertStmt insertStmt = new(id, idList, exprList, selectStmt, this);
-        UpdateStmt updateStmt = new(id, literalValue, parameter, funcCall, tableName, whereClauseOpt, this);
-        DeleteStmt deleteStmt = new(tableName, whereClauseOpt, this);
-        CreateTableStmt createTableStmt = new(id, dataType, this);
+        InsertStmt insertStmt = new(this, selectStmt);
+        UpdateStmt updateStmt = new(this, selectStmt.TableName, selectStmt.FuncCall, selectStmt.WhereClauseOpt);
+        DeleteStmt deleteStmt = new(this, selectStmt);
+        CreateTableStmt createTableStmt = new(this, id, dataType);
 
-        Stmt stmt = new(selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt, this);
-        Root = stmt;
+        Stmt stmt = new(this, selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt);
+        StmtLine stmtLine = new(this, stmt);
+
+        Root = stmtLine;
     }
 
-    public virtual SqlDefinition Create(ParseTreeNode selectStmt) =>
-        ((Stmt)Root).Create(selectStmt);
+    public virtual IEnumerable<SqlDefinition> Create(ParseTreeNode stmtList) =>
+        ((StmtLine)Root).Create(stmtList);
 
 }

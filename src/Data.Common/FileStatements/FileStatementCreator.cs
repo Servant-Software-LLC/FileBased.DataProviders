@@ -1,6 +1,7 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.LogicalEntities;
 using System.Text;
 
 namespace Data.Common.FileStatements;
@@ -16,9 +17,8 @@ internal class FileStatementCreator
     public static IList<FileStatement> CreateMultiCommandSupport(IFileCommand fileCommand, ILogger log)
     {
         var commandText = fileCommand.CommandText;
-        var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        return commands.Select(command => CreateFromCommand(command, fileCommand.FileConnection, fileCommand.Parameters, log)).ToList();
+        return CreateFromCommand(commandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
     }
 
     public static FileStatement Create(IFileCommand fileCommand, ILogger log)
@@ -26,10 +26,14 @@ internal class FileStatementCreator
         if (fileCommand.FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(Create)} method cannot be used with an admin connection.");
 
-        return CreateFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log);
+        var fileStatements = CreateFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
+        if (fileStatements.Count != 1)
+            throw new ArgumentException($"The SQL '{fileCommand.CommandText}' did not yield 1 statement.  Count = {fileStatements.Count}");
+
+        return fileStatements[0];
     }
 
-    private static FileStatement CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    private static IEnumerable<FileStatement> CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
     {
         log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
 
@@ -44,32 +48,46 @@ internal class FileStatementCreator
         }
 
         //The function provider isn't provided here (i.e. null), because it needs state that is provided to the Result class via its ctor in a previousWriteResult variable.
-        var sqlDefinition = grammar.Create(parseTree.Root);
+        var sqlDefinitions = grammar.Create(parseTree.Root);
         if (log.IsEnabled(LogLevel.Debug))
         {
             log.LogDebug($"Parsed tree: {ParseTreeToString(parseTree.Root)}");
         }
 
-        sqlDefinition.ResolveParameters(parameters);
-
-        if (sqlDefinition.Insert != null)
-            return new FileInsert(sqlDefinition.Insert, commandText);
-
-        if (sqlDefinition.Delete != null)
-            return new FileDelete(sqlDefinition.Delete, commandText);
-            
-        if (sqlDefinition.Update != null)
-            return new FileUpdate(sqlDefinition.Update, commandText);
-
-        if (sqlDefinition.Select != null)
+        foreach (SqlDefinition sqlDefinition in sqlDefinitions)
         {
-            if (sqlDefinition.Select.InvalidReferences)
-                ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+            sqlDefinition.ResolveParameters(parameters);
 
-            return new FileSelect(sqlDefinition.Select, commandText);
+            if (sqlDefinition.Insert != null)
+            {
+                yield return new FileInsert(sqlDefinition.Insert, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Delete != null)
+            {
+                yield return new FileDelete(sqlDefinition.Delete, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Update != null)
+            {
+                yield return new FileUpdate(sqlDefinition.Update, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Select != null)
+            {
+                if (sqlDefinition.Select.InvalidReferences)
+                    ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+
+                yield return new FileSelect(sqlDefinition.Select, commandText);
+                continue;
+            }
+
+            throw ThrowHelper.GetQueryNotSupportedException();
         }
 
-        throw ThrowHelper.GetQueryNotSupportedException();
     }
 
     private static string ParseTreeToString(ParseTreeNode node, int indent = 0)

@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<EFCoreVersion>6.0.10</EFCoreVersion>
-		<SqlBuildingBlocks>1.0.0.61</SqlBuildingBlocks>
+		<SqlBuildingBlocks>1.0.0.68</SqlBuildingBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>

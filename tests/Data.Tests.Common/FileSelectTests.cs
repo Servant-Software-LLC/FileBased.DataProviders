@@ -1,6 +1,5 @@
 ﻿using Data.Common.Parsing;
 using Data.Tests.Common.Utils;
-using Irony.Parsing;
 using Xunit;
 
 namespace Data.Tests.Common;
@@ -14,8 +13,10 @@ public class FileSelectTests
         var commandText = "SELECT \"BlogId\"\r\nFROM \"Blogs\"\r\nWHERE ROW_COUNT() = 1\r\n AND \"BlogId\"=LAST_INSERT_ID()";
         var parseTreeNode = GrammarParser.Parse(grammar, commandText);
 
-        var sqlDefinition = grammar.Create(parseTreeNode);
+        var sqlDefinitions = grammar.Create(parseTreeNode).ToList();
+        Assert.Single(sqlDefinitions);
 
+        var sqlDefinition = sqlDefinitions[0];
         Assert.NotNull(sqlDefinition.Select);
         Assert.NotNull(sqlDefinition.Select!.WhereClause);
 
