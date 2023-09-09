@@ -25,7 +25,7 @@ public class SqlGrammar : Grammar
         selectStmt.Expr.InitializeRule(selectStmt, selectStmt.FuncCall);
 
         InsertStmt insertStmt = new(this, selectStmt);
-        UpdateStmt updateStmt = new(this, selectStmt.TableName, selectStmt.FuncCall, selectStmt.WhereClauseOpt);
+        UpdateStmt updateStmt = new(this, selectStmt);
         DeleteStmt deleteStmt = new(this, selectStmt);
         CreateTableStmt createTableStmt = new(this, id, dataType);
 
