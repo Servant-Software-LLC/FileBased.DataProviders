@@ -78,7 +78,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
             throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
 
-        var selectQuery = FileStatementCreator.Create(fileCommand, log);
+        var selectQuery = FileStatementCreator.CreateSelect(fileCommand, log);
         var fileReader = connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
@@ -121,7 +121,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
+        var selectQuery = FileStatementCreator.CreateSelect((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
@@ -220,10 +220,10 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         }
     }
 
-    private IEnumerable<string> GetColumns(DataTable dataTable, FileStatement query)
+    private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)
     {
         List<string> columnNames = new();
-        foreach(ISqlColumn iSqlColumn in query.Columns)
+        foreach(ISqlColumn iSqlColumn in selectQuery.Columns)
         {
             switch(iSqlColumn)
             {

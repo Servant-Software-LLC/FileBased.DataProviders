@@ -1,18 +1,15 @@
-﻿using SqlBuildingBlocks.Interfaces;
-using SqlBuildingBlocks.LogicalEntities;
+﻿using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileStatements;
 
 public abstract class FileStatement
 {    
-    protected FileStatement(SqlBinaryExpression filter, string statement)
+    protected FileStatement(string statement)
     {
-        Filter = filter;
         Statement = statement;
     }
 
     public SqlTable FromTable => Tables != null ? Tables.FirstOrDefault() : null;
-    public SqlBinaryExpression? Filter { get; }
 
     /// <summary>
     /// List of all tables involved in the SQL statement
@@ -24,7 +21,4 @@ public abstract class FileStatement
     /// </summary>
     public string Statement { get; }
 
-
-    //TODO:  Do we need this (abstract) property at this level?
-    public abstract IList<ISqlColumn> Columns { get; }
 }

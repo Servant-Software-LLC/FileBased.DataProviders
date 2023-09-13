@@ -1,4 +1,5 @@
 ﻿using Data.Common.Utils;
+using Data.Json.JsonIO.Create;
 
 namespace System.Data.JsonClient;
 
@@ -35,8 +36,9 @@ public class JsonCommand : FileCommand<JsonParameter>
         FileDelete deleteStatement => new JsonDelete(deleteStatement, (JsonConnection)Connection!, this),
         FileInsert insertStatement => new JsonInsert(insertStatement, (JsonConnection)Connection!, this),
         FileUpdate updateStatement => new JsonUpdate(updateStatement, (JsonConnection)Connection!, this),
+        FileCreateTable createTableStatement => new JsonCreateTable(createTableStatement, (JsonConnection)Connection!, this),
 
-        _ => throw new InvalidOperationException("query not supported")
+        _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")
     };
 
     protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 

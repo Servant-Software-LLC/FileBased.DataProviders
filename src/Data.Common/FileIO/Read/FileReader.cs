@@ -18,6 +18,24 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     public DataSet? DataSet { get; protected set; }
     public DataSet? SchemaDataSet { get; protected set; }
 
+    /// <summary>
+    /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>
+    /// </summary>
+    /// <param name="tableNames"></param>
+    protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
+    protected abstract void UpdateFromFolder(string tableName);
+    protected virtual bool ExistsInFolder(string tableName)
+    {
+        var path = fileConnection.GetTablePath(tableName);
+        return File.Exists(path);
+    }
+
+    /// <summary>
+    /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
+    /// </summary>
+    protected abstract void ReadFromFile();
+    protected abstract void UpdateFromFile();
+
     public FileReader(IFileConnection fileConnection)
     {
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
@@ -38,17 +56,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     {
         if (fileWatcher != null)
             fileWatcher.Changed -= JsonWatcher_Changed;
-    }
-
-    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
-    {
-        //we dont need to update anything if dataset is null
-        if (DataSet == null)
-        {
-            return;
-        }
-
-        tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
     public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
@@ -103,6 +110,46 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
 
         return returnValue;
+    }
+
+    public bool TableExists(string tableName)
+    {
+        FileWriter._rwLock.EnterReadLock();
+
+        try
+        {
+            EnsureFileSystemWatcher();
+
+            if (fileConnection.FolderAsDatabase)
+            {
+                DataSet ??= new DataSet();
+
+                return ExistsInFolder(tableName);
+            }
+
+            if (DataSet == null)
+            {
+                ReadFromFile();
+
+            }
+            return DataSet.Tables.Contains(tableName);
+        }
+        finally
+        {
+            FileWriter._rwLock.ExitReadLock();
+        }
+    }
+
+
+    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
+    {
+        //we dont need to update anything if dataset is null
+        if (DataSet == null)
+        {
+            return;
+        }
+
+        tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
     private void UpdateSchemaDataSet(bool includeTableSchema, bool includeColumnSchema)
@@ -338,19 +385,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
         return (includeTableSchema, includeColumnSchema);
     }
-
-    /// <summary>
-    /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>
-    /// </summary>
-    /// <param name="tableNames"></param>
-    protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
-    protected abstract void UpdateFromFolder(string tableName);
-    
-    /// <summary>
-    /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
-    /// </summary>
-    protected abstract void ReadFromFile();
-    protected abstract void UpdateFromFile();
    
     public void Dispose()
     {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -10,7 +10,6 @@
   <ItemGroup>
 	  <PackageReference Include="Serilog.Extensions.Logging" />
 	  <PackageReference Include="Serilog.Sinks.File" />
-	  <PackageReference Include="SqlBuildingBlocks.Core" />
 	  <PackageReference Include="SqlBuildingBlocks.Grammars.MySQL" />
 	  <PackageReference Include="SqlBuildingBlocks.Grammars.SQLServer" />
   </ItemGroup>  

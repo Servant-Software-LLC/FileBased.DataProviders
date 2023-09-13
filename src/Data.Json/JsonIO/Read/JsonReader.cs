@@ -21,28 +21,25 @@ internal class JsonReader : FileReader
 
     protected override void ReadFromFolder(IEnumerable<string> tableNames)
     {
-
         foreach (var name in tableNames)
         {
             var path = fileConnection.GetTablePath(name);
-            var doc = Read(path);
+            using JsonDocument doc = Read(path);
             var element = doc.RootElement;
-            Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+            JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
             var dataTable = CreateNewDataTable(element);
             dataTable.TableName = name;
             Fill(dataTable, element);
             DataSet!.Tables.Add(dataTable);
-            doc.Dispose();
         }
-
     }
 
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
-        var doc = Read(path);
+        using JsonDocument doc = Read(path);
         var element = doc.RootElement;
-        Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+        JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         var dataTable = DataSet!.Tables[tableName];
         if (dataTable == null)
         {
@@ -52,15 +49,13 @@ internal class JsonReader : FileReader
         }
         dataTable!.Clear();
         Fill(dataTable, element);
-        doc.Dispose();
-
     }
 
     protected override void ReadFromFile()
     {
-        var doc = Read(fileConnection.Database);
+        using JsonDocument doc = Read(fileConnection.Database);
         var element = doc.RootElement;
-        Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+        JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         var dataBaseEnumerator = element.EnumerateObject();
         DataSet = new DataSet();
         foreach (var item in dataBaseEnumerator)
@@ -70,15 +65,13 @@ internal class JsonReader : FileReader
             Fill(dataTable, item.Value);
             DataSet.Tables.Add(dataTable);
         }
-        doc.Dispose();
-
     }
 
     protected override void UpdateFromFile()
     {
         DataSet!.Clear();
 
-        var doc = Read(fileConnection.Database);
+        using JsonDocument doc = Read(fileConnection.Database);
         var element = doc.RootElement;
         Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         foreach (DataTable item in DataSet.Tables)

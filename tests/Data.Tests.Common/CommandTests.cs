@@ -156,4 +156,40 @@ public static class CommandTests
         connection.Close();
     }
 
+    public static void ExecuteNonQuery_CreateTable<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+    where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        const string sql = @"
+CREATE TABLE ""SomeSetting"" (
+    ""Id"" INTEGER NOT NULL,
+    ""SomeProperty"" TEXT NULL,
+    CONSTRAINT ""PK_SomeSetting"" PRIMARY KEY (""Id"")
+);
+";
+
+        // Arrange
+        var connection = createConnection();
+        connection.Open();
+
+        //Check on the number of tables before adding one.
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES";
+        var tableCount = (int)command.ExecuteScalar()!;
+
+        // Act
+        command.CommandText = sql;
+
+        var executeResult = command.ExecuteNonQuery()!;
+
+
+        // Assert
+        Assert.Equal(-1, executeResult);  //CREATE TABLE returns -1 for ExecuteNonQuery().
+        command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES";
+        var newTableCount = (int)command.ExecuteScalar()!;
+        Assert.Equal(tableCount + 1, newTableCount);
+
+        // Close the connection
+        connection.Close();
+    }
+
 }

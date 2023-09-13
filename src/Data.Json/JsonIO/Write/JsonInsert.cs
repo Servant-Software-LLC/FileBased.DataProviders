@@ -1,10 +1,11 @@
-﻿using System.Data.JsonClient;
+﻿using Data.Common.FileIO.Write;
+using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Write;
 
-internal class JsonInsert : Common.FileIO.Write.FileInsertWriter
+internal class JsonInsert : FileInsertWriter
 {
-    public JsonInsert(Common.FileStatements.FileInsert fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
+    public JsonInsert(FileInsert fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
         : base(fileStatement, jsonConnection, jsonCommand)
     {
         dataSetWriter = new JsonDataSetWriter(jsonConnection, fileStatement);

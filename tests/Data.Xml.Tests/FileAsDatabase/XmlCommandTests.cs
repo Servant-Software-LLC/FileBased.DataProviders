@@ -1,6 +1,8 @@
 using Data.Tests.Common;
+using Data.Common.Extension;
 using Data.Tests.Common.Utils;
 using System.Data.XmlClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Xml.Tests.FileAsDatabase;
@@ -87,6 +89,14 @@ public class XmlCommandTests
             var connectionString = getConnectionString(ConnectionStrings.Instance);
             return new XmlConnection(connectionString);
         }, databaseName, 0);
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateTable()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CommandTests.ExecuteNonQuery_CreateTable(
+          () => new XmlConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

@@ -33,9 +33,46 @@ internal class FileStatementCreator
         return fileStatements[0];
     }
 
-    private static IEnumerable<FileStatement> CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    public static FileSelect CreateSelect(IFileCommand fileCommand, ILogger log)
+    {
+        if (fileCommand.FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(CreateSelect)} method cannot be used with an admin connection.");
+
+        var fileStatements = CreateSelectFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
+        if (fileStatements.Count != 1)
+            throw new ArgumentException($"The SQL '{fileCommand.CommandText}' did not yield 1 statement.  Count = {fileStatements.Count}");
+
+        return fileStatements[0];
+    }
+
+
+    private static IEnumerable<FileSelect> CreateSelectFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
     {
         log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
+
+        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log);
+        foreach (SqlDefinition sqlDefinition in sqlDefinitions)
+        {
+            sqlDefinition.ResolveParameters(parameters);
+
+            if (sqlDefinition.Select != null)
+            {
+                if (sqlDefinition.Select.InvalidReferences)
+                    ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+
+                yield return new FileSelect(sqlDefinition.Select, commandText);
+                continue;
+            }
+
+            throw new Exception($"The command text, {commandText}, was not a SELECT statement.");
+        }
+
+    }
+
+
+    private static IEnumerable<SqlDefinition> CreateDefinitionsFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    {
+        log.LogDebug($"FileStatementCreator.{nameof(CreateDefinitionsFromCommand)}() called.  CommandText = {commandText}");
 
         var grammar = new SqlGrammar();
         var parser = new Parser(grammar);
@@ -54,6 +91,15 @@ internal class FileStatementCreator
             log.LogDebug($"Parsed tree: {ParseTreeToString(parseTree.Root)}");
         }
 
+        return sqlDefinitions;
+    }
+
+
+    private static IEnumerable<FileStatement> CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    {
+        log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
+
+        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log); 
         foreach (SqlDefinition sqlDefinition in sqlDefinitions)
         {
             sqlDefinition.ResolveParameters(parameters);
@@ -82,6 +128,12 @@ internal class FileStatementCreator
                     ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
 
                 yield return new FileSelect(sqlDefinition.Select, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Create != null)
+            {
+                yield return new FileCreateTable(sqlDefinition.Create, commandText);
                 continue;
             }
 

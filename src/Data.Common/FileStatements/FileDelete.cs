@@ -6,12 +6,13 @@ namespace Data.Common.FileStatements;
 public class FileDelete : FileStatement
 {
     public FileDelete(SqlDeleteDefinition sqlDeleteDefinition, string statement) 
-        : base(sqlDeleteDefinition.WhereClause, statement)
+        : base(statement)
     {
+        Filter = sqlDeleteDefinition.WhereClause;
         Tables = new SqlTable[] { sqlDeleteDefinition.Table };
     }
 
-    public override IEnumerable<SqlTable> Tables { get; }
+    public SqlBinaryExpression? Filter { get; }
 
-    public override IList<ISqlColumn> Columns => throw new NotImplementedException();
+    public override IEnumerable<SqlTable> Tables { get; }
 }

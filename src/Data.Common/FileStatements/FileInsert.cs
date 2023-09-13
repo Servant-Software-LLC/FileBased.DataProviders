@@ -5,8 +5,10 @@ namespace Data.Common.FileStatements;
 
 public class FileInsert : FileStatement
 {
+    private readonly IList<ISqlColumn> columns;
+
     public FileInsert(SqlInsertDefinition sqlInsertDefinition, string statement) 
-        : base(null, statement)
+        : base(statement)
     {
         if (sqlInsertDefinition == null)
             throw new ArgumentNullException(nameof(sqlInsertDefinition));
@@ -15,18 +17,17 @@ public class FileInsert : FileStatement
             throw new ArgumentException($"In the INSERT, the number of columns is {sqlInsertDefinition.Columns.Count}, but the number of VALUES is {sqlInsertDefinition.Values.Count}. Their counts must be the same.");
 
         Tables = new SqlTable[] { sqlInsertDefinition.Table };
-        Columns = sqlInsertDefinition.Columns.Cast<ISqlColumn>().ToList();
+        columns = sqlInsertDefinition.Columns.Cast<ISqlColumn>().ToList();
         SetValues(sqlInsertDefinition.Values);
     }
 
     public override IEnumerable<SqlTable> Tables { get; }
-    public override IList<ISqlColumn> Columns { get; }
     public IList<SqlLiteralValue> Values { get; private set; }
     public HashSet<string> ColumnNameHints { get; } = new();
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
-        var result = Columns.Zip(Values, (name, literalValue) => KeyValuePair.Create(((SqlColumn)name).ColumnName, literalValue.Value));
+        var result = columns.Zip(Values, (name, literalValue) => KeyValuePair.Create(((SqlColumn)name).ColumnName, literalValue.Value));
 
         return result!;
     }
