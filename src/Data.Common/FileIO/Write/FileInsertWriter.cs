@@ -83,7 +83,7 @@ public abstract class FileInsertWriter : FileWriter
         var row = dataTable!.NewRow();
         foreach (var val in fileStatement.GetValues())
         {
-            row[val.Key] = val.Value;
+            row[val.Key] = val.Value ?? DBNull.Value;
         }
 
         AddMissingIdentityValues(dataTable, row);

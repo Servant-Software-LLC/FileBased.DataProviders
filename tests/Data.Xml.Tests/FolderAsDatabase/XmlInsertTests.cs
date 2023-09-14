@@ -19,6 +19,13 @@ public class XmlInsertTests
     }
 
     [Fact]
+    public void Insert_ShouldInsertNullData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertNullData(() => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false);
+    }
+
+    [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
         InsertTests.Insert_ShouldBeFormatted(() =>
@@ -30,7 +37,7 @@ public class XmlInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_NoLastRow(
-            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)), false
         );
 
     }
@@ -40,7 +47,7 @@ public class XmlInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_LastRow_Decimal(
-            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false
         );
     }
 

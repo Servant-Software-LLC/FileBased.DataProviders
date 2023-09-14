@@ -18,21 +18,21 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-       new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
-       new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlySecondRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
-       new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]

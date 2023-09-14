@@ -18,6 +18,13 @@ public class JsonInsertTests
         InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
+    [Fact]
+    public void Insert_ShouldInsertNullData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertNullData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false);
+    }
+
     //This is a special case.  In json, if a table does not have any rows in it, then we have no schema information on the columns or their data types.
     //Inserting the first row into this table will then determine the columns (along with their data types) in this table.
     [Fact]
@@ -52,7 +59,7 @@ public class JsonInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_LastRow_Decimal(
-            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false
         );
     }
 

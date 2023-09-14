@@ -22,21 +22,21 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-       new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
-       new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlySecondRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
-       new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnSchemaColumnsData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
-            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]

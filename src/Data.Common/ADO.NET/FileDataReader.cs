@@ -493,7 +493,7 @@ public abstract class FileDataReader : DbDataReader
 
         var currentDataRow = result.CurrentDataRow;
 
-        return currentDataRow is not null ? currentDataRow[i] == null
+        return currentDataRow is not null ? currentDataRow[i].GetType() == typeof(DBNull)
                                           : throw new ArgumentNullException(nameof(currentDataRow));
     }
 

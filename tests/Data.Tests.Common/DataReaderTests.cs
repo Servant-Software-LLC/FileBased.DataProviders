@@ -35,7 +35,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -83,7 +83,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_Limit_ShouldReturnOnlyFirstRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_Limit_ShouldReturnOnlyFirstRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -118,7 +118,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_Limit_ShouldReturnOnlySecondRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_Limit_ShouldReturnOnlySecondRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -198,7 +198,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnSchemaColumnsData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Reader_ShouldReturnSchemaColumnsData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange

@@ -19,21 +19,21 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-       new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+       new XmlConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
-       new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+       new XmlConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlySecondRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
-       new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+       new XmlConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnSchemaColumnsData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
-            new XmlConnection(ConnectionStrings.Instance.FileAsDB));
+            new XmlConnection(ConnectionStrings.Instance.FileAsDB), false);
     }
 
     [Fact]

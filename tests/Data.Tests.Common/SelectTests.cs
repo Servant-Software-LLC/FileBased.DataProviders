@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Data.Tests.Common;
 
-public class FileSelectTests
+public class SelectTests
 {
     [Fact]
     public void ctor_InterpretAstWithFunctions()
