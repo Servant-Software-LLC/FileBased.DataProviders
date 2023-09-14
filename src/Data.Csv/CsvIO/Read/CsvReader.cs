@@ -26,8 +26,27 @@ internal class CsvReader : FileReader
                 dataTable.Load(dr);
             }
         }
+
+        //Post processing to replace String.Empty with DBNull.Value on DataTable, because for some unknown reason,
+        //the values in the DataRows when there are two consecutive commas mostly end up being a DBNull, but for a
+        //unit test, Insert_ShouldInsertNullData, it will sometimes be String.Empty.
+        foreach (DataRow row in dataTable.Rows)
+        {
+            foreach (DataColumn column in dataTable.Columns)
+            {
+                if (row[column] is string value && string.IsNullOrEmpty(value))
+                {
+                    //Temporarily toggle the ReadOnly property to false, so we can change its value.
+                    bool wasReadOnly = column.ReadOnly;
+                    column.ReadOnly = false;
+                    row[column] = DBNull.Value;
+                    column.ReadOnly = wasReadOnly;
+                }
+            }
+        }
+
     }
-   
+
     #region Folder Read Update
     protected override void ReadFromFolder(IEnumerable<string> tableNames)
     {

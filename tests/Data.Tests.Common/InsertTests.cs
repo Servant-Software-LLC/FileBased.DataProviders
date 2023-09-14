@@ -80,8 +80,8 @@ public static class InsertTests
             //Verify values of the row.
             Assert.Equal(dataTypeAlwaysString ? id.ToString() : id, reader[0]);
             Assert.Equal("Seattle", reader[1]);
-            Assert.True(reader.IsDBNull(2));
-            Assert.True(reader.IsDBNull(3));
+            Assert.True(reader.IsDBNull(2), $"Column 2 wasn't null: {(reader[2] == null ? "null" : reader[2].GetType()) }");
+            Assert.True(reader.IsDBNull(3), $"Column 3 wasn't null: {(reader[3] == null ? "null" : reader[3].GetType()) }");
 
             // Close the connection
             connection.Close();

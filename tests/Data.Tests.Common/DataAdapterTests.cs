@@ -196,7 +196,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.Equal("bob32@gmail.com", dataset.Tables[0].Rows[1]["email"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[1]["email"]);
         Assert.Equal(dataTypesAreAlwaysString ? "95000" : 95000M, dataset.Tables[0].Rows[1]["salary"]);
-        Assert.Equal(dataTypesAreAlwaysString ? string.Empty : DBNull.Value, dataset.Tables[0].Rows[1]["married"]);
+        Assert.Equal(DBNull.Value, dataset.Tables[0].Rows[1]["married"]);
         connection.Close();
     }
 
