@@ -49,6 +49,9 @@ internal class JsonDataSetWriter : IDataSetWriter
                 }
                 switch (dataType)
                 {
+                    case "Int32":
+                        jsonWriter.WriteNumber(column.ColumnName, (int)row[column]);
+                        break;
                     case "Decimal":
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;
@@ -62,7 +65,7 @@ internal class JsonDataSetWriter : IDataSetWriter
                         jsonWriter.WriteNull(column.ColumnName);
                         break;
                     default:
-                        throw new NotSupportedException($"Data type {column.DataType.Name} is not supported.");
+                        throw new NotSupportedException($"Data type {dataType} is not supported.");
                 }
 
                 log.LogDebug($"Value written to jsonWriter.");
