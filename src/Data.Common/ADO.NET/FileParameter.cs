@@ -33,15 +33,12 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     public override ParameterDirection Direction { get; set; } = ParameterDirection.Input;
 
-    public override bool IsNullable
-    {
-        get => false;
-        set
-        {
-            if (value)
-                throw new NotImplementedException("Trying to set FileParameter.IsNullable to true.  Support for nullable parameters needs to be considered and/or implemented.");
-        }
-    }
+
+    /// <summary>
+    /// Internally this value is ignored.
+    /// Explanation of use: https://stackoverflow.com/questions/1075863/dbparameter-isnullable-functionality
+    /// </summary>
+    public override bool IsNullable { get; set; }
 
     public override string ParameterName { get; set; }
 
