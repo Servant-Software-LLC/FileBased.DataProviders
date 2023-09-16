@@ -18,6 +18,8 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual string gettingStartedFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted");
     public virtual string gettingStartedWithDataFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStartedWithData.{Extension}");
     public virtual string gettingStartedWithDataFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStartedWithData");
+    public virtual string bogusFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Folder_BOGUS.{Guid.NewGuid()}");
+    public virtual string bogusFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Database_BOGUS.{Guid.NewGuid()}.{Extension}");
 
     public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(PathType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
@@ -38,5 +40,10 @@ public abstract class ConnectionStringsBase : IConnectionStrings
 
     public virtual FileConnectionString gettingStartedWithDataFolderDB => new FileConnectionString() { DataSource = gettingStartedWithDataFolderDataBase };
 
+    public virtual FileConnectionString bogusFileDB => new FileConnectionString() { DataSource = bogusFileDataBase };
+
+    public virtual FileConnectionString bogusFolderDB => new FileConnectionString() { DataSource = bogusFolderDataBase };
+
     public static ConnectionStringsBase Instance => throw new NotImplementedException();
+
 }

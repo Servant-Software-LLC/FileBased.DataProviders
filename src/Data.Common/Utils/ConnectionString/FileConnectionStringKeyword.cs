@@ -6,5 +6,6 @@ public enum FileConnectionStringKeyword
     DataSource,
     Formatted,
     [Alias("Log")]
-    LogLevel
+    LogLevel,
+    CreateIfNotExist,
 }

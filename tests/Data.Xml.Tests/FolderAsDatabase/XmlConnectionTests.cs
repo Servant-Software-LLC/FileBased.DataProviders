@@ -1,6 +1,4 @@
-﻿using Data.Common.Extension;
-using Data.Common.FileException;
-using Data.Common.Utils.ConnectionString;
+﻿using Data.Tests.Common;
 using System.Data.XmlClient;
 using Xunit;
 
@@ -9,65 +7,29 @@ namespace Data.Xml.Tests.FolderAsDatabase;
 public class XmlConnectionTests
 {
     [Fact]
-    public void Open_DatabaseExists()
-    {
-        //Arrange
-        using (var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB))
-        {
-
-            //Act
-            connection.Open();
-
-        }
-    }
+    public void Open_DatabaseExists() =>
+        ConnectionTests.Open_DatabaseExists(() => new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
 
     [Fact]
-    public void Open_DatabaseDoesNotExist()
-    {
-        //Arrange
-
-        //Create a connection string to a DataSource value that does not exist.
-        var folder = Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder_BOGUS");
-        var connectionString = new FileConnectionString() { DataSource = folder };
-
-        using (var connection = new XmlConnection(connectionString))
-        {
-
-            //Act
-            Assert.Throws<InvalidConnectionStringException>(() => connection.Open());
-        }
-
-    }
+    public void Open_DatabaseDoesNotExist() =>
+        ConnectionTests.Open_DatabaseDoesNotExist(() => new XmlConnection(ConnectionStrings.Instance.bogusFolderDB));
 
     [Fact]
-    public void ChangeDatabase_DatabaseExists()
-    {
-        //Arrange
-        using (var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB))
-        {
-            connection.Open();
-
-            //Act
-            connection.ChangeDatabase(ConnectionStrings.Instance.eComFolderDataBase);
-        }
-    }
+    public void Open_DatabaseDoesNotExist_AutoCreate() =>
+        ConnectionTests.Open_DatabaseDoesNotExist_AutoCreate(() => new XmlConnection(ConnectionStrings.Instance.bogusFolderDB));
 
     [Fact]
-    public void ChangeDatabase_DatabaseDoesNotExist()
-    {
-        //Arrange
+    public void ChangeDatabase_DatabaseExists() =>
+        ConnectionTests.ChangeDatabase_DatabaseExists(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.eComFolderDataBase);
 
-        //Create a connection string to a DataSource value that does not exist.
-        var folder = Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder_BOGUS");
+    [Fact]
+    public void ChangeDatabase_DatabaseDoesNotExist() =>
+        ConnectionTests.ChangeDatabase_DatabaseDoesNotExist(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.bogusFolderDB);
 
-        using (var connection = new XmlConnection(ConnectionStrings.Instance.FolderAsDB))
-        {
-            connection.Open();
-
-            //Act
-            Assert.Throws<InvalidConnectionStringException>(() => connection.ChangeDatabase(folder));
-        }
-
-    }
-
+    [Fact]
+    public void ChangeDatabase_DatabaseDoesNotExist_AutoCreate() =>
+        ConnectionTests.ChangeDatabase_DatabaseDoesNotExist_AutoCreate(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.bogusFolderDB);
 }

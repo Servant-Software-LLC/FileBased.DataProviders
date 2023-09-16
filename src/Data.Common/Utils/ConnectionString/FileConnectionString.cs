@@ -25,6 +25,9 @@ public class FileConnectionString : IConnectionStringProperties
             if (LogLevel != null)
                 stringBuilder.Append($"{nameof(FileConnectionStringKeyword.LogLevel)}={LogLevel};");
 
+            if (CreateIfNotExist != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeyword.CreateIfNotExist)}={CreateIfNotExist};");
+
             return stringBuilder.ToString();
         }
 
@@ -34,16 +37,19 @@ public class FileConnectionString : IConnectionStringProperties
     public string DataSource { get; set; }
     public bool? Formatted { get; set; }
     public LogLevel? LogLevel { get; set; }
+    public bool? CreateIfNotExist { get; set; }
 
     public FileConnectionString Clone() =>
         new()
         {
             DataSource = DataSource,
             Formatted = Formatted,
-            LogLevel = LogLevel
+            LogLevel = LogLevel,
+            CreateIfNotExist = CreateIfNotExist
         };
 
     public FileConnectionString AddFormatted(bool? formatted) => new(this) { Formatted = formatted };
+    public FileConnectionString AddCreateIfNotExist(bool? createIfNotExist) => new(this) { CreateIfNotExist = createIfNotExist };
 
     private void Parse(string connectionString)
     {
@@ -72,7 +78,6 @@ public class FileConnectionString : IConnectionStringProperties
             if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.DataSource))
                 continue;
 
-
             //Formatted
             if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.Formatted))
             {
@@ -87,11 +92,25 @@ public class FileConnectionString : IConnectionStringProperties
                 continue;
             }
 
+            //CreateIfNotExist
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.CreateIfNotExist))
+            {
+                if (keyValuePair.Value == null)
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.CreateIfNotExist)} was null.", nameof(connectionString));
+
+                var bCreateIfNotExist = ConvertToBoolean(keyValuePair.Value);
+                if (!bCreateIfNotExist.HasValue)
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.CreateIfNotExist)} was not a boolean value.", nameof(connectionString));
+
+                CreateIfNotExist = bCreateIfNotExist.Value;
+                continue;
+            }
+
             //Log
             if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.LogLevel))
             {
                 if (keyValuePair.Value == null)
-                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.Formatted)} was null.", nameof(connectionString));
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.LogLevel)} was null.", nameof(connectionString));
 
                 if (!System.Enum.TryParse<LogLevel>(keyValuePair.Value.ToString(), true, out LogLevel logLevel))
                     throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.LogLevel)} was not a {typeof(LogLevel)} enum value.", nameof(connectionString));
