@@ -71,6 +71,14 @@ public class JsonDataReaderTests
     }
 
     [Fact]
+    public void Reader_NextResult_UpdateReturningOne()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_UpdateReturningOne(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
     public void Reader_NextResult_ShouldReadData()
     {
         DataReaderTests.Reader_NextResult_ShouldReadData(() =>

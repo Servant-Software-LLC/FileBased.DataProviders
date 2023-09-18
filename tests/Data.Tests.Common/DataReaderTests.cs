@@ -401,6 +401,36 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
+    public static void Reader_NextResult_UpdateReturningOne<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("UPDATE locations SET city='Los Angeles' where id=2 RETURNING 1");
+        var reader = command.ExecuteReader();
+
+        // Assert
+        Assert.True(reader.Read());
+        var fieldCount = reader.FieldCount;
+        Assert.Equal(1, fieldCount);
+        Assert.Equal(1, reader.RecordsAffected);
+
+        //Make sure that the value of 1 was returned in a row.
+        Assert.Equal(1, reader.GetInt32(0));
+        Assert.False(reader.Read());
+
+        //Act - There are no more resultsets.
+        var nextResult = reader.NextResult();
+
+        Assert.False(nextResult);
+
+        // Close the connection
+        connection.Close();
+    }
+
     public static void Reader_NextResult_WithInsert<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

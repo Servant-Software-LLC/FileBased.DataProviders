@@ -82,6 +82,14 @@ public class XmlDataReaderTests
     }
 
     [Fact]
+    public void Reader_NextResult_UpdateReturningOne()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_UpdateReturningOne(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
     public void Reader_NextResult_WithInsert()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
