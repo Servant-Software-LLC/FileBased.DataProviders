@@ -69,10 +69,11 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     private static DbType InferType(object value)
     {
-        switch (Type.GetTypeCode(value.GetType()))
+        var typeCode = Type.GetTypeCode(value.GetType());
+        switch (typeCode)
         {
             case TypeCode.Empty:
-                throw new SystemException("Invalid data type");
+                throw new SystemException($"Invalid data type for type code {typeCode}");
 
             case TypeCode.Object:
                 return DbType.Object;
@@ -84,7 +85,7 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
             case TypeCode.UInt32:
             case TypeCode.UInt64:
                 // Throw a SystemException for unsupported data types.
-                throw new SystemException("Invalid data type");
+                throw new SystemException($"Invalid data type for type code {typeCode}");
 
             case TypeCode.Boolean:
                 return DbType.Boolean;
@@ -117,7 +118,7 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
                 return DbType.String;
 
             default:
-                throw new SystemException("Value is of unknown data type");
+                throw new SystemException($"Value of type code {typeCode} is of unknown data type");
         }
     }
 
