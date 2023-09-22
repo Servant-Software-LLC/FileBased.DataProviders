@@ -79,6 +79,8 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
                 return DbType.Object;
 
             case TypeCode.DBNull:
+                return DbType.Object;  //We have no indication of type, so default to Object.
+
             case TypeCode.Char:
             case TypeCode.SByte:
             case TypeCode.UInt16:
