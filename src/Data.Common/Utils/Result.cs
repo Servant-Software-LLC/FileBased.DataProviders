@@ -58,15 +58,18 @@ internal class Result
 
         RecordsAffected = fileWriter.Execute();
 
-        if (RecordsAffected > 0 && fileStatement is FileUpdate fileUpdate) 
+        if (RecordsAffected > 0)             
         {
-            if (fileUpdate.Returning.HasValue)
+            if (fileStatement is IContainsReturning containsReturning)
             {
-                WorkingResultSet = new DataTable();
-                WorkingResultSet.Columns.Add(new DataColumn("RETURNING", typeof(int)));
-                WorkingResultSet.Rows.Add(fileUpdate.Returning.Value);
+                if (containsReturning.Returning.HasValue)
+                {
+                    WorkingResultSet = new DataTable();
+                    WorkingResultSet.Columns.Add(new DataColumn("RETURNING", typeof(int)));
+                    WorkingResultSet.Rows.Add(containsReturning.Returning.Value);
 
-                FileEnumerator = new FileEnumerator(WorkingResultSet, log);
+                    FileEnumerator = new FileEnumerator(WorkingResultSet, log);
+                }
             }
         }
 

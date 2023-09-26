@@ -2,7 +2,7 @@
 
 namespace Data.Common.FileStatements;
 
-public class FileUpdate : FileStatement
+public class FileUpdate : FileStatement, IContainsReturning
 {
     public FileUpdate(SqlUpdateDefinition sqlUpdateDefinition, string statement) 
         : base(statement)

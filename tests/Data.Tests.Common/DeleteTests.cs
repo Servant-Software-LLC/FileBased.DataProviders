@@ -42,7 +42,7 @@ public static class DeleteTests
 
 
         // Insert data in both tables
-        command.CommandText = @"DELETE FROM ""SomeSetting""
+        command.CommandText = @"DELETE FROM ""locations""
 WHERE ""Id"" = @p0
 RETURNING 1;";
 
@@ -54,6 +54,6 @@ RETURNING 1;";
         var fieldCount = reader.FieldCount;
         Assert.Equal(1, fieldCount);
 
-        Assert.Equal(0, reader[0]);
+        Assert.Equal(1, reader[0]);
     }
 }
