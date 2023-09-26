@@ -9,17 +9,14 @@ internal class XmlReader : FileReader
         base(connection)
     {
     }
-    protected override void ReadFromFolder(IEnumerable<string> tableNames)
+    protected override void ReadFromFolder(string tableName)
     {
-        foreach (var name in tableNames)
-        {
-            var path = fileConnection.GetTablePath(name);
-            var dataSet = new DataSet();
-            dataSet.ReadXml(path);
-            dataSet.Tables[0].TableName = name;
-            DataSet!.Tables.Add(dataSet.Tables[0].Copy());
-            dataSet.Dispose();
-        }
+        var path = fileConnection.GetTablePath(tableName);
+        var dataSet = new DataSet();
+        dataSet.ReadXml(path);
+        dataSet.Tables[0].TableName = tableName;
+        DataSet!.Tables.Add(dataSet.Tables[0].Copy());
+        dataSet.Dispose();
     }
     protected override void UpdateFromFolder(string tableName)
     {

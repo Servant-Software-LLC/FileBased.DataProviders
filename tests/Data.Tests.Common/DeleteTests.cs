@@ -40,6 +40,7 @@ public static class DeleteTests
         var command = connection.CreateCommand();
         connection.Open();
 
+
         // Insert data in both tables
         command.CommandText = @"DELETE FROM ""SomeSetting""
 WHERE ""Id"" = @p0

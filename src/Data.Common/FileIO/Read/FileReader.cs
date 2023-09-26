@@ -1,4 +1,5 @@
 ﻿using Data.Common.Utils;
+using SqlBuildingBlocks;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
@@ -19,10 +20,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     public DataSet? SchemaDataSet { get; protected set; }
 
     /// <summary>
-    /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>
+    /// Read in file (representing a table) from a folder and creates DataTable instance for the matching <see cref="tableName"/>
     /// </summary>
-    /// <param name="tableNames"></param>
-    protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
+    /// <param name="tableName">Name of the table file to read from folder</param>
+    /// 
+    protected abstract void ReadFromFolder(string tableName);
     protected abstract void UpdateFromFolder(string tableName);
     protected virtual bool ExistsInFolder(string tableName)
     {
@@ -88,8 +90,18 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                     //Load only the tables in the SQL statement.
                     newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
                 }
-                
-                ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
+
+                foreach (var table in newTables.Where(x => DataSet.Tables[x] == null))
+                {
+                    try
+                    {
+                        ReadFromFolder(table);
+                    }        
+                    catch (Exception ex)
+                    {
+                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.GetTableFileName(table)}, in '{fileConnection.Database}'", ex);
+                    }
+                }
             }
             else if (DataSet == null)
             {

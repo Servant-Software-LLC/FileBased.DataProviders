@@ -48,15 +48,12 @@ internal class CsvReader : FileReader
     }
 
     #region Folder Read Update
-    protected override void ReadFromFolder(IEnumerable<string> tableNames)
+    protected override void ReadFromFolder(string tableName)
     {
-        foreach (var name in tableNames)
-        {
-            var path = fileConnection.GetTablePath(name);
-            var dataTable = new DataTable(name);
-            FillDataTable(path,dataTable);
-            DataSet!.Tables.Add(dataTable);
-        }
+        var path = fileConnection.GetTablePath(tableName);
+        var dataTable = new DataTable(tableName);
+        FillDataTable(path,dataTable);
+        DataSet!.Tables.Add(dataTable);
     }
 
     protected override void UpdateFromFolder(string tableName)

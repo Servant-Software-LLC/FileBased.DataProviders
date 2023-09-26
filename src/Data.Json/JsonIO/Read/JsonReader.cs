@@ -19,19 +19,16 @@ internal class JsonReader : FileReader
         }
     }
 
-    protected override void ReadFromFolder(IEnumerable<string> tableNames)
+    protected override void ReadFromFolder(string tableName)
     {
-        foreach (var name in tableNames)
-        {
-            var path = fileConnection.GetTablePath(name);
-            using JsonDocument doc = Read(path);
-            var element = doc.RootElement;
-            JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
-            var dataTable = CreateNewDataTable(element);
-            dataTable.TableName = name;
-            Fill(dataTable, element);
-            DataSet!.Tables.Add(dataTable);
-        }
+        var path = fileConnection.GetTablePath(tableName);
+        using JsonDocument doc = Read(path);
+        var element = doc.RootElement;
+        JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+        var dataTable = CreateNewDataTable(element);
+        dataTable.TableName = tableName;
+        Fill(dataTable, element);
+        DataSet!.Tables.Add(dataTable);
     }
 
     protected override void UpdateFromFolder(string tableName)
