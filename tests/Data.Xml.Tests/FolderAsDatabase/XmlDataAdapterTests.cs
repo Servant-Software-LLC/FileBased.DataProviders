@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Data.Xml.Tests.FolderAsDatabase;
 
-public partial class JsonDataAdapterTests
+public partial class XmlDataAdapterTests
 {
     [Fact]
     public void DataAdapter_ShouldFillTheDataSet()
