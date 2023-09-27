@@ -27,6 +27,12 @@ public class JsonDataSetWriter : IDataSetWriter
         }
     }
 
+    /// <summary>
+    /// Provides an entry point for a derived class to add a comment
+    /// </summary>
+    /// <param name="jsonWriter"></param>
+    protected virtual void WriteCommentValue(Utf8JsonWriter jsonWriter, DataColumn column) { }
+
     private void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
     {
         log.LogDebug($"Writing array start.");
@@ -43,6 +49,10 @@ public class JsonDataSetWriter : IDataSetWriter
             {
                 var dataType = column.DataType.Name;
                 log.LogDebug($"Column: {column.ColumnName}. Data type: {dataType}");
+
+                //Provide an entry point for a derived class to add a comment
+                WriteCommentValue(jsonWriter, column);
+
                 if (row.IsNull(column.ColumnName))
                 {
                     dataType = "Null";
