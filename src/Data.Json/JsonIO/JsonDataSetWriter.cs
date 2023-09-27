@@ -3,9 +3,9 @@ using System.Text;
 
 namespace Data.Json.JsonIO;
 
-internal class JsonDataSetWriter : IDataSetWriter
+public class JsonDataSetWriter : IDataSetWriter
 {
-    private ILogger<JsonDataSetWriter> log => ((IFileConnection)fileConnection).LoggerServices.CreateLogger<JsonDataSetWriter>();
+    private ILogger<JsonDataSetWriter> log => fileConnection.LoggerServices.CreateLogger<JsonDataSetWriter>();
     private readonly IFileConnection fileConnection;
     private readonly FileStatement fileQuery;
 

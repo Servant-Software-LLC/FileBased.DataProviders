@@ -7,6 +7,5 @@ internal class XmlUpdate : Common.FileIO.Write.FileUpdateWriter
     public XmlUpdate(Common.FileStatements.FileUpdate fileStatement, FileConnection<XmlParameter> FileConnection, FileCommand<XmlParameter> FileCommand) 
         : base(fileStatement, FileConnection, FileCommand)
     {
-        dataSetWriter = new XmlDataSetWriter(FileConnection, fileStatement);
     }
 }

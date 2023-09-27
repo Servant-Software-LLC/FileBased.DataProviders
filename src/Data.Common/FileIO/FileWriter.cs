@@ -3,21 +3,23 @@
 public abstract class FileWriter
 {
     protected readonly IFileCommand fileCommand;
-    protected readonly FileStatement fileQuery;
+    protected readonly FileStatement fileStatement;
     protected readonly IFileConnection fileConnection;
     protected readonly FileReader fileReader;
     protected readonly IFileTransaction? fileTransaction;
-    protected IDataSetWriter? dataSetWriter { get; set; }
+    private readonly Lazy<IDataSetWriter> dataSetWriter;
 
     public FileWriter(IFileConnection fileConnection,
                       IFileCommand fileCommand,
-                      FileStatement fileQuery)
+                      FileStatement fileStatement)
     {
         this.fileCommand = fileCommand;
-        this.fileQuery = fileQuery;
+        this.fileStatement = fileStatement;
         this.fileConnection = fileConnection; 
         fileReader = fileConnection.FileReader;
         fileTransaction = fileCommand.FileTransaction;
+
+        dataSetWriter = new(((IFileConnectionInternal)fileConnection).CreateDataSetWriter(fileStatement));
     }
 
     public abstract int Execute();    
@@ -35,7 +37,7 @@ public abstract class FileWriter
             return true;
         }
 
-        dataSetWriter!.WriteDataSet(fileReader.DataSet!);
+        dataSetWriter.Value.WriteDataSet(fileReader.DataSet!);
       
         return true;
     }

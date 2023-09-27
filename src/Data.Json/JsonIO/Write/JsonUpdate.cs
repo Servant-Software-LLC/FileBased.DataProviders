@@ -8,6 +8,5 @@ internal class JsonUpdate : FileUpdateWriter
     public JsonUpdate(FileUpdate fileStatement, FileConnection<JsonParameter> FileConnection, FileCommand<JsonParameter> FileCommand)
         : base(fileStatement, FileConnection, FileCommand)
     {
-        dataSetWriter = new JsonDataSetWriter(FileConnection, fileStatement);
     }
 }

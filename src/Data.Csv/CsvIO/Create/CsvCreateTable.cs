@@ -5,9 +5,8 @@ namespace Data.Csv.CsvIO.Create;
 
 internal class CsvCreateTable : FileCreateTableWriter
 {
-    public CsvCreateTable(FileCreateTable fileStatement, FileConnection<CsvParameter> FileConnection, FileCommand<CsvParameter> FileCommand)
-        : base(fileStatement, FileConnection, FileCommand)
+    public CsvCreateTable(FileCreateTable fileStatement, FileConnection<CsvParameter> fileConnection, FileCommand<CsvParameter> fileCommand)
+        : base(fileStatement, fileConnection, fileCommand)
     {
-        dataSetWriter = new CsvDataSetWriter(FileConnection, fileStatement);
     }
 }

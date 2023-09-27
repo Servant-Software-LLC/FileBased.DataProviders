@@ -5,9 +5,8 @@ namespace Data.Xml.XmlIO.Create;
 
 internal class XmlCreateTable : FileCreateTableWriter
 {
-    public XmlCreateTable(FileCreateTable fileStatement, FileConnection<XmlParameter> FileConnection, FileCommand<XmlParameter> FileCommand)
-        : base(fileStatement, FileConnection, FileCommand)
+    public XmlCreateTable(FileCreateTable fileStatement, FileConnection<XmlParameter> fileConnection, FileCommand<XmlParameter> fileCommand)
+        : base(fileStatement, fileConnection, fileCommand)
     {
-        dataSetWriter = new XmlDataSetWriter(FileConnection, fileStatement);
     }
 }

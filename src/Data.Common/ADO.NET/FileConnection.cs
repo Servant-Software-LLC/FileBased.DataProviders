@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
 
-public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IConnectionStringProperties
+public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IFileConnectionInternal, IConnectionStringProperties
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
@@ -19,6 +19,12 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public override string Database => connectionString.DataSource ?? string.Empty;
     public override ConnectionState State => state;
     
+    /// <summary>
+    /// Provides consumers potential extensibility to bring their own custom DataSetWriters.  For example: JSON DataSetWriter that injects JSON comments into stored JSON files.
+    /// </summary>
+    protected abstract Func<FileStatement, IDataSetWriter> CreateDataSetWriter { get; }
+    Func<FileStatement, IDataSetWriter> IFileConnectionInternal.CreateDataSetWriter => CreateDataSetWriter;
+
     internal LoggerServices LoggerServices { get; }
     LoggerServices IFileConnection.LoggerServices => LoggerServices;
     private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();

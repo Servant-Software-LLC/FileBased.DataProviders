@@ -8,7 +8,6 @@ internal class JsonInsert : FileInsertWriter
     public JsonInsert(FileInsert fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand) 
         : base(fileStatement, jsonConnection, jsonCommand)
     {
-        dataSetWriter = new JsonDataSetWriter(jsonConnection, fileStatement);
     }
 
     public override bool SchemaUnknownWithoutData => true;

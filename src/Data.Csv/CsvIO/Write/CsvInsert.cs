@@ -4,10 +4,9 @@ namespace Data.Csv.CsvIO.Write;
 
 internal class CsvInsert : Common.FileIO.Write.FileInsertWriter
 {
-    public CsvInsert(FileInsert fileStatement, FileConnection<CsvParameter> jsonConnection, FileCommand<CsvParameter> jsonCommand) 
-        : base(fileStatement, jsonConnection, jsonCommand)
+    public CsvInsert(FileInsert fileStatement, FileConnection<CsvParameter> fileConnection, FileCommand<CsvParameter> fileCommand) 
+        : base(fileStatement, fileConnection, fileCommand)
     {
-        dataSetWriter = new CsvDataSetWriter(jsonConnection, fileStatement);
     }
 
     public override bool SchemaUnknownWithoutData => false;

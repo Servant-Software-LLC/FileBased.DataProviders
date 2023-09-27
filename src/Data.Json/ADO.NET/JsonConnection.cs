@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Json.JsonIO;
+using System.Data.Common;
 
 namespace System.Data.JsonClient;
 
@@ -25,4 +26,5 @@ public class JsonConnection : FileConnection<JsonParameter>
     protected override void CreateFileAsDatabase(string databaseFileName) =>
         File.WriteAllText(databaseFileName, "{}");
 
+    protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new JsonDataSetWriter(this, fileStatement);
 }

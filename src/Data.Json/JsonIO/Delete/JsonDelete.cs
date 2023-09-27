@@ -8,7 +8,6 @@ internal class JsonDelete : FileDeleteWriter
     public JsonDelete(FileDelete fileStatement, FileConnection<JsonParameter> jsonConnection, FileCommand<JsonParameter> jsonCommand)
         : base(fileStatement, jsonConnection, jsonCommand)
     {
-        dataSetWriter = new JsonDataSetWriter(jsonConnection, fileStatement);
     }
 }
 
