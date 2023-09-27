@@ -14,7 +14,7 @@ public static class FileConnectionExtensions
     public static string GetTableFileName(this IFileConnection fileConnection, string tableName) =>
         $"{tableName}.{fileConnection.FileExtension}";
 
-    internal static PathType GetPathType(this IFileConnection fileConnection)
+    public static PathType GetPathType(this IFileConnection fileConnection)
     {
         if (IsAdmin(fileConnection.Database))
             return PathType.Admin;
