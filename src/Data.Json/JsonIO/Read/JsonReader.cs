@@ -12,10 +12,15 @@ internal class JsonReader : FileReader
 
     private JsonDocument Read(string path)
     {
+        var jsonDocumentOptions = new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip
+        };
+
         //ThrowHelper.ThrowIfInvalidPath(path);
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
         {
-            return JsonDocument.Parse(stream);
+            return JsonDocument.Parse(stream, jsonDocumentOptions);
         }
     }
 
