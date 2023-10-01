@@ -7,19 +7,19 @@ public class JsonDataSetWriter : IDataSetWriter
 {
     private ILogger<JsonDataSetWriter> log => fileConnection.LoggerServices.CreateLogger<JsonDataSetWriter>();
     private readonly IFileConnection fileConnection;
-    private readonly FileStatement fileQuery;
+    private readonly FileStatement fileStatement;
 
-    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileQuery)
+    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileStatement)
     {
         this.fileConnection = fileConnection;
-        this.fileQuery = fileQuery;
+        this.fileStatement = this.fileStatement;
     }
 
     public void WriteDataSet(DataSet dataSet)
     {
         if (fileConnection.PathType == PathType.Directory)
         {
-            SaveFolderAsDB(fileQuery.FromTable.TableName, dataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, dataSet);
         }
         else
         {
