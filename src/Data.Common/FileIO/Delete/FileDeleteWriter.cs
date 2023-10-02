@@ -21,11 +21,11 @@ public abstract class FileDeleteWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(query);
+            var dataTable = fileReader.ReadFile(query, fileTransaction?.TransactionScopedRows);
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
-            dataView.RowFilter = query.Filter?.ToString();
+            dataView.RowFilter = query.Filter?.ToExpressionString();
 
             var rowsAffected = dataView.Count;
 

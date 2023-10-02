@@ -5,14 +5,17 @@
     <PackageId>ServantSoftware.EFCore.FileBasedProviders.Common</PackageId>
     <Title>ServantSoftware.EFCore.FileBasedProviders.Common</Title>
     <Product>EFCore Common Data Provider</Product>
+	<PackageReadmeFile>README.EFCore.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
-  </ItemGroup>
+    <None Include="..\..\README.EFCore.md" Link="README.EFCore.md" Pack="true" PackagePath="\" />
+	  
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />	  
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
 
-  <ItemGroup>
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
   </ItemGroup>
 	

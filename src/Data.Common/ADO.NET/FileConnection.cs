@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
 
-public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IConnectionStringProperties
+public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IFileConnectionInternal, IConnectionStringProperties
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
@@ -14,10 +14,17 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public override string DataSource => connectionString.DataSource;
     public bool? Formatted => connectionString.Formatted;
     public LogLevel LogLevel => connectionString.LogLevel ?? LogLevel.None;
+    public bool CreateIfNotExist => connectionString.CreateIfNotExist ?? false;
 
     public override string Database => connectionString.DataSource ?? string.Empty;
     public override ConnectionState State => state;
     
+    /// <summary>
+    /// Provides consumers potential extensibility to bring their own custom DataSetWriters.  For example: JSON DataSetWriter that injects JSON comments into stored JSON files.
+    /// </summary>
+    protected abstract Func<FileStatement, IDataSetWriter> CreateDataSetWriter { get; }
+    Func<FileStatement, IDataSetWriter> IFileConnectionInternal.CreateDataSetWriter => CreateDataSetWriter;
+
     internal LoggerServices LoggerServices { get; }
     LoggerServices IFileConnection.LoggerServices => LoggerServices;
     private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();
@@ -51,6 +58,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
 
     public FileReader FileReader { get; protected set; }
 
+    public bool CaseInsensitive => true;
+
     public new abstract FileTransaction<TFileParameter> BeginTransaction();
 
     public new abstract FileTransaction<TFileParameter> BeginTransaction(IsolationLevel il);
@@ -67,6 +76,12 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     {
         ArgumentNullException.ThrowIfNull(nameof(databaseName));
         connectionString.DataSource = databaseName;
+
+        //Other ADO.NET providers that support automatically creating a database when provided in
+        //the connection string, either still require that for this operation that the database
+        //already exists (SQL Server LocalDB) or just throws a NotSupportedException regardless
+        //of whether the database exists or not (SQLite).
+        //Therefore, we will not automatically create the database if it doesn't exist and throw.
         ThrowHelper.ThrowIfInvalidPath(PathType, databaseName);        
     }
 
@@ -82,7 +97,14 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
 
     public override void Open()
     {
-        ThrowHelper.ThrowIfInvalidPath(PathType, Database);
+        if (!CreateIfNotExist)
+            ThrowHelper.ThrowIfInvalidPath(PathType, Database);
+        else
+        {
+            if (PathType == PathType.None)
+                FileCreateDatabase<TFileParameter>.Execute(this, Database);
+        }
+
         state = ConnectionState.Open;
     }
 

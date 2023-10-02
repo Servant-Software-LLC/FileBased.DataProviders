@@ -19,7 +19,7 @@ internal class CsvDataSetWriter : IDataSetWriter
     {
         if (fileConnection.PathType == PathType.Directory)
         {
-            SaveFolderAsDB(fileQuery.TableName, dataSet);
+            SaveFolderAsDB(fileQuery.FromTable.TableName, dataSet);
         }
         else
         {

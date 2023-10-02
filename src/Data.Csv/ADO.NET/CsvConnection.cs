@@ -1,4 +1,6 @@
-﻿namespace System.Data.CsvClient;
+﻿using Data.Csv.CsvIO;
+
+namespace System.Data.CsvClient;
 
 public class CsvConnection : FileConnection<CsvParameter>
 {
@@ -45,4 +47,5 @@ public class CsvConnection : FileConnection<CsvParameter>
     protected override void CreateFileAsDatabase(string databaseFileName) =>
         File.WriteAllText(databaseFileName, string.Empty);
 
+    protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new CsvDataSetWriter(this, fileStatement);
 }

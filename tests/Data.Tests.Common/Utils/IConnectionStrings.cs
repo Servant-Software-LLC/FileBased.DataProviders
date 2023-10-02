@@ -11,6 +11,8 @@ public interface IConnectionStrings
     FileConnectionString eComFolderDB { get; }
     FileConnectionString gettingStartedFileDB { get; }
     FileConnectionString gettingStartedFolderDB { get; }
+    FileConnectionString bogusFileDB { get; }
+    FileConnectionString bogusFolderDB { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

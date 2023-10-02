@@ -1,37 +1,30 @@
-﻿using Irony.Parsing;
+﻿using SqlBuildingBlocks.LogicalEntities;
+
 namespace Data.Common.FileStatements;
 
-public class FileUpdate : FileStatement
+public class FileUpdate : FileStatement, IContainsReturning
 {
-    public FileUpdate(ParseTreeNode tree, DbParameterCollection parameters, string statement) 
-        : base(tree, parameters, statement)
+    public FileUpdate(SqlUpdateDefinition sqlUpdateDefinition, string statement) 
+        : base(statement)
     {
-    }
+        Filter = sqlUpdateDefinition.WhereClause;
+        Tables = new SqlTable[] { sqlUpdateDefinition.Table };
+        Assignments = sqlUpdateDefinition.Assignments;
 
-    public override IEnumerable<string> GetColumnNames()
-    {
-        var cols = node
-     .ChildNodes[3].ChildNodes
-     .Select(item => item.ChildNodes[0].ChildNodes[0].Token.ValueString);
-
-        return cols;
-    }
-
-    public override string GetTable() => node.ChildNodes[1].ChildNodes[0].Token.ValueString;
-
-    public IEnumerable<KeyValuePair<string, object>> GetValues()
-    {
-        var cols = GetColumnNames();
-        var assignList = node.ChildNodes[3];
-        var values = assignList.ChildNodes.Select(item => base.GetValue(item.ChildNodes[2]));
-        
-        if (cols.Count() != values.Count())
+        if (sqlUpdateDefinition.Returning != null)
         {
-            throw new InvalidOperationException("The supplied values are not matched");
+            if (sqlUpdateDefinition.Returning.Int == null || sqlUpdateDefinition.Returning.Int != 1)
+                throw new NotSupportedException("The RETURNING clause in an UPDATE can only be used with an interger value.");
+
+            Returning = sqlUpdateDefinition.Returning.Int.Value;
         }
-
-        var result = cols.Zip(values, (name, value) => KeyValuePair.Create(name, value));
-
-        return result!;
     }
+
+    public SqlBinaryExpression? Filter { get; }
+
+    public override IEnumerable<SqlTable> Tables { get; }
+    public IList<SqlAssignment> Assignments { get; }
+
+    public int? Returning { get; }
+
 }

@@ -1,6 +1,8 @@
 using Data.Tests.Common;
+using Data.Common.Extension;
 using Data.Tests.Common.Utils;
 using System.Data.JsonClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Json.Tests.FolderAsDatabase;
@@ -126,6 +128,14 @@ public class JsonCommandTests
         }, unexistingDatabase, 0);
 
 
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateTable()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CommandTests.ExecuteNonQuery_CreateTable(
+          () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

@@ -50,6 +50,6 @@ public class CsvUpdateSqlGenerator : UpdateSqlGenerator
     }
 
     public override string GenerateNextSequenceValueOperation(string name, string? schema)
-        => throw new NotSupportedException("SQLite does not support sequences.See http://go.microsoft.com/fwlink/?LinkId=723262 for more information.");
+        => throw new NotSupportedException("CSV ADO.NET provider does not support sequences.See http://go.microsoft.com/fwlink/?LinkId=723262 for more information.");
 
 }

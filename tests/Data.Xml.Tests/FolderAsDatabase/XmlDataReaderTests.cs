@@ -22,7 +22,21 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-       new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+       new XmlConnection(ConnectionStrings.Instance.FolderAsDB), false);
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlyFirstRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
+       new XmlConnection(ConnectionStrings.Instance.FolderAsDB), false);
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlySecondRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
+       new XmlConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
@@ -36,7 +50,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReturnSchemaColumnsData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
-            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
@@ -65,6 +79,14 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_NextResult_ShouldReadData(() =>
         new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_UpdateReturningOne()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_UpdateReturningOne(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]

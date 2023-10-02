@@ -44,6 +44,50 @@ public static class InsertTests
         }
     }
 
+    public static void Insert_ShouldInsertNullData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        const decimal id = 123054;
+
+        // Arrange
+        using (var connection = createFileConnection())
+        {
+            connection.Open();
+
+            // Act - Insert a new record into the locations table that has a NULL string and integer
+            var command = connection.CreateCommand($"INSERT INTO locations (id, city, state, zip) VALUES ({id}, 'Seattle', NULL, NULL)");
+            var rowsAffected = command.ExecuteNonQuery();
+
+            // Assert
+            Assert.Equal(1, rowsAffected);
+            connection.Open();
+
+            // Act - Verify the inserted record exists in the locations table
+            command = connection.CreateCommand($"SELECT COUNT(*) FROM locations WHERE id = {id}");
+            var count = (int)command.ExecuteScalar()!;
+
+            // Assert
+            Assert.True(1 == count, $"SELECTing COUNT(*) for id = {id} didn't yield 1 row.  Rows = {count}");
+
+
+            //Read the row INSERT'd
+            command = connection.CreateCommand($"SELECT * FROM locations WHERE id = {id}");
+            var reader = command.ExecuteReader();
+            Assert.True(reader.Read());
+            var fieldCount = reader.FieldCount;
+            Assert.Equal(4, fieldCount);
+
+            //Verify values of the row.
+            Assert.Equal(dataTypeAlwaysString ? id.ToString() : id, reader[0]);
+            Assert.Equal("Seattle", reader[1]);
+            Assert.True(reader.IsDBNull(2), $"Column 2 wasn't null: {(reader[2] == null ? "null" : reader[2].GetType()) }");
+            Assert.True(reader.IsDBNull(3), $"Column 3 wasn't null: {(reader[3] == null ? "null" : reader[3].GetType()) }");
+
+            // Close the connection
+            connection.Close();
+        }
+    }
+
     public static void Insert_ShouldInsertDataIntoEmptyTables<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
@@ -122,7 +166,7 @@ public static class InsertTests
         Assert.Contains("\n", jsonFileContents);
     }
 
-    public static void Insert_IndentityColumn_NoLastRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Insert_IndentityColumn_NoLastRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         using (var connection = createFileConnection())
@@ -158,7 +202,7 @@ public static class InsertTests
         }
     }
 
-    public static void Insert_IndentityColumn_LastRow_Decimal<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString = false)
+    public static void Insert_IndentityColumn_LastRow_Decimal<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypeAlwaysString)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         using (var connection = createFileConnection())
@@ -201,7 +245,7 @@ public static class InsertTests
     public static void Insert_IndentityColumn_LastRow_Guid<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
-        
+        //TODO
     }
 
 }

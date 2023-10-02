@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
 
 namespace System.Data.FileClient;
 
@@ -73,10 +75,14 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
 
         log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
+        var selectQuery = FileStatementCreator.CreateSelect(fileCommand, log);
         var fileReader = connection.FileReader;
-        var dataTable = fileReader.ReadFile(selectQuery, true);
-        dataTable = GetTable(dataTable, selectQuery);
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
 
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
@@ -110,11 +116,16 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
         log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
-        var selectQuery = FileStatementCreator.Create((FileCommand<TFileParameter>)SelectCommand, log);
+        var selectQuery = FileStatementCreator.CreateSelect((FileCommand<TFileParameter>)SelectCommand, log);
         var fileReader = connection.FileReader;
-        var dataTable = fileReader.ReadFile(selectQuery, true);
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()
@@ -209,32 +220,31 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         }
     }
 
-    private DataTable GetTable(DataTable dataTable, FileStatement query)
+    private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)
     {
-        var filters = query.GetFilters();
-        var view = new DataView(dataTable);
-        if (filters != null)
+        List<string> columnNames = new();
+        foreach(ISqlColumn iSqlColumn in selectQuery.Columns)
         {
-            view.RowFilter = filters.Evaluate();
-        }
-        return view.ToTable();
-    }
-
-    private IEnumerable<string> GetColumns(DataTable dataTable, FileStatement query)
-    {
-        var cols = query.GetColumnNames()
-            .ToList();
-
-        if (cols!.FirstOrDefault()?.Trim() == "*" && cols != null)
-        {
-            cols.Clear();
-            foreach (DataColumn column in dataTable.Columns)
+            switch(iSqlColumn)
             {
-                cols.Add(column.ColumnName);
+                case SqlAllColumns sqlAllColumns:
+                    columnNames.Clear();
+                    foreach (DataColumn dataColumn in dataTable.Columns)
+                    {
+                        columnNames.Add(dataColumn.ColumnName);
+                    }
+                    return columnNames;
+
+                case SqlColumn sqlColumn:
+                    columnNames.Add(sqlColumn.ColumnName);
+                    break;
+
+                default:
+                    throw new Exception($"Column was of an unresolved type that was unexpected: {iSqlColumn}({iSqlColumn.GetType()})");
             }
         }
 
-        return cols!;
+        return columnNames;
     }
 
     public void Dispose()

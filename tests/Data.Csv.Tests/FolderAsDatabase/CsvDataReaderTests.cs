@@ -26,6 +26,20 @@ public class CsvDataReaderTests
     }
 
     [Fact]
+    public void Reader_Limit_ShouldReturnOnlyFirstRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlySecondRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+    }
+
+    [Fact]
     public void Reader_ShouldReturnSchemaTablesData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaTablesData(() =>
@@ -68,6 +82,14 @@ public class CsvDataReaderTests
     }
 
     [Fact]
+    public void Reader_NextResult_UpdateReturningOne()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_UpdateReturningOne(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
     public void Reader_NextResult_WithInsert()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -81,5 +103,12 @@ public class CsvDataReaderTests
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Reader_TableAlias()
+    {
+        DataReaderTests.Reader_TableAlias(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 }

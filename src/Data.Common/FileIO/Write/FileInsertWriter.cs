@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace Data.Common.FileIO.Write;
 
@@ -46,10 +45,17 @@ public abstract class FileInsertWriter : FileWriter
                 _rwLock.EnterWriteLock();
                 //as we have modified the json file so we don't need to update the tables
                 fileReader.StopWatching();
+
+                var results = PrepareRow(fileStatement);
+                results.Table.Rows.Add(results.Row);
+            }
+            else
+            {
+                var transactionScopedRow = TransactionScopedRow.Value;
+                var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
+                table.Rows.Add(transactionScopedRow.Row.ItemArray);
             }
 
-            var results = PrepareRow(fileStatement);
-            results.Table.Rows.Add(results.Row);
         }
         finally
         {
@@ -66,7 +72,7 @@ public abstract class FileInsertWriter : FileWriter
 
     private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
     {
-        var dataTable = fileReader.ReadFile(fileStatement);
+        var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
 
         //Check if we need to add columns on the first INSERT of data into this table.
         if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
@@ -77,7 +83,7 @@ public abstract class FileInsertWriter : FileWriter
         var row = dataTable!.NewRow();
         foreach (var val in fileStatement.GetValues())
         {
-            row[val.Key] = val.Value;
+            row[val.Key] = val.Value ?? DBNull.Value;
         }
 
         AddMissingIdentityValues(dataTable, row);
@@ -180,11 +186,11 @@ public abstract class FileInsertWriter : FileWriter
 
     private Type GetJsonType(object value) => value switch
     {
-        int intValue => typeof(decimal),
-        long longValue => typeof(decimal),
-        decimal decimalValue => typeof(decimal),
-        string stringValue => typeof(string),
-        bool boolValue => typeof(bool),
+        int => typeof(decimal),
+        long => typeof(decimal),
+        decimal => typeof(decimal),
+        string => typeof(string),
+        bool => typeof(bool),
         null => typeof(string),
         _ => throw new InvalidOperationException("query not supported")
     };

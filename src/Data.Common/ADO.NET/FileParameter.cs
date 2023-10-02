@@ -33,15 +33,12 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     public override ParameterDirection Direction { get; set; } = ParameterDirection.Input;
 
-    public override bool IsNullable
-    {
-        get => false;
-        set
-        {
-            if (value)
-                throw new NotImplementedException("Trying to set FileParameter.IsNullable to true.  Support for nullable parameters needs to be considered and/or implemented.");
-        }
-    }
+
+    /// <summary>
+    /// Internally this value is ignored.
+    /// Explanation of use: https://stackoverflow.com/questions/1075863/dbparameter-isnullable-functionality
+    /// </summary>
+    public override bool IsNullable { get; set; }
 
     public override string ParameterName { get; set; }
 
@@ -72,22 +69,25 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     private static DbType InferType(object value)
     {
-        switch (Type.GetTypeCode(value.GetType()))
+        var typeCode = Type.GetTypeCode(value.GetType());
+        switch (typeCode)
         {
             case TypeCode.Empty:
-                throw new SystemException("Invalid data type");
+                throw new SystemException($"Invalid data type for type code {typeCode}");
 
             case TypeCode.Object:
                 return DbType.Object;
 
             case TypeCode.DBNull:
+                return DbType.Object;  //We have no indication of type, so default to Object.
+
             case TypeCode.Char:
             case TypeCode.SByte:
             case TypeCode.UInt16:
             case TypeCode.UInt32:
             case TypeCode.UInt64:
                 // Throw a SystemException for unsupported data types.
-                throw new SystemException("Invalid data type");
+                throw new SystemException($"Invalid data type for type code {typeCode}");
 
             case TypeCode.Boolean:
                 return DbType.Boolean;
@@ -120,7 +120,7 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
                 return DbType.String;
 
             default:
-                throw new SystemException("Value is of unknown data type");
+                throw new SystemException($"Value of type code {typeCode} is of unknown data type");
         }
     }
 

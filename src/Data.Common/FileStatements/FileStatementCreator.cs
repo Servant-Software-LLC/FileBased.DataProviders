@@ -1,6 +1,7 @@
 ﻿using Data.Common.Parsing;
 using Irony.Parsing;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.LogicalEntities;
 using System.Text;
 
 namespace Data.Common.FileStatements;
@@ -13,12 +14,11 @@ internal class FileStatementCreator
     /// </summary>
     /// <param name="fileCommand"></param>
     /// <returns></returns>
-    public static IList<FileStatement> CreateMultiCommandSupport(DbCommand fileCommand, ILogger log)
+    public static IList<FileStatement> CreateMultiCommandSupport(IFileCommand fileCommand, ILogger log)
     {
         var commandText = fileCommand.CommandText;
-        var commands = commandText.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        return commands.Select(command => CreateFromCommand(command, fileCommand.Parameters, log)).ToList();
+        return CreateFromCommand(commandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
     }
 
     public static FileStatement Create(IFileCommand fileCommand, ILogger log)
@@ -26,14 +26,56 @@ internal class FileStatementCreator
         if (fileCommand.FileConnection.AdminMode)
             throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(Create)} method cannot be used with an admin connection.");
 
-        return CreateFromCommand(fileCommand.CommandText, fileCommand.Parameters as DbParameterCollection, log);
+        var fileStatements = CreateFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
+        if (fileStatements.Count != 1)
+            throw new ArgumentException($"The SQL '{fileCommand.CommandText}' did not yield 1 statement.  Count = {fileStatements.Count}");
+
+        return fileStatements[0];
     }
 
-    private static FileStatement CreateFromCommand(string commandText, DbParameterCollection parameters, ILogger log)
+    public static FileSelect CreateSelect(IFileCommand fileCommand, ILogger log)
+    {
+        if (fileCommand.FileConnection.AdminMode)
+            throw new ArgumentException($"The {nameof(FileStatement)}.{nameof(CreateSelect)} method cannot be used with an admin connection.");
+
+        var fileStatements = CreateSelectFromCommand(fileCommand.CommandText, fileCommand.FileConnection, fileCommand.Parameters, log).ToList();
+        if (fileStatements.Count != 1)
+            throw new ArgumentException($"The SQL '{fileCommand.CommandText}' did not yield 1 statement.  Count = {fileStatements.Count}");
+
+        return fileStatements[0];
+    }
+
+
+    private static IEnumerable<FileSelect> CreateSelectFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
     {
         log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
 
-        var parser = new Parser(new SqlGrammar());
+        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log);
+        foreach (SqlDefinition sqlDefinition in sqlDefinitions)
+        {
+            sqlDefinition.ResolveParameters(parameters);
+
+            if (sqlDefinition.Select != null)
+            {
+                if (sqlDefinition.Select.InvalidReferences)
+                    ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+
+                yield return new FileSelect(sqlDefinition.Select, commandText);
+                continue;
+            }
+
+            throw new Exception($"The command text, {commandText}, was not a SELECT statement.");
+        }
+
+    }
+
+
+    private static IEnumerable<SqlDefinition> CreateDefinitionsFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    {
+        log.LogDebug($"FileStatementCreator.{nameof(CreateDefinitionsFromCommand)}() called.  CommandText = {commandText}");
+
+        var grammar = new SqlGrammar();
+        var parser = new Parser(grammar);
         var parseTree = parser.Parse(commandText);
         if (parseTree.HasErrors())
         {
@@ -42,39 +84,62 @@ internal class FileStatementCreator
             ThrowHelper.ThrowQuerySyntaxException(errorMessage, commandText);
         }
 
-
+        //The function provider isn't provided here (i.e. null), because it needs state that is provided to the Result class via its ctor in a previousWriteResult variable.
+        var sqlDefinitions = grammar.Create(parseTree.Root);
         if (log.IsEnabled(LogLevel.Debug))
         {
             log.LogDebug($"Parsed tree: {ParseTreeToString(parseTree.Root)}");
         }
 
-        //Catch any exceptions, since ASTs can vary a lot, these classes can end up throwing many exceptions
-        //in seldomly tested scenarios and when the grammar changes.
-        try
-        {
-            //In a transaction scenario in EF Core, it isn't clear why, but the parameters have DbParameterCollection.Clear() called before the DbTransaction.Commit() is called.
-            //Therefore, we need to clone this parameter collection, since it is used by are writers in the transaction's commit.
-            var cloneParameters = (parameters as IFileParameterCollection).Clone() as DbParameterCollection;
+        return sqlDefinitions;
+    }
 
-            var mainNode = parseTree.Root.ChildNodes[0];
-            switch (mainNode.Term.Name)
+
+    private static IEnumerable<FileStatement> CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
+    {
+        log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
+
+        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log); 
+        foreach (SqlDefinition sqlDefinition in sqlDefinitions)
+        {
+            sqlDefinition.ResolveParameters(parameters);
+
+            if (sqlDefinition.Insert != null)
             {
-                case "insertStmt":
-                    return new FileInsert(mainNode, cloneParameters, commandText);
-                case "deleteStmt":
-                    return new FileDelete(mainNode, cloneParameters, commandText);
-                case "updateStmt":
-                    return new FileUpdate(mainNode, cloneParameters, commandText);
-                case "selectStmt":
-                    return new FileSelect(mainNode, cloneParameters, commandText);
+                yield return new FileInsert(sqlDefinition.Insert, commandText);
+                continue;
             }
-        }
-        catch (Exception ex)
-        {
-            log.LogError($"Error interpreting AST: {ex}");
+
+            if (sqlDefinition.Delete != null)
+            {
+                yield return new FileDelete(sqlDefinition.Delete, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Update != null)
+            {
+                yield return new FileUpdate(sqlDefinition.Update, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Select != null)
+            {
+                if (sqlDefinition.Select.InvalidReferences)
+                    ThrowHelper.ThrowQuerySyntaxException(sqlDefinition.Select.InvalidReferenceReason, commandText);
+
+                yield return new FileSelect(sqlDefinition.Select, commandText);
+                continue;
+            }
+
+            if (sqlDefinition.Create != null)
+            {
+                yield return new FileCreateTable(sqlDefinition.Create, commandText);
+                continue;
+            }
+
+            throw ThrowHelper.GetQueryNotSupportedException();
         }
 
-        throw ThrowHelper.GetQueryNotSupportedException();
     }
 
     private static string ParseTreeToString(ParseTreeNode node, int indent = 0)

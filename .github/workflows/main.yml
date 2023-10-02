@@ -42,17 +42,6 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration $BuildConfiguration
 
-    - name: Obfuscate assemblies (ArmDot)
-      run: |
-        sudo apt update && \
-        sudo apt install -y curl && \
-        curl -LJO https://www.armdot.com/download/armdot.tar.gz > armdot.tar.gz && \
-        tar -zxvf armdot.tar.gz && \
-        chmod +x ./bin/ArmDotConsole && \
-        echo "${{secrets.ARMDOT_LICENSE_KEY}}" >> ${{github.workspace}}/.github/workflows/ArmDot.License.txt
-        sudo ./bin/ArmDotConsole --license-file-path ${{github.workspace}}/.github/workflows/ArmDot.License.txt --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Common.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Csv.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/Data.Xml.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Common.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Json.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Csv.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings --input-assembly ${{github.workspace}}/src/bin/$BuildConfiguration/$TargetFramework/EFCore.Xml.dll --enable-obfuscate-names --enable-control-flow-obfuscation --enable-virtualize-code --enable-hide-strings
-
-
     - name: Test
       run: dotnet test --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
       
@@ -67,50 +56,26 @@ jobs:
     - name: Push to nuget.org (Common provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (Common provider)
-      run: dotnet nuget delete $DataCommonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
     - name: Push to nuget.org (Json provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
-
-    - name: Unlist package at nuget.org (Json provider)
-      run: dotnet nuget delete $DataJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
 
     - name: Push to nuget.org (CSV provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (CSV provider)
-      run: dotnet nuget delete $DataCsvPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
     - name: Push to nuget.org (XML provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (XML provider)
-      run: dotnet nuget delete $DataXmlPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
-    - name: Push to nuget.org (Common provider)
+    - name: Push to nuget.org (EF Common provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (Common provider)
-      run: dotnet nuget delete $EFCoreCommonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
-    - name: Push to nuget.org (Json provider)
+    - name: Push to nuget.org (EF Json provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (Json provider)
-      run: dotnet nuget delete $EFCoreJsonPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
-    - name: Push to nuget.org (CSV provider)
+    - name: Push to nuget.org (EF CSV provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
-    - name: Unlist package at nuget.org (CSV provider)
-      run: dotnet nuget delete $EFCoreCsvPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
-
-    - name: Push to nuget.org (XML provider)
+    - name: Push to nuget.org (EF XML provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
-
-    - name: Unlist package at nuget.org (XML provider)
-      run: dotnet nuget delete $EFCoreXmlPackageId $PackageVersion -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --non-interactive
     
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0

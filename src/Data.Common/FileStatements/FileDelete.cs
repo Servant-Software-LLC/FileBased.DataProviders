@@ -1,17 +1,27 @@
-﻿using Irony.Parsing;
+﻿using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileStatements;
 
-public class FileDelete : FileStatement
+public class FileDelete : FileStatement, IContainsReturning
 {
-    public FileDelete(ParseTreeNode tree, DbParameterCollection parameters, string statement) 
-        : base(tree, parameters, statement)
+    public FileDelete(SqlDeleteDefinition sqlDeleteDefinition, string statement) 
+        : base(statement)
     {
+        Filter = sqlDeleteDefinition.WhereClause;
+        Tables = new SqlTable[] { sqlDeleteDefinition.Table };
+
+        if (sqlDeleteDefinition.Returning != null)
+        {
+            if (sqlDeleteDefinition.Returning.Int == null || sqlDeleteDefinition.Returning.Int != 1)
+                throw new NotSupportedException("The RETURNING clause in an DELETE can only be used with an interger value.");
+
+            Returning = sqlDeleteDefinition.Returning.Int.Value;
+        }
     }
 
-    public override IEnumerable<string> GetColumnNames()
-    {
-        throw new NotImplementedException();
-    }
-    public override string GetTable() => node.ChildNodes[2].ChildNodes[0].Token.ValueString;
+    public SqlBinaryExpression? Filter { get; }
+
+    public override IEnumerable<SqlTable> Tables { get; }
+
+    public int? Returning { get; }
 }

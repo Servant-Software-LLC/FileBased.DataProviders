@@ -1,6 +1,5 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
-using System.Data;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -17,6 +16,13 @@ public class JsonInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Insert_ShouldInsertNullData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertNullData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false);
     }
 
     //This is a special case.  In json, if a table does not have any rows in it, then we have no schema information on the columns or their data types.
@@ -53,7 +59,7 @@ public class JsonInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_LastRow_Decimal(
-            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
+            () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false
         );
     }
 

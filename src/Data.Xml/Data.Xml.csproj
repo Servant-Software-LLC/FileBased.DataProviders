@@ -4,14 +4,12 @@
     <PackageId>ServantSoftware.Data.Xml</PackageId>
     <Title>ServantSoftware.Data.Xml</Title>
     <Product>ADO.NET Xml Data Provider</Product>
-    <PackageReadmeFile>Xml Provider.md</PackageReadmeFile>
+    <PackageReadmeFile>README.Data.Xml.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\Xml Provider.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <None Include="..\..\README.Data.Xml.md" Link="README.Data.Xml.md" Pack="true" PackagePath="\" />
 	  
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
   </ItemGroup>

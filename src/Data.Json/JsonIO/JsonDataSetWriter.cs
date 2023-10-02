@@ -3,29 +3,35 @@ using System.Text;
 
 namespace Data.Json.JsonIO;
 
-internal class JsonDataSetWriter : IDataSetWriter
+public class JsonDataSetWriter : IDataSetWriter
 {
-    private ILogger<JsonDataSetWriter> log => ((IFileConnection)fileConnection).LoggerServices.CreateLogger<JsonDataSetWriter>();
+    private ILogger<JsonDataSetWriter> log => fileConnection.LoggerServices.CreateLogger<JsonDataSetWriter>();
     private readonly IFileConnection fileConnection;
-    private readonly FileStatement fileQuery;
+    private readonly FileStatement fileStatement;
 
-    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileQuery)
+    public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileStatement)
     {
         this.fileConnection = fileConnection;
-        this.fileQuery = fileQuery;
+        this.fileStatement = fileStatement;
     }
 
     public void WriteDataSet(DataSet dataSet)
     {
         if (fileConnection.PathType == PathType.Directory)
         {
-            SaveFolderAsDB(fileQuery.TableName, dataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, dataSet);
         }
         else
         {
             SaveToFile(dataSet);
         }
     }
+
+    /// <summary>
+    /// Provides an entry point for a derived class to add a comment
+    /// </summary>
+    /// <param name="jsonWriter"></param>
+    protected virtual void WriteCommentValue(Utf8JsonWriter jsonWriter, DataColumn column) { }
 
     private void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
     {
@@ -43,12 +49,19 @@ internal class JsonDataSetWriter : IDataSetWriter
             {
                 var dataType = column.DataType.Name;
                 log.LogDebug($"Column: {column.ColumnName}. Data type: {dataType}");
+
+                //Provide an entry point for a derived class to add a comment
+                WriteCommentValue(jsonWriter, column);
+
                 if (row.IsNull(column.ColumnName))
                 {
                     dataType = "Null";
                 }
                 switch (dataType)
                 {
+                    case "Int32":
+                        jsonWriter.WriteNumber(column.ColumnName, (int)row[column]);
+                        break;
                     case "Decimal":
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;
@@ -62,7 +75,7 @@ internal class JsonDataSetWriter : IDataSetWriter
                         jsonWriter.WriteNull(column.ColumnName);
                         break;
                     default:
-                        throw new NotSupportedException($"Data type {column.DataType.Name} is not supported.");
+                        throw new NotSupportedException($"Data type {dataType} is not supported.");
                 }
 
                 log.LogDebug($"Value written to jsonWriter.");

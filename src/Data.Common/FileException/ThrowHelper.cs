@@ -37,9 +37,5 @@ internal static class ThrowHelper
         }
     }
 
-    internal static void ThrowIfNotAsterik(string col)
-    {
-        if (col != "*")
-            throw new NotImplementedException($"Count by a specific column is not yet implemented.");
-    }
+    internal static void ThrowIfNotAsterik() => throw new NotImplementedException($"Count by a specific column is not yet implemented.");
 }

@@ -19,6 +19,13 @@ public class CsvInsertTests
     }
 
     [Fact]
+    public void Insert_ShouldInsertNullData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertNullData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), true);
+    }
+
+    [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
         InsertTests.Insert_ShouldBeFormatted(() =>

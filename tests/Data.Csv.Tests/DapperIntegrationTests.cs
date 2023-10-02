@@ -15,10 +15,16 @@ public class DapperIntegrationTests
 
         // Act
         var rows = connection.
-            Query<Records>("SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[Name] FROM [Customers c] INNER JOIN [Orders o] ON [c].[ID] = [o].[CustomerID] INNER JOIN [OrderItems oi] ON [o].[ID] = [oi].[OrderID] INNER JOIN [Products p] ON [p].[ID] = [oi].[ProductID]").
+            Query<Records>(@"
+SELECT c.CustomerName, [o].[OrderDate], [oi].[Quantity], [p].[Name] 
+    FROM [Customers] c 
+    INNER JOIN [Orders] o ON [c].[ID] = [o].[CustomerID] 
+    INNER JOIN [OrderItems] oi ON [o].[ID] = [oi].[OrderID] 
+    INNER JOIN [Products] p ON [p].[ID] = [oi].[ProductID]
+").
             ToList();
 
-        Assert.True(rows.Any());
+        Assert.Equal(40, rows.Count);
 
         foreach (var item in rows)
         {

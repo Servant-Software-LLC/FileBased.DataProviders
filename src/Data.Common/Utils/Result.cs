@@ -1,5 +1,8 @@
 ﻿using Data.Common.FileIO.Write;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.Interfaces;
+using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.QueryProcessing;
 
 namespace Data.Common.Utils;
 
@@ -14,7 +17,7 @@ internal class Result
     public string Statement { get; }
 
     public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, 
-                  Result previousWriteResult, Dictionary<string, List<DataRow>> transactionScopedRows, ILogger log)
+                  Result previousWriteResult, TransactionScopedRows transactionScopedRows, ILogger log)
     {
         Statement = fileStatement.Statement;
         this.log = log;
@@ -22,11 +25,18 @@ internal class Result
         //If SELECT statement
         if (fileStatement is FileSelect fileSelect)
         {
+            if (previousWriteResult != null)
+            {
+                //Resolve the functions with values.
+                BuiltinFunctionProvider functionProvider = new(previousWriteResult);
+                fileSelect.SqlSelect.ResolveFunctions(functionProvider);
+            }
+
             //Normal SELECT query with a FROM <table> clause
-            if (!string.IsNullOrEmpty(fileStatement.TableName))
+            if (fileStatement.FromTable != null)
             {
                 log.LogDebug("Normal SELECT query with a FROM <table> clause");
-                WorkingResultSet = fileReader.ReadFile(fileStatement, true, transactionScopedRows);
+                WorkingResultSet = fileReader.ReadFile(fileStatement, transactionScopedRows, true);
             }
             else //SELECT query with no FROM clause
             {
@@ -37,21 +47,7 @@ internal class Result
             if (WorkingResultSet == null)
                 throw new ArgumentNullException(nameof(WorkingResultSet));
 
-            log.LogDebug("Determine filter if any.");
-            var filter = fileStatement!.Filter;
-            if (filter != null)
-            {
-                if (previousWriteResult != null && filter.ContainsBuiltinFunction.HasValue && filter.ContainsBuiltinFunction.Value)
-                    throw new ArgumentNullException(nameof(previousWriteResult), $"Cannot evaluate WHERE clause {filter} because it contains a built-in function that depends on a previous SQL statement being either an INSERT, UPDATE or DELETE statement.");
-
-                if (previousWriteResult != null)
-                {
-                    log.LogDebug($"Resolving built-in functions.  Previous write result statement: {previousWriteResult.Statement}");
-                    filter.ResolveFunctions(previousWriteResult);
-                }
-            }
-
-            FileEnumerator = new FileEnumerator(fileStatement.GetColumnNames(), WorkingResultSet, filter, log);
+            FileEnumerator = new FileEnumerator(WorkingResultSet, log);
 
             RecordsAffected = -1;
             return;
@@ -61,6 +57,21 @@ internal class Result
         var fileWriter = createWriter(fileStatement);
 
         RecordsAffected = fileWriter.Execute();
+
+        if (RecordsAffected > 0)             
+        {
+            if (fileStatement is IContainsReturning containsReturning)
+            {
+                if (containsReturning.Returning.HasValue)
+                {
+                    WorkingResultSet = new DataTable();
+                    WorkingResultSet.Columns.Add(new DataColumn("RETURNING", typeof(int)));
+                    WorkingResultSet.Rows.Add(containsReturning.Returning.Value);
+
+                    FileEnumerator = new FileEnumerator(WorkingResultSet, log);
+                }
+            }
+        }
 
         if (fileWriter is FileInsertWriter fileInsertWriter)
         {
@@ -92,26 +103,69 @@ internal class Result
         return false;
     }
 
+    /// <summary>
+    /// This method is only called with a SELECT query with no FROM clause
+    /// </summary>
+    /// <param name="fileSelect"></param>
+    /// <param name="previousWriteResult"></param>
+    /// <returns></returns>
     private DataTable GetSingleRowTable(FileSelect fileSelect, Result previousWriteResult)
     {
         var dataTable = new DataTable();
-        var columns = fileSelect.GetColumnNames();
 
-        foreach (var column in columns)
+        //Must iterate twice through the columns, so that in-between, we can call DataTable.NewRow() (i.e. the columns must already be defined in the DataTable before NewRow() is called)
+        int unnamedColumnIndex = 1;
+        foreach (ISqlColumn column in fileSelect.Columns)
         {
-            dataTable.Columns.Add(column);
+            switch(column)
+            {
+                case SqlAggregate:
+                    throw new Exception($"An aggregate function cannot be used in a SELECT statement with no FROM clause.");
+
+                case SqlParameterColumn:
+                    throw new Exception($"A {nameof(SqlParameterColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
+
+                case SqlFunctionColumn functionColumn:
+                    throw new Exception($"A {nameof(SqlFunctionColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
+
+                case ISqlColumnWithAlias columnWithAlias:
+                    if (string.IsNullOrEmpty(columnWithAlias.ColumnAlias))
+                    {
+                        columnWithAlias.ColumnAlias = $"Column{unnamedColumnIndex++}";
+                    }
+
+                    dataTable.Columns.Add(columnWithAlias.ColumnAlias);
+                    break;
+
+                default:
+                    throw new Exception($"The column {column} of type {column.GetType()} cannot be used (or at least needs support) in a SELECT statement with no FROM clause.");
+            }
+
+            
         }
 
         var newRow = dataTable.NewRow();
-        foreach (var column in columns)
+        foreach (ISqlColumnWithAlias column in fileSelect.Columns)
         {
-            //NOTE: This isn't the proper way to do this, but limited on time at the moment in trying to get the EF Core Providers working.
-            //      We're assuming the column name is the name of the function.
-            var value = BuiltinFunction.EvaluateFunction(column, previousWriteResult);
+            object value = null;
+            switch (column)
+            {
+                case SqlFunctionColumn functionColumn:
+                    throw new Exception($"A {nameof(SqlFunctionColumn)} must be converted into a {nameof(SqlLiteralValueColumn)} prior to calling {nameof(QueryEngine.Query)} on the {typeof(QueryEngine)}");
+
+                case SqlLiteralValueColumn literalValueColumn:
+                    value = literalValueColumn.Value.Value;
+                    break;
+
+                default:
+                    throw new Exception($"Unable to determine value in {nameof(GetSingleRowTable)} method for column of type {column.GetType()}");
+            }
+
             if (value != null)
             {
-                newRow[column] = value;
+                newRow[column.ColumnAlias] = value;
             }
+
         }
         dataTable.Rows.Add(newRow);
 

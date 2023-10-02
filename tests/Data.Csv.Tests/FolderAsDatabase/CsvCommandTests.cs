@@ -1,6 +1,8 @@
 using Data.Tests.Common;
+using Data.Common.Extension;
 using Data.Tests.Common.Utils;
 using System.Data.CsvClient;
+using System.Reflection;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;
@@ -125,6 +127,14 @@ public class CsvCommandTests
         }, unexistingDatabase, 0);
 
 
+    }
+
+    [Fact]
+    public void ExecuteNonQuery_CreateTable()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CommandTests.ExecuteNonQuery_CreateTable(
+          () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

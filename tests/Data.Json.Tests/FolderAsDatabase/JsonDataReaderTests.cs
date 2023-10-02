@@ -22,7 +22,21 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-       new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlyFirstRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
+    }
+
+    [Fact]
+    public void Reader_Limit_ShouldReturnOnlySecondRow()
+    {
+        DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
+       new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
@@ -36,7 +50,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnSchemaColumnsData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
-            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB), false);
     }
 
     [Fact]
@@ -64,7 +78,15 @@ public class JsonDataReaderTests
     public void Reader_NextResult_ShouldReadData()
     {
         DataReaderTests.Reader_NextResult_ShouldReadData(() =>
-        new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_NextResult_UpdateReturningOne()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataReaderTests.Reader_NextResult_UpdateReturningOne(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]

@@ -18,4 +18,10 @@ public class CsvDeleteTests
         DeleteTests.Delete_ShouldDeleteData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
+    [Fact]
+    public void Delete_WithReturning()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DeleteTests.Delete_WithReturning(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
 }

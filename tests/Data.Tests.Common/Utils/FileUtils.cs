@@ -42,16 +42,19 @@ public static class FileUtils
 
     public static string GetTempFolderName()
     {
-        // Create a temporary file
-        string tempFile = Path.GetTempFileName();
+        // Generate a GUID
+        string uniqueId = Guid.NewGuid().ToString();
 
-        // Delete the temporary file
-        File.Delete(tempFile);
+        // Get the path for the temporary directory
+        string tempPath = Path.GetTempPath();
 
-        // Create a temporary folder using the name of the temporary file
-        Directory.CreateDirectory(tempFile);
+        // Combine the temp path with the GUID to create a unique directory name
+        string tempFolderName = Path.Combine(tempPath, uniqueId);
+
+        // Create the temporary folder
+        Directory.CreateDirectory(tempFolderName);
 
         // Return the path of the temporary folder
-        return tempFile;
+        return tempFolderName;
     }
 }
