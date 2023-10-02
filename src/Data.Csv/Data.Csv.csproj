@@ -4,16 +4,13 @@
     <PackageId>ServantSoftware.Data.Csv</PackageId>
     <Title>ServantSoftware.Data.Csv</Title>
     <Product>ADO.NET Csv Data Provider</Product>
-    <PackageReadmeFile>Csv Provider.md</PackageReadmeFile>
+	<PackageReadmeFile>README.Data.Csv.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\Csv Provider.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="..\..\README.Data.Csv.md" Link="README.Data.Csv.md" Pack="true" PackagePath="\" />
+
     <PackageReference Include="CsvHelper" />
 
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />

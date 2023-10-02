@@ -7,7 +7,6 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
     public XmlInsert(Common.FileStatements.FileInsert fileStatement, FileConnection<XmlParameter> jsonConnection, FileCommand<XmlParameter> jsonCommand) 
         : base(fileStatement, jsonConnection, jsonCommand)
     {
-        dataSetWriter = new XmlDataSetWriter(jsonConnection, fileStatement);
     }
 
     //TODO:  So far our support is for XML with the xsd definitions.  Later, this value may become a "it depends on whether xsd was included in the file"

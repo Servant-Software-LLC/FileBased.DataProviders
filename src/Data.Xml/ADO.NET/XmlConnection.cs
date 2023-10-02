@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Xml.XmlIO;
+using System.Data.Common;
 using System.Xml.Linq;
 
 namespace System.Data.XmlClient;
@@ -30,5 +31,5 @@ public class XmlConnection : FileConnection<XmlParameter>
         doc.Save(databaseFileName);
     }
 
-
+    protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new XmlDataSetWriter(this, fileStatement);
 }

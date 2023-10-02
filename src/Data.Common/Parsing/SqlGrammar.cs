@@ -26,7 +26,7 @@ public class SqlGrammar : Grammar
 
         InsertStmt insertStmt = new(this, selectStmt);
         UpdateStmt updateStmt = new(this, selectStmt);
-        DeleteStmt deleteStmt = new(this, selectStmt);
+        DeleteStmt deleteStmt = new(this, updateStmt.TableName, updateStmt.WhereClauseOpt, updateStmt.ReturningClauseOpt);
         CreateTableStmt createTableStmt = new(this, id, dataType);
 
         Stmt stmt = new(this, selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt);

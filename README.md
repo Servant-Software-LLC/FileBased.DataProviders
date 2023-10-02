@@ -13,7 +13,7 @@ ADO.NET Data Providers for common serializable formats stored to disk.
 - As is typically expected in the software industry, appropriate commenting of the code should be in place.
 
 ### Specific Data Providers
-- [JSON Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/Json%20Provider.md)
-- [XML Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/Xml%20Provider.md)
-- [CSV Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/Csv%20Provider.md)
+- [JSON Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/README.Data.Json.md)
+- [XML Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/README.Data.Xml.md)
+- [CSV Provider](https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/blob/main/README.Data.Csv.md)
 

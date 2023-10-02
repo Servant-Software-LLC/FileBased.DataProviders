@@ -6,7 +6,7 @@ namespace Data.Common.FileStatements;
 public class FileSelect : FileStatement
 {
     public FileSelect(SqlSelectDefinition sqlSelectDefinition, string statement)
-        : base(sqlSelectDefinition.WhereClause, statement)
+        : base(statement)
     {
         SqlSelect = sqlSelectDefinition;
         IsCountQuery = sqlSelectDefinition.Columns.Any(col =>
@@ -29,7 +29,7 @@ public class FileSelect : FileStatement
 
     public SqlSelectDefinition SqlSelect { get; }
     public override IEnumerable<SqlTable> Tables { get; }
-    public override IList<ISqlColumn> Columns => SqlSelect.Columns;
+    public IList<ISqlColumn> Columns => SqlSelect.Columns;
     public IList<SqlJoin> Joins => SqlSelect.Joins;
     public SqlLimitOffset Limit => SqlSelect.Limit;
 

@@ -8,10 +8,13 @@ public static class FileConnectionExtensions
         if (pathType != PathType.Directory)
             throw new InvalidOperationException($"Can only call the {nameof(GetTablePath)} method on a data source of type {nameof(PathType.Directory)}. PathType={pathType}");
 
-        return Path.Combine(fileConnection.Database, $"{tableName}.{fileConnection.FileExtension}");
+        return Path.Combine(fileConnection.Database, GetTableFileName(fileConnection, tableName));
     }
 
-    internal static PathType GetPathType(this IFileConnection fileConnection)
+    public static string GetTableFileName(this IFileConnection fileConnection, string tableName) =>
+        $"{tableName}.{fileConnection.FileExtension}";
+
+    public static PathType GetPathType(this IFileConnection fileConnection)
     {
         if (IsAdmin(fileConnection.Database))
             return PathType.Admin;

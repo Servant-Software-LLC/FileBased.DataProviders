@@ -15,4 +15,10 @@ public class JsonDeleteTests
         DeleteTests.Delete_ShouldDeleteData(() => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
+    [Fact]
+    public void Delete_WithReturning()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DeleteTests.Delete_WithReturning(() => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
+    }
 }

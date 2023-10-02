@@ -4,9 +4,12 @@
     <PackageId>ServantSoftware.EFCore.Json</PackageId>
     <Title>ServantSoftware.EFCore.Json</Title>
     <Product>EFCore Json Data Provider</Product>
+    <PackageReadmeFile>README.EFCore.Json.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>	  
   </PropertyGroup>
 
   <ItemGroup>	  
+    <None Include="..\..\README.EFCore.Json.md" Link="README.EFCore.Json.md" Pack="true" PackagePath="\" />
         
 	<ProjectReference Include="..\Data.Json\Data.Json.csproj" />	  
         

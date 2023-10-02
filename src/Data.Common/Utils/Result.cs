@@ -58,6 +58,21 @@ internal class Result
 
         RecordsAffected = fileWriter.Execute();
 
+        if (RecordsAffected > 0)             
+        {
+            if (fileStatement is IContainsReturning containsReturning)
+            {
+                if (containsReturning.Returning.HasValue)
+                {
+                    WorkingResultSet = new DataTable();
+                    WorkingResultSet.Columns.Add(new DataColumn("RETURNING", typeof(int)));
+                    WorkingResultSet.Rows.Add(containsReturning.Returning.Value);
+
+                    FileEnumerator = new FileEnumerator(WorkingResultSet, log);
+                }
+            }
+        }
+
         if (fileWriter is FileInsertWriter fileInsertWriter)
         {
             LastInsertIdentity = fileInsertWriter.LastInsertIdentity;

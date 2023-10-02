@@ -14,38 +14,43 @@ public class FileCreateDatabase<TFileParameter> : FileAdminStatement<TFileParame
     public override bool Execute()
     {
         var connection = fileCommand.FileConnection;
-        
-        if (string.IsNullOrEmpty(Database)) 
-            throw new ArgumentNullException(nameof(Database), $"The database must be specified!");
+        return Execute(connection, Database);
+    }
 
-        var pathType = FileConnection<TFileParameter>.GetPathType(Database, fileCommand.FileConnection.FileExtension);
+    internal static bool Execute(FileConnection<TFileParameter> fileConnection, string database)
+    {
+        if (string.IsNullOrEmpty(database))
+            throw new ArgumentNullException(nameof(database), $"The database must be specified!");
+
+        var pathType = FileConnection<TFileParameter>.GetPathType(database, fileConnection.FileExtension);
 
         switch (pathType)
         {
             case PathType.File:
 
                 //If the database file already exists.
-                if (File.Exists(Database))
+                if (File.Exists(database))
                     return false;
 
                 //Create the provider-specific file for an empty database.
-                connection.CreateFileAsDatabase(Database);
+                fileConnection.CreateFileAsDatabase(database);
                 break;
 
             case PathType.Directory:
 
                 //If the database folder already exists.
-                if (Directory.Exists(Database))
+                if (Directory.Exists(database))
                     return false;
 
                 //Create the folder which represents an empty database for any of the providers.
-                Directory.CreateDirectory(Database); 
+                Directory.CreateDirectory(database);
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(Database), $"The database provided in the CREATE DATABASE command is not recognized as either a file or folder path.");
+                throw new ArgumentOutOfRangeException(nameof(database), $"The database, {database}, is not recognized as either a file or folder path.");
         }
 
         return true;
     }
+
 }

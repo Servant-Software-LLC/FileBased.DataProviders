@@ -1,4 +1,5 @@
 ﻿using Data.Common.Utils;
+using Data.Csv.CsvIO.Create;
 
 namespace System.Data.CsvClient;
 
@@ -35,8 +36,9 @@ public class CsvCommand : FileCommand<CsvParameter>
         FileDelete deleteStatement => new CsvDelete(deleteStatement, (CsvConnection)Connection!, this),
         FileInsert insertStatement => new CsvInsert(insertStatement, (CsvConnection)Connection!, this),
         FileUpdate updateStatement => new CsvUpdate(updateStatement, (CsvConnection)Connection!, this),
+        FileCreateTable createTableStatement => new CsvCreateTable(createTableStatement, (CsvConnection)Connection!, this),
 
-        _ => throw new InvalidOperationException("query not supported")
+        _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")
     };
 
     protected override CsvDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) => 

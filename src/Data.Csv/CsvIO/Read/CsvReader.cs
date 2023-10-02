@@ -26,18 +26,34 @@ internal class CsvReader : FileReader
                 dataTable.Load(dr);
             }
         }
-    }
-   
-    #region Folder Read Update
-    protected override void ReadFromFolder(IEnumerable<string> tableNames)
-    {
-        foreach (var name in tableNames)
+
+        //Post processing to replace String.Empty with DBNull.Value on DataTable, because for some unknown reason,
+        //the values in the DataRows when there are two consecutive commas mostly end up being a DBNull, but for a
+        //unit test, Insert_ShouldInsertNullData, it will sometimes be String.Empty.
+        foreach (DataRow row in dataTable.Rows)
         {
-            var path = fileConnection.GetTablePath(name);
-            var dataTable = new DataTable(name);
-            FillDataTable(path,dataTable);
-            DataSet!.Tables.Add(dataTable);
+            foreach (DataColumn column in dataTable.Columns)
+            {
+                if (row[column] is string value && string.IsNullOrEmpty(value))
+                {
+                    //Temporarily toggle the ReadOnly property to false, so we can change its value.
+                    bool wasReadOnly = column.ReadOnly;
+                    column.ReadOnly = false;
+                    row[column] = DBNull.Value;
+                    column.ReadOnly = wasReadOnly;
+                }
+            }
         }
+
+    }
+
+    #region Folder Read Update
+    protected override void ReadFromFolder(string tableName)
+    {
+        var path = fileConnection.GetTablePath(tableName);
+        var dataTable = new DataTable(tableName);
+        FillDataTable(path,dataTable);
+        DataSet!.Tables.Add(dataTable);
     }
 
     protected override void UpdateFromFolder(string tableName)

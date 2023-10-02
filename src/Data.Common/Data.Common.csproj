@@ -1,18 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <PackageId>ServantSoftware.Data.Common</PackageId>
     <Title>ServantSoftware.Data.Common</Title>
     <Product>ADO.NET Common Data Provider</Product>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Serilog.Extensions.Logging" />
-	  <PackageReference Include="Serilog.Sinks.File" />
-	  <PackageReference Include="SqlBuildingBlocks.Core" />
-	  <PackageReference Include="SqlBuildingBlocks.Grammars.MySQL" />
-	  <PackageReference Include="SqlBuildingBlocks.Grammars.SQLServer" />
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="SqlBuildingBlocks.Grammars.MySQL" />
+    <PackageReference Include="SqlBuildingBlocks.Grammars.SQLServer" />
   </ItemGroup>  
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using Data.Common.Utils;
+using SqlBuildingBlocks;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
@@ -17,6 +18,25 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     public DataSet? DataSet { get; protected set; }
     public DataSet? SchemaDataSet { get; protected set; }
+
+    /// <summary>
+    /// Read in file (representing a table) from a folder and creates DataTable instance for the matching <see cref="tableName"/>
+    /// </summary>
+    /// <param name="tableName">Name of the table file to read from folder</param>
+    /// 
+    protected abstract void ReadFromFolder(string tableName);
+    protected abstract void UpdateFromFolder(string tableName);
+    protected virtual bool ExistsInFolder(string tableName)
+    {
+        var path = fileConnection.GetTablePath(tableName);
+        return File.Exists(path);
+    }
+
+    /// <summary>
+    /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
+    /// </summary>
+    protected abstract void ReadFromFile();
+    protected abstract void UpdateFromFile();
 
     public FileReader(IFileConnection fileConnection)
     {
@@ -38,17 +58,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     {
         if (fileWatcher != null)
             fileWatcher.Changed -= JsonWatcher_Changed;
-    }
-
-    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
-    {
-        //we dont need to update anything if dataset is null
-        if (DataSet == null)
-        {
-            return;
-        }
-
-        tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
     public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
@@ -81,8 +90,18 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                     //Load only the tables in the SQL statement.
                     newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
                 }
-                
-                ReadFromFolder(newTables.Where(x => DataSet.Tables[x] == null));
+
+                foreach (var table in newTables.Where(x => DataSet.Tables[x] == null))
+                {
+                    try
+                    {
+                        ReadFromFolder(table);
+                    }        
+                    catch (Exception ex)
+                    {
+                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.GetTableFileName(table)}, in '{fileConnection.Database}'", ex);
+                    }
+                }
             }
             else if (DataSet == null)
             {
@@ -103,6 +122,46 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
 
         return returnValue;
+    }
+
+    public bool TableExists(string tableName)
+    {
+        FileWriter._rwLock.EnterReadLock();
+
+        try
+        {
+            EnsureFileSystemWatcher();
+
+            if (fileConnection.FolderAsDatabase)
+            {
+                DataSet ??= new DataSet();
+
+                return ExistsInFolder(tableName);
+            }
+
+            if (DataSet == null)
+            {
+                ReadFromFile();
+
+            }
+            return DataSet.Tables.Contains(tableName);
+        }
+        finally
+        {
+            FileWriter._rwLock.ExitReadLock();
+        }
+    }
+
+
+    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
+    {
+        //we dont need to update anything if dataset is null
+        if (DataSet == null)
+        {
+            return;
+        }
+
+        tablesToUpdate.Add(Path.GetFileNameWithoutExtension(e.FullPath));
     }
 
     private void UpdateSchemaDataSet(bool includeTableSchema, bool includeColumnSchema)
@@ -338,19 +397,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
         return (includeTableSchema, includeColumnSchema);
     }
-
-    /// <summary>
-    /// Read in files from a folder and creates DataTable instances for each name that matches <see cref="tableNames"/>
-    /// </summary>
-    /// <param name="tableNames"></param>
-    protected abstract void ReadFromFolder(IEnumerable<string> tableNames);
-    protected abstract void UpdateFromFolder(string tableName);
-    
-    /// <summary>
-    /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
-    /// </summary>
-    protected abstract void ReadFromFile();
-    protected abstract void UpdateFromFile();
    
     public void Dispose()
     {

@@ -1,4 +1,5 @@
 ﻿using Data.Common.Utils;
+using Data.Xml.XmlIO.Create;
 
 namespace System.Data.XmlClient;
 
@@ -35,6 +36,7 @@ public class XmlCommand : FileCommand<XmlParameter>
         FileDelete deleteStatement => new XmlDelete(deleteStatement, (XmlConnection)Connection!, this),
         FileInsert insertStatement => new XmlInsert(insertStatement, (XmlConnection)Connection!, this),
         FileUpdate updateStatement => new XmlUpdate(updateStatement, (XmlConnection)Connection!, this),
+        FileCreateTable createTableStatement => new XmlCreateTable(createTableStatement, (XmlConnection)Connection!, this),
 
         _ => throw new InvalidOperationException("query not supported")
     };

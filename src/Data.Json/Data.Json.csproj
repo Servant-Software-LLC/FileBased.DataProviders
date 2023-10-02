@@ -4,14 +4,12 @@
     <PackageId>ServantSoftware.Data.Json</PackageId>
     <Title>ServantSoftware.Data.Json</Title>
     <Product>ADO.NET Json Data Provider</Product>
-    <PackageReadmeFile>Json Provider.md</PackageReadmeFile>
+    <PackageReadmeFile>README.Data.Json.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\Json Provider.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <None Include="..\..\README.Data.Json.md" Link="README.Data.Json.md" Pack="true" PackagePath="\" />
 
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
   </ItemGroup>
