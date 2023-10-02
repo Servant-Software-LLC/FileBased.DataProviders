@@ -12,7 +12,7 @@ public class JsonDataSetWriter : IDataSetWriter
     public JsonDataSetWriter(IFileConnection fileConnection, FileStatement fileStatement)
     {
         this.fileConnection = fileConnection;
-        this.fileStatement = this.fileStatement;
+        this.fileStatement = fileStatement;
     }
 
     public void WriteDataSet(DataSet dataSet)
