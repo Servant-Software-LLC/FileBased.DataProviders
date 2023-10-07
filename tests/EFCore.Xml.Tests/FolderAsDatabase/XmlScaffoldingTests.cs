@@ -13,7 +13,7 @@ public class XmlScaffoldingTests
     public void ValidateScaffolding()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        var connectionString = ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId);
+        var connectionString = ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId);
         ScaffoldingTests.ValidateScaffolding(connectionString, new XmlDesignTimeServices());
     }
 }

@@ -4,8 +4,8 @@ namespace EFCore.Common.Tests.Utils;
 
 public interface IConnectionStrings
 {
-    FileConnectionString FolderAsDB { get; }
-    FileConnectionString FileAsDB { get; }
+    FileConnectionString gettingStartedFolderDB { get; }
+    FileConnectionString gettingStartedFileDB { get; }
 
     static abstract ConnectionStringsBase Instance { get; }
 }

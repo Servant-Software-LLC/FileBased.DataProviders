@@ -34,6 +34,15 @@
     <None Update="Sources\GettingStarted.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Sources\GettingStartedWithData.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStartedWithData\Blogs.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\GettingStartedWithData\Posts.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Sources\GettingStarted\Blogs.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

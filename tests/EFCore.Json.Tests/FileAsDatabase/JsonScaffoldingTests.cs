@@ -14,7 +14,7 @@ public class JsonScaffoldingTests
     public void ValidateScaffolding()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        var connectionString = ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug);
+        var connectionString = ConnectionStrings.Instance.gettingStartedWithDataFileDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug);
         ScaffoldingTests.ValidateScaffolding(connectionString, new JsonDesignTimeServices());
     }
 

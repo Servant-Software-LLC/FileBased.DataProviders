@@ -22,7 +22,7 @@ public class CsvCodeGenerator : ProviderCodeGenerator
 
     public override MethodCallCodeFragment GenerateUseProvider(
         string connectionString,
-        MethodCallCodeFragment? providerOptions)
+        MethodCallCodeFragment providerOptions)
         => new(
             _useCsvMethodInfo,
             providerOptions == null

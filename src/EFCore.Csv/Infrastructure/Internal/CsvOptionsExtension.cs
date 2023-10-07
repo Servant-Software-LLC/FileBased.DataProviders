@@ -5,7 +5,7 @@ namespace EFCore.Csv.Infrastructure.Internal;
 
 public class CsvOptionsExtension : RelationalOptionsExtension
 {
-    private MyCustomOptionsExtensionInfo? _info;
+    private MyCustomOptionsExtensionInfo _info;
 
     public CsvOptionsExtension() { }
     protected internal CsvOptionsExtension(CsvOptionsExtension copyFrom)
@@ -52,7 +52,7 @@ public class CsvOptionsExtension : RelationalOptionsExtension
         }
 
         public override CsvOptionsExtension Extension => (CsvOptionsExtension)base.Extension;
-        private string? ConnectionString => Extension.Connection == null ?
+        private string ConnectionString => Extension.Connection == null ?
                                                 Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }

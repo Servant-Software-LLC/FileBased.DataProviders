@@ -65,15 +65,6 @@
     <None Update="Sources\Folder\locations.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Sources\GettingStartedWithData.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Sources\GettingStartedWithData\Blogs.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Sources\GettingStartedWithData\Posts.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Sources\GettingStarted.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

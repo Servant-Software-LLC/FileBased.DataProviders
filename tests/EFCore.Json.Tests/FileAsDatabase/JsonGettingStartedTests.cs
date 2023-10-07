@@ -16,28 +16,28 @@ public class JsonGettingStartedTests
     public void Create_AddBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Create_AddBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug));
+        GettingStarted.Create_AddBlog(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId).AddLogging(LogLevel.Debug));
     }
 
     [Fact]
     public void Read_FirstBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Update_UpdateBlogAddPost()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Update_UpdateBlogAddPost(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Update_UpdateBlogAddPost(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Delete_DeleteBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Delete_DeleteBlog(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Delete_DeleteBlog(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId));
     }
 
 
