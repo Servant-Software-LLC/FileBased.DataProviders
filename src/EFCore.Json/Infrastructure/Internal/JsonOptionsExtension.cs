@@ -5,7 +5,7 @@ namespace EFCore.Json.Infrastructure.Internal;
 
 public class JsonOptionsExtension : RelationalOptionsExtension
 {
-    private MyCustomOptionsExtensionInfo? _info;
+    private MyCustomOptionsExtensionInfo _info;
 
     public JsonOptionsExtension() { }
     protected internal JsonOptionsExtension(JsonOptionsExtension copyFrom)
@@ -52,7 +52,7 @@ public class JsonOptionsExtension : RelationalOptionsExtension
         }
 
         public override JsonOptionsExtension Extension => (JsonOptionsExtension)base.Extension;
-        private string? ConnectionString => Extension.Connection == null ?
+        private string ConnectionString => Extension.Connection == null ?
                                                 Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }

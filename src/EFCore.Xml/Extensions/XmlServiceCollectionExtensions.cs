@@ -37,8 +37,6 @@ public static class XmlServiceCollectionExtensions
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IXmlRelationalConnection, XmlRelationalConnection>()
-                    .TryAddSingleton<IDatabaseModelFactory, XmlDatabaseModelFactory>()
-                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<IXmlRelationalConnection>())

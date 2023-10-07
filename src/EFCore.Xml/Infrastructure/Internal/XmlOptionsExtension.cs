@@ -5,7 +5,7 @@ namespace EFCore.Xml.Infrastructure.Internal;
 
 public class XmlOptionsExtension : RelationalOptionsExtension
 {
-    private MyCustomOptionsExtensionInfo? _info;
+    private MyCustomOptionsExtensionInfo _info;
 
     public XmlOptionsExtension() { }
     protected internal XmlOptionsExtension(XmlOptionsExtension copyFrom)
@@ -52,7 +52,7 @@ public class XmlOptionsExtension : RelationalOptionsExtension
         }
 
         public override XmlOptionsExtension Extension => (XmlOptionsExtension)base.Extension;
-        private string? ConnectionString => Extension.Connection == null ?
+        private string ConnectionString => Extension.Connection == null ?
                                                 Extension.ConnectionString :
                                                 Extension.Connection.ConnectionString;
     }

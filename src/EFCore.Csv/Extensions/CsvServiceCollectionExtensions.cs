@@ -37,8 +37,6 @@ public static class CsvServiceCollectionExtensions
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<ICsvRelationalConnection, CsvRelationalConnection>()
-                    .TryAddSingleton<IDatabaseModelFactory, CsvDatabaseModelFactory>()
-                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<ICsvRelationalConnection>())

@@ -11,7 +11,6 @@ namespace EFCore.Xml.Tests.FileAsDatabase;
 /// </summary>
 public class XmlGettingStartedTests
 {
-
     [Fact]
     public void Create_AddBlog()
     {

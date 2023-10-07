@@ -20,8 +20,6 @@ public abstract class FileDatabaseModelFactory : IDatabaseModelFactory
 
     public DatabaseModel Create(DbConnection connection, DatabaseModelFactoryOptions options)
     {
-#warning Need to implement INFORMATION_SCHEMA.COLUMNS table in ADO.NET FileBased Providers and verify this implementation
-
         var databaseModel = new DatabaseModel();
 
         using (var command = connection.CreateCommand())

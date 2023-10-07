@@ -11,7 +11,6 @@ namespace EFCore.Json.Tests.FolderAsDatabase;
 /// </summary>
 public class JsonGettingStartedTests
 {
-
     [Fact]
     public void Create_AddBlog()
     {

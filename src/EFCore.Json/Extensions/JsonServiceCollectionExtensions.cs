@@ -37,8 +37,6 @@ public static class JsonServiceCollectionExtensions
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IJsonRelationalConnection, JsonRelationalConnection>()
-                    .TryAddSingleton<IDatabaseModelFactory, JsonDatabaseModelFactory>()
-                    .TryAddSingleton<IScaffoldingModelFactory, FileScaffoldingModelFactory>()
             )
 
             .TryAdd<IRelationalConnection>(p => p.GetService<IJsonRelationalConnection>())
