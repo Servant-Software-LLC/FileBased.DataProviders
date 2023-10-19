@@ -7,17 +7,45 @@ using System.Data.Common;
 
 namespace EFCore.Common.Scaffolding.Internal;
 
+/// <summary>
+/// Provides an abstraction for scaffolding database models from files.
+/// This class serves as the base class for file-based database model factories.
+/// </summary>
 public abstract class FileDatabaseModelFactory : IDatabaseModelFactory
 {
+    /// <summary>
+    /// Logger instance for capturing scaffolding diagnostics.
+    /// </summary>
     protected readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileDatabaseModelFactory"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance to be used for logging scaffolding operations.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the provided logger instance is null.</exception>
     public FileDatabaseModelFactory(IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Abstract method for creating a <see cref="DatabaseModel"/> using a connection string.
+    /// </summary>
+    /// <param name="connectionString">The connection string to the file-based database.</param>
+    /// <param name="options">Options for the factory.</param>
+    /// <returns>A constructed <see cref="DatabaseModel"/>.</returns>
     public abstract DatabaseModel Create(string connectionString, DatabaseModelFactoryOptions options);
 
+    /// <summary>
+    /// Creates a <see cref="DatabaseModel"/> from a given database connection.
+    /// </summary>
+    /// <param name="connection">The connection to the file-based database.</param>
+    /// <param name="options">Options for the factory.</param>
+    /// <returns>A constructed <see cref="DatabaseModel"/>.</returns>
+    /// <remarks>
+    /// This implementation assumes that the TABLE_NAME returned by the query is unique.
+    /// In real-world scenarios, handling of multiple tables with the same name, perhaps in different schemas, would be required.
+    /// </remarks>
     public DatabaseModel Create(DbConnection connection, DatabaseModelFactoryOptions options)
     {
         var databaseModel = new DatabaseModel();

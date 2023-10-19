@@ -7,8 +7,14 @@ using EFCore.Csv.Design.Internal;
 
 namespace EFCore.Csv.Tests.FolderAsDatabase;
 
+/// <summary>
+/// This class contains tests for validating the scaffolding of CSV files as a database.
+/// </summary>
 public class CsvScaffoldingTests
 {
+    /// <summary>
+    /// Validates the scaffolding of CSV files as a database.
+    /// </summary>
     [Fact]
     public void ValidateScaffolding()
     {

@@ -7,8 +7,14 @@ using EFCore.Json.Design.Internal;
 
 namespace EFCore.Json.Tests.FolderAsDatabase;
 
+/// <summary>
+/// This class contains tests for validating the scaffolding of JSON files as a database.
+/// </summary>
 public class JsonScaffoldingTests
 {
+    /// <summary>
+    /// Validates the scaffolding of JSON files as a database.
+    /// </summary>
     [Fact]
     public void ValidateScaffolding()
     {

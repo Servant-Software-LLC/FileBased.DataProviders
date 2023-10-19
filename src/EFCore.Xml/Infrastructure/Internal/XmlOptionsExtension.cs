@@ -5,7 +5,7 @@ namespace EFCore.Xml.Infrastructure.Internal;
 
 public class XmlOptionsExtension : RelationalOptionsExtension
 {
-    private MyCustomOptionsExtensionInfo _info;
+    private XmlOptionsExtensionInfo _info;
 
     public XmlOptionsExtension() { }
     protected internal XmlOptionsExtension(XmlOptionsExtension copyFrom)
@@ -14,7 +14,7 @@ public class XmlOptionsExtension : RelationalOptionsExtension
 
     }
 
-    public override DbContextOptionsExtensionInfo Info => _info ??= new MyCustomOptionsExtensionInfo(this);
+    public override DbContextOptionsExtensionInfo Info => _info ??= new XmlOptionsExtensionInfo(this);
 
     public override void ApplyServices(IServiceCollection services)
     {
@@ -29,32 +29,5 @@ public class XmlOptionsExtension : RelationalOptionsExtension
     }
 
     protected override RelationalOptionsExtension Clone() => new XmlOptionsExtension(this);
-
-
-    public class MyCustomOptionsExtensionInfo : DbContextOptionsExtensionInfo
-    {
-        public MyCustomOptionsExtensionInfo(XmlOptionsExtension extension)
-            : base(extension)
-        {
-        }
-
-        public override bool IsDatabaseProvider => true;
-
-        public override string LogFragment => $"Using Custom SQLite Provider - ConnectionString: {ConnectionString}";
-
-        public override int GetServiceProviderHashCode() => ConnectionString.GetHashCode();
-
-        public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => other is MyCustomOptionsExtensionInfo;
-
-        public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-        {
-            debugInfo["MyCustom:ConnectionString"] = ConnectionString;
-        }
-
-        public override XmlOptionsExtension Extension => (XmlOptionsExtension)base.Extension;
-        private string ConnectionString => Extension.Connection == null ?
-                                                Extension.ConnectionString :
-                                                Extension.Connection.ConnectionString;
-    }
 
 }

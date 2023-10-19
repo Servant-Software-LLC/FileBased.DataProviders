@@ -6,8 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Xml.Design.Internal;
 
+
+/// <summary>
+/// Provides design-time services for XML-based providers.
+/// </summary>
 public class XmlDesignTimeServices : FileDesignTimeServices
 {
+    /// <inheritdoc />
     public override void ConfigureDesignTimeServices(IServiceCollection services)
     {
         base.ConfigureDesignTimeServices(services);

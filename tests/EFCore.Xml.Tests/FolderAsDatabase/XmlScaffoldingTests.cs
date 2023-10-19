@@ -7,8 +7,14 @@ using EFCore.Xml.Design.Internal;
 
 namespace EFCore.Xml.Tests.FolderAsDatabase;
 
+/// <summary>
+/// This class contains tests for validating the scaffolding of XML files as a database.
+/// </summary>
 public class XmlScaffoldingTests
 {
+    /// <summary>
+    /// Validates the scaffolding of XML files as a database.
+    /// </summary>
     [Fact]
     public void ValidateScaffolding()
     {

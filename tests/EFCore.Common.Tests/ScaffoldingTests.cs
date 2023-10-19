@@ -5,8 +5,16 @@ using Xunit;
 
 namespace EFCore.Common.Tests;
 
+/// <summary>
+/// Contains test utilities for validating the scaffolding process in Entity Framework Core.
+/// </summary>
 public static class ScaffoldingTests
 {
+    /// <summary>
+    /// Validates the EF Core scaffolding process by generating a model using a given connection string and design-time services.
+    /// </summary>
+    /// <param name="connectionString">The connection string for the data source to scaffold.</param>
+    /// <param name="designTimeServices">The design-time services for the EF Core provider being tested.</param>
     public static void ValidateScaffolding(string connectionString, IDesignTimeServices designTimeServices)
     {
         // Arrange
@@ -29,12 +37,12 @@ public static class ScaffoldingTests
         {
             ModelNamespace = "TestNamespace",
             ContextName = "TestDbContext",
-            // Other options...
+            // Additional options can be specified here...
         };
 
         // Act
-        // Scaffold the model.
-        // Replace "YourConnectionString" with a valid connection string for your test database.
+
+        // Invoke the scaffolding process using the provided connection string and options.
         var scaffoldedModel = scaffolder.ScaffoldModel(
             connectionString,
             databaseModelFactoryOptions,
@@ -42,8 +50,8 @@ public static class ScaffoldingTests
             modelCodeGenerationOptions);
 
         // Assert
-        // Validate the scaffolded model.
-        // This might involve checking the number of generated entities, the names of generated DbContext and entity classes, etc.
+
+        // Check the results of the scaffolding process.
         Assert.NotNull(scaffoldedModel);
         Assert.NotEmpty(scaffoldedModel.AdditionalFiles);
         Assert.NotNull(scaffoldedModel.ContextFile);
