@@ -6,8 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore.Csv.Design.Internal;
 
+
+/// <summary>
+/// Represents design-time services for CSV data sources in Entity Framework Core.
+/// </summary>
 public class CsvDesignTimeServices : FileDesignTimeServices
 {
+    /// <inheritdoc/>
     public override void ConfigureDesignTimeServices(IServiceCollection services)
     {
         base.ConfigureDesignTimeServices(services);

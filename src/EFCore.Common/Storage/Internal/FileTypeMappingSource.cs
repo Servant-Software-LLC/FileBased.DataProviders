@@ -2,6 +2,11 @@
 
 namespace EFCore.Common.Storage.Internal;
 
+
+/// <summary>
+/// Represents a source for mapping between .NET types and database types in Entity Framework Core.
+/// This class extends the base mapping source to provide additional mappings for common .NET types.
+/// </summary>
 public class FileTypeMappingSource : RelationalTypeMappingSource
 {
     // Dictionary to map the System.Type.FullName to the CLR type.
@@ -15,11 +20,13 @@ public class FileTypeMappingSource : RelationalTypeMappingSource
         // Add other mappings as needed.
     };
 
+    /// <inheritdoc/>
     public FileTypeMappingSource(TypeMappingSourceDependencies dependencies, RelationalTypeMappingSourceDependencies relationalDependencies)
         : base(dependencies, relationalDependencies)
     {
     }
 
+    /// <inheritdoc/>
     protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
     {
         var fullName = mappingInfo.ClrType != null ? mappingInfo.ClrType.FullName : mappingInfo.StoreTypeName;
