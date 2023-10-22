@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.Data.Csv</PackageId>
+    <Title>ServantSoftware.Data.Csv</Title>
+    <Product>ADO.NET Csv Data Provider</Product>
+	<PackageReadmeFile>README.Data.Csv.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\README.Data.Csv.md" Link="README.Data.Csv.md" Pack="true" PackagePath="\" />
+
+    <PackageReference Include="CsvHelper" />
+
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>

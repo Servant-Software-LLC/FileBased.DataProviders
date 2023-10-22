@@ -1,0 +1,64 @@
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="employees">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="name" type="xs:string" minOccurs="0" />
+                <xs:element name="email" type="xs:string" minOccurs="0" />
+                <xs:element name="salary" type="xs:decimal" minOccurs="0" />
+                <xs:element name="married" type="xs:boolean" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="locations">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="id" type="xs:decimal" minOccurs="0" />
+                <xs:element name="city" type="xs:string" minOccurs="0" />
+                <xs:element name="state" type="xs:string" minOccurs="0" />
+                <xs:element name="zip" type="xs:decimal" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <employees>
+    <name>Joe</name>
+    <email>Joe@gmail.com</email>
+    <salary>56000</salary>
+    <married>true</married>
+  </employees>
+  <employees>
+    <name>Bob</name>
+    <email>bob32@gmail.com</email>
+    <salary>95000</salary>
+  </employees>
+  <employees>
+    <name>Jim</name>
+    <email>Jim@gmail.com</email>
+    <salary>10</salary>
+  </employees>
+  <employees>
+    <name>Mike</name>
+    <email>Mike@gmail.com</email>
+    <salary>10</salary>
+  </employees>
+  <locations>
+    <id>1</id>
+    <city>Houston</city>
+    <state>Texas</state>
+    <zip>77846</zip>
+  </locations>
+  <locations>
+    <id>2</id>
+    <city>New Braunfels</city>
+    <state>Texas</state>
+    <zip>78132</zip>
+  </locations>
+ 
+</NewDataSet>

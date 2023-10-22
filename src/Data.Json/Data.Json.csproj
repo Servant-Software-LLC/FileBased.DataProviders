@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.Data.Json</PackageId>
+    <Title>ServantSoftware.Data.Json</Title>
+    <Product>ADO.NET Json Data Provider</Product>
+    <PackageReadmeFile>README.Data.Json.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.Data.Json.md" Link="README.Data.Json.md" Pack="true" PackagePath="\" />
+
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>

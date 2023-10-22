@@ -1,0 +1,2 @@
+PostId,Title,Content,BlogId
+1,"Hello World","I wrote an app using EF Core!",1

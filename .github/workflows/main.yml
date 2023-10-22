@@ -1,0 +1,101 @@
+name: DataProviders Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  TargetFramework:  net7.0
+  BuildConfiguration: Release
+  DataCommonPackageId: ServantSoftware.Data.Common
+  DataJsonPackageId: ServantSoftware.Data.Json
+  DataCsvPackageId: ServantSoftware.Data.Csv
+  DataXmlPackageId: ServantSoftware.Data.Xml
+  EFCoreCommonPackageId: ServantSoftware.EFCore.FileBasedProviders.Common
+  EFCoreJsonPackageId: ServantSoftware.EFCore.Json
+  EFCoreCsvPackageId: ServantSoftware.EFCore.Csv
+  EFCoreXmlPackageId: ServantSoftware.EFCore.Xml
+  PackageVersion: 1.0.0.${{github.run_number}}
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 7.0.x
+
+    - name: Set version number
+      run:  '& ${{github.workspace}}/.github/workflows/UpdateVersion.ps1 ${{github.run_number}}'
+      shell: pwsh
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration $BuildConfiguration
+
+    - name: Test
+      run: dotnet test --configuration $BuildConfiguration --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      
+    - name: Create nuget packages
+      run: dotnet pack --configuration $BuildConfiguration --no-build 
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nuget Packages
+        path: ${{github.workspace}}/src/**/*.nupkg
+
+    - name: Push to nuget.org (Common provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (Json provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (CSV provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (XML provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (EF Common provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (EF Json provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (EF CSV provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (EF XML provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+    
+    - name: Code Coverage Report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      continue-on-error: true
+      with:
+        filename: coverage/**/coverage.cobertura.xml
+        badge: true
+        fail_below_min: false
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '40 60'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+
+

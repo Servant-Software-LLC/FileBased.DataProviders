@@ -1,0 +1,92 @@
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="Customers" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Customers">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CustomerName" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Address" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PhoneNumber" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2147483647" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <Customers>
+    <ID>1</ID>
+    <CustomerName>John Doe</CustomerName>
+    <Address>123 Main St</Address>
+    <PhoneNumber>555-1234</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>2</ID>
+    <CustomerName>Jane Smith</CustomerName>
+    <Address>456 Elm St</Address>
+    <PhoneNumber>555-5678</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>3</ID>
+    <CustomerName>Bob Johnson</CustomerName>
+    <Address>789 Oak Ave</Address>
+    <PhoneNumber>555-9012</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>4</ID>
+    <CustomerName>Alice Brown</CustomerName>
+    <Address>234 Pine Rd</Address>
+    <PhoneNumber>555-3456</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>5</ID>
+    <CustomerName>Michael Lee</CustomerName>
+    <Address>567 Cherry Ln</Address>
+    <PhoneNumber>555-7890</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>6</ID>
+    <CustomerName>Samantha Green</CustomerName>
+    <Address>890 Maple St</Address>
+    <PhoneNumber>555-2345</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>7</ID>
+    <CustomerName>William Clark</CustomerName>
+    <Address>123 Oak St</Address>
+    <PhoneNumber>555-6789</PhoneNumber>
+  </Customers>
+  <Customers>
+    <ID>8</ID>
+    <CustomerName>Lisa Nguyen</CustomerName>
+    <Address>456 Pine Ave</Address>
+    <PhoneNumber>555-0123</PhoneNumber>
+  </Customers>
+</NewDataSet>

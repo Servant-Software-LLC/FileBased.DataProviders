@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageId>ServantSoftware.EFCore.Xml</PackageId>
+    <Title>ServantSoftware.EFCore.Xml</Title>
+    <Product>EFCore Xml Data Provider</Product>
+    <PackageReadmeFile>README.EFCore.Xml.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>	  
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.EFCore.Xml.md" Link="README.EFCore.Xml.md" Pack="true" PackagePath="\" />
+
+	<ProjectReference Include="..\Data.Xml\Data.Xml.csproj" />
+
+	<ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
+  </ItemGroup>
+</Project>
