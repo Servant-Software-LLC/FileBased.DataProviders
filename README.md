@@ -32,11 +32,13 @@ dotnet build
 ```
 
 ## Usage
-Each data provider (JSON, XML, and CSV) comes with its own set of specific operations. Please refer to the README of each provider for detailed instructions on how to use them.
+Each ADO.NET data provider (JSON, XML, and CSV) comes with its own set of specific operations. Please refer to the README of each provider for detailed instructions on how to use them.
 
 - [JSON Provider](README.Data.Json.md)
 - [XML Provider](README.Data.Xml.md)
 - [CSV Provider](README.Data.Csv.md)
+
+Also, there are [EF Core providers](README.EFCore.md) 
 
 ## Testing
 The project comes with a set of unit tests to ensure that all features are working as expected. To run the tests, use the following command:
