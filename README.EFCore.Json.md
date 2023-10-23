@@ -2,7 +2,7 @@
 
 ![Nuget](https://img.shields.io/nuget/v/ServantSoftware.EFCore.Json)
 
-`ServantSoftware.EFCore.Json` is an EF Core provider that allows you to use JSON files as a data source. It's currently in an alpha state, primarily focusing on specific "happy paths" needed for our main product. We encourage community contributions to enhance its features and cover a broader range of scenarios.
+`ServantSoftware.EFCore.Json` is an EF Core provider that allows you to use JSON files as a data source. It's currently in an alpha state, primarily focusing on specific "happy paths" needed for [SettingsOnEF](https://github.com/Servant-Software-LLC/SettingsOnEF) and our main product, [MockDB](https://mock-db.com/). We encourage community contributions to enhance its features and cover a broader range of scenarios.
 
 ## Features
 
