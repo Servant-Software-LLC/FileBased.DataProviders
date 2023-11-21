@@ -45,7 +45,7 @@ function Update-CsprojFile {
 
 	$version = $version.Substring(0, $index + 1) + $buildNumber
 
-	Write-Host "Stamping $($csproj) with version number $($version)"
+	Write-Host "Stamping $($csprojFile) with version number $($version)"
 
 	$csprojXml.Project.PropertyGroup.Version = $version
 
