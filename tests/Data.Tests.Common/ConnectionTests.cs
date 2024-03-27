@@ -37,10 +37,6 @@ public static class ConnectionTests
     {
         //Arrange
 
-        //Create a connection string to a DataSource value that does not exist.
-        var folder = Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder_BOGUS");
-        var connectionString = new FileConnectionString() { DataSource = folder };
-
         using (var connection = createConnection())
         {
             //Act

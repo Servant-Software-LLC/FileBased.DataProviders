@@ -104,4 +104,24 @@ public class JsonDataReaderTests
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
         new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
+
+    //
+    //Json specific tests
+    //
+
+    [Fact]
+    public void Reader_JsonFileContainsTrailingComma()
+    {
+        var connectionString = ConnectionStrings.Instance.withTrailingCommaDB;
+        using (var connection = new JsonConnection(connectionString))
+        {
+            //Act
+            connection.Open();
+
+            var command = connection.CreateCommand("SELECT * FROM GeneralSettings");
+            var reader = command.ExecuteReader();
+        }
+
+    }
+
 }

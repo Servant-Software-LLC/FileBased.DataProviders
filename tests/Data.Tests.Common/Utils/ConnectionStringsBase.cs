@@ -18,6 +18,7 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual string gettingStartedFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted");
     public virtual string bogusFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Folder_BOGUS.{Guid.NewGuid()}");
     public virtual string bogusFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Database_BOGUS.{Guid.NewGuid()}.{Extension}");
+    public virtual string withTrailingCommaFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithTrailingComma");
 
     public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(PathType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
@@ -38,6 +39,8 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual FileConnectionString bogusFileDB => new FileConnectionString() { DataSource = bogusFileDataBase };
 
     public virtual FileConnectionString bogusFolderDB => new FileConnectionString() { DataSource = bogusFolderDataBase };
+
+    public virtual FileConnectionString withTrailingCommaDB => new FileConnectionString() { DataSource = withTrailingCommaFolderDataBase };
 
     public static ConnectionStringsBase Instance => throw new NotImplementedException();
 
