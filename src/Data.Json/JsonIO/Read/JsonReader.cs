@@ -14,7 +14,8 @@ internal class JsonReader : FileReader
     {
         var jsonDocumentOptions = new JsonDocumentOptions
         {
-            CommentHandling = JsonCommentHandling.Skip
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
         };
 
         //ThrowHelper.ThrowIfInvalidPath(path);
