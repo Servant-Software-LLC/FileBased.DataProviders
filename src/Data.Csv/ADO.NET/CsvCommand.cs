@@ -1,5 +1,6 @@
 ﻿using Data.Common.Utils;
 using Data.Csv.CsvIO.Create;
+using System.Data.Common;
 
 namespace System.Data.CsvClient;
 
@@ -49,9 +50,6 @@ public class CsvCommand : FileCommand<CsvParameter>
     /// <inheritdoc/>
     public override CsvParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
-    /// <inheritdoc/>
-    public override CsvDataAdapter CreateAdapter() => new(this);
-
     /// <inheritdoc />
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
@@ -63,8 +61,24 @@ public class CsvCommand : FileCommand<CsvParameter>
         _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")
     };
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
+    /// <inheritdoc/>
+    public override CsvDataAdapter CreateAdapter() => new(this);
+
     /// <inheritdoc />
     protected override CsvDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
         new(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
+
+#else       // .NET Standard 2.0 compliant implementation.
+
+    /// <inheritdoc/>
+    public override FileDataAdapter<CsvParameter> CreateAdapter() => new CsvDataAdapter(this);
+
+    /// <inheritdoc />
+    protected override FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
+        new CsvDataReader(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
+
+#endif
 
 }

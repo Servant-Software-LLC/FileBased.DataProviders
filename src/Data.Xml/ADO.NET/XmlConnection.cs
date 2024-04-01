@@ -1,7 +1,6 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Data.Xml.XmlIO;
 using System.Data.Common;
-using System.Formats.Asn1;
 using System.Xml.Linq;
 
 namespace System.Data.XmlClient;
@@ -30,6 +29,9 @@ public class XmlConnection : FileConnection<XmlParameter>
     /// </summary>
     public override string FileExtension => "xml";
 
+
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <summary>
     /// Begins a new transaction.
     /// </summary>
@@ -48,7 +50,7 @@ public class XmlConnection : FileConnection<XmlParameter>
     /// </summary>
     /// <param name="isolationLevel">The isolation level of the transaction.</param>
     /// <returns>A new <see cref="XmlTransaction"/> object.</returns>
-    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+    protected override XmlTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
     /// <summary>
     /// Creates a new data adapter with the specified query.
@@ -69,6 +71,50 @@ public class XmlConnection : FileConnection<XmlParameter>
     /// <param name="cmdText">The command text to use for the command object.</param>
     /// <returns>A new <see cref="XmlCommand"/> object.</returns>
     public override XmlCommand CreateCommand(string cmdText) => new(cmdText, this);
+
+#else       // .NET Standard 2.0 compliant implementation.
+
+    /// <summary>
+    /// Begins a new transaction.
+    /// </summary>
+    /// <returns>A new <see cref="XmlTransaction"/> object.</returns>
+    public override FileTransaction<XmlParameter> BeginTransaction() => new XmlTransaction(this, default);
+
+    /// <summary>
+    /// Begins a new transaction with the specified isolation level.
+    /// </summary>
+    /// <param name="il">The isolation level of the transaction.</param>
+    /// <returns>A new <see cref="XmlTransaction"/> object.</returns>
+    public override FileTransaction<XmlParameter> BeginTransaction(IsolationLevel il) => BeginTransaction();
+
+    /// <summary>
+    /// Begins a new database transaction.
+    /// </summary>
+    /// <param name="isolationLevel">The isolation level of the transaction.</param>
+    /// <returns>A new <see cref="XmlTransaction"/> object.</returns>
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+
+    /// <summary>
+    /// Creates a new data adapter with the specified query.
+    /// </summary>
+    /// <param name="query">The query to use for the data adapter.</param>
+    /// <returns>A new <see cref="XmlDataAdapter"/> object.</returns>
+    public override FileDataAdapter<XmlParameter> CreateDataAdapter(string query) => new XmlDataAdapter(query, this);
+
+    /// <summary>
+    /// Creates a new command object.
+    /// </summary>
+    /// <returns>A new <see cref="XmlCommand"/> object.</returns>
+    public override FileCommand<XmlParameter> CreateCommand() => new XmlCommand(this);
+
+    /// <summary>
+    /// Creates a new command object with the specified command text.
+    /// </summary>
+    /// <param name="cmdText">The command text to use for the command object.</param>
+    /// <returns>A new <see cref="XmlCommand"/> object.</returns>
+    public override FileCommand<XmlParameter> CreateCommand(string cmdText) => new XmlCommand(cmdText, this);
+
+#endif
 
     /// <summary>
     /// Creates the XML file as a database.

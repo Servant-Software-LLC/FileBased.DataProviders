@@ -166,5 +166,5 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
     /// </summary>
     /// <param name="name">The name of the parameter.</param>
     /// <returns>The standardized name of the parameter.</returns>
-    private string StandardizeName(string name) => name.StartsWith('@') ? name : $"@{name}";
+    private string StandardizeName(string name) => name.StartsWith("@") ? name : $"@{name}";
 }

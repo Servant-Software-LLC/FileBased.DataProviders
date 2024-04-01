@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Data.Common.Extension;
 
 public static class FileConnectionStringTestsExtensions
 {
     public const string SourcesFolder = "Sources";
-    public const string SourcesPristineCopy = "Sources.Pristine";
+    public static string SourcesPristineCopy => $"Sources.Pristine_{RuntimeInformation.FrameworkDescription}";
 
     public static FileConnectionString Sandbox(this FileConnectionString fileConnectionString, string sandboxRootPath, string sandboxId)
     {
@@ -20,7 +22,9 @@ public static class FileConnectionStringTestsExtensions
         var dataSourceValue = fileConnectionString.DataSource;
         if (!dataSourceValue.StartsWith(SourcesFolder))
             throw new Exception($"Expected the data source value to begin with a path in the {SourcesFolder} folder.  dataSourceValue: {dataSourceValue}");
-        string pristineDataSourceValue = SourcesPristineCopy + dataSourceValue.Substring(SourcesFolder.Length);
+        
+        string runningFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string pristineDataSourceValue = Path.Combine(runningFolder, SourcesPristineCopy + dataSourceValue.Substring(SourcesFolder.Length));
 
 
         var folderAsDatabase = Directory.Exists(pristineDataSourceValue);

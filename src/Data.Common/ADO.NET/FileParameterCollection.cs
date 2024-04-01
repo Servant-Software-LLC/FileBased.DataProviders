@@ -203,13 +203,27 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
         return clone;
     }
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <inheritdoc />
-    protected override TFileParameter GetParameter(string parameterName)
-        => InternalList.First(p => p.ParameterName == parameterName);
+    protected override TFileParameter GetParameter(string parameterName) =>
+        InternalList.First(p => p.ParameterName == parameterName);
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(int index)
         => InternalList[index];
+
+#else       // .NET Standard 2.0 compliant implementation.This method must return DbParameter, not TFileParameter.
+
+    /// <inheritdoc />
+    protected override DbParameter GetParameter(string parameterName) =>
+        InternalList.First(p => p.ParameterName == parameterName);
+
+    /// <inheritdoc />
+    protected override DbParameter GetParameter(int index)
+        => InternalList[index];
+#endif
+
 
 
     protected void SetParameter(string parameterName, TFileParameter value)
@@ -241,14 +255,14 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
     /// <value>The <see cref="TFileParameter"/> at the specified index.</value>
     public new TFileParameter this[int index]
     {
-        get { return GetParameter(index); }
+        get { return GetParameter(index) as TFileParameter; }   // Cast is required for .NET Standard 2.0, because of the lack of covariant return types
         set { SetParameter(index, value); }
     }
 
 
-    public TFileParameter this[string parameterName]
+    public new TFileParameter this[string parameterName]
     {
-        get { return GetParameter(parameterName); }
+        get { return GetParameter(parameterName) as TFileParameter; }  // Cast is required for .NET Standard 2.0, because of the lack of covariant return types
         set { SetParameter(parameterName, value); }
     }
 

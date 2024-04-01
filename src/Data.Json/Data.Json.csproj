@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>11.0</LangVersion>
     <PackageId>ServantSoftware.Data.Json</PackageId>
     <Title>ServantSoftware.Data.Json</Title>
     <Product>ADO.NET Json Data Provider</Product>
@@ -11,6 +12,9 @@
   <ItemGroup>
     <None Include="..\..\README.Data.Json.md" Link="README.Data.Json.md" Pack="true" PackagePath="\" />
 
+	<PackageReference Include="System.Text.Json" />
+	  
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+	  
   </ItemGroup>
 </Project>

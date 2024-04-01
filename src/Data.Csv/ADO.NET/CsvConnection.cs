@@ -1,5 +1,6 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Data.Csv.CsvIO;
+using System.Data.Common;
 
 namespace System.Data.CsvClient;
 
@@ -55,11 +56,16 @@ public class CsvConnection : FileConnection<CsvParameter>
         }
     }
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <inheritdoc/>
     public override CsvTransaction BeginTransaction() => new(this, default);
 
     /// <inheritdoc/>
     public override CsvTransaction BeginTransaction(IsolationLevel il) => BeginTransaction();
+
+    /// <inheritdoc/>
+    protected override CsvTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
 
     /// <inheritdoc/>
     public override CsvDataAdapter CreateDataAdapter(string query) => new(query, this);
@@ -69,6 +75,28 @@ public class CsvConnection : FileConnection<CsvParameter>
 
     /// <inheritdoc/>
     public override CsvCommand CreateCommand(string cmdText) => new(cmdText, this);
+
+#else       // .NET Standard 2.0 compliant implementation.
+
+    /// <inheritdoc/>
+    public override FileTransaction<CsvParameter> BeginTransaction() => new CsvTransaction(this, default);
+
+    /// <inheritdoc/>
+    public override FileTransaction<CsvParameter> BeginTransaction(IsolationLevel il) => BeginTransaction();
+
+    /// <inheritdoc/>
+    protected override DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
+
+    /// <inheritdoc/>
+    public override FileDataAdapter<CsvParameter> CreateDataAdapter(string query) => new CsvDataAdapter(query, this);
+
+    /// <inheritdoc/>
+    public override FileCommand<CsvParameter> CreateCommand() => new CsvCommand(this);
+
+    /// <inheritdoc/>
+    public override FileCommand<CsvParameter> CreateCommand(string cmdText) => new CsvCommand(cmdText, this);
+
+#endif
 
     /// <inheritdoc/>
     protected override void CreateFileAsDatabase(string databaseFileName) =>

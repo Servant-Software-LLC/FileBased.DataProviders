@@ -20,6 +20,8 @@ public class JsonTransaction : FileTransaction<JsonParameter>
         this.connection = connection;
     }
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <summary>
     /// Creates a new <see cref="JsonCommand"/> with the specified command text and associates it with the current transaction.
     /// </summary>
@@ -30,4 +32,20 @@ public class JsonTransaction : FileTransaction<JsonParameter>
         log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
         return new(cmdText, connection, this);
     }
+
+#else       // .NET Standard 2.0 compliant implementation.This method must return FileCommand<JsonParameter>, not JsonCommand.
+
+    /// <summary>
+    /// Creates a new <see cref="JsonCommand"/> with the specified command text and associates it with the current transaction.
+    /// </summary>
+    /// <param name="cmdText">The text of the command.</param>
+    /// <returns>The created <see cref="JsonCommand"/>.</returns>
+    public override FileCommand<JsonParameter> CreateCommand(string cmdText)
+    {
+        log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
+        return new JsonCommand(cmdText, connection, this);
+    }
+
+#endif
+
 }

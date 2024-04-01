@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>11.0</LangVersion>	  
     <PackageId>ServantSoftware.Data.Csv</PackageId>
     <Title>ServantSoftware.Data.Csv</Title>
     <Product>ADO.NET Csv Data Provider</Product>

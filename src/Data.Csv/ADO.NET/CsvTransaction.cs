@@ -24,6 +24,8 @@ public class CsvTransaction : FileTransaction<CsvParameter>
         this.connection = connection;
     }
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <summary>
     /// Creates a new <see cref="CsvCommand"/> object associated with the transaction.
     /// </summary>
@@ -34,4 +36,19 @@ public class CsvTransaction : FileTransaction<CsvParameter>
         log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
         return new(cmdText, connection, this);
     }
+
+#else       // .NET Standard 2.0 compliant implementation.This method must return FileCommand<CsvParameter>, not CsvCommand.
+
+    /// <summary>
+    /// Creates a new <see cref="CsvCommand"/> object associated with the transaction.
+    /// </summary>
+    /// <param name="cmdText">The command text for the <see cref="CsvCommand"/>.</param>
+    /// <returns>A new instance of <see cref="CsvCommand"/>.</returns>
+    public override FileCommand<CsvParameter> CreateCommand(string cmdText)
+    {
+        log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
+        return new CsvCommand(cmdText, connection, this);
+    }
+
+#endif
 }
