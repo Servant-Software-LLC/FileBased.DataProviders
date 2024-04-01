@@ -51,9 +51,6 @@ public class JsonCommand : FileCommand<JsonParameter>
     public override JsonParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
     /// <inheritdoc/>
-    public override JsonDataAdapter CreateAdapter() => new(this);
-
-    /// <inheritdoc/>
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
         FileDelete deleteStatement => new JsonDelete(deleteStatement, (JsonConnection)Connection!, this),
@@ -64,8 +61,23 @@ public class JsonCommand : FileCommand<JsonParameter>
         _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")
     };
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
+    /// <inheritdoc/>
+    public override JsonDataAdapter CreateAdapter() => new(this);
+
     /// <inheritdoc/>
     protected override JsonDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
         new(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
 
+#else       // .NET Standard 2.0 compliant implementation.
+
+    /// <inheritdoc/>
+    public override FileDataAdapter<JsonParameter> CreateAdapter() => new JsonDataAdapter(this);
+
+    /// <inheritdoc/>
+    protected override FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
+        new JsonDataReader(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
+
+#endif
 }

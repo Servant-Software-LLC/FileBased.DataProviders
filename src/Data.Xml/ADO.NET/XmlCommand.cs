@@ -45,9 +45,6 @@ public class XmlCommand : FileCommand<XmlParameter>
     public override XmlParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
 
     /// <inheritdoc/>
-    public override XmlDataAdapter CreateAdapter() => new(this);
-
-    /// <inheritdoc/>
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
         FileDelete deleteStatement => new XmlDelete(deleteStatement, (XmlConnection)Connection!, this),
@@ -58,13 +55,25 @@ public class XmlCommand : FileCommand<XmlParameter>
         _ => throw new InvalidOperationException("query not supported")
     };
 
-    /// <summary>
-    /// Creates a new instance of the <see cref="XmlDataReader"/> class based on the specified parameters.
-    /// </summary>
-    /// <param name="fileStatements">The file statements that determine the data to read.</param>
-    /// <param name="loggerServices">The logger services to use for logging.</param>
-    /// <returns>The created <see cref="XmlDataReader"/>.</returns>
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
+    /// <inheritdoc/>
+    public override XmlDataAdapter CreateAdapter() => new(this);
+
+
+    /// <inheritdoc/>
     protected override XmlDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
         new(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
 
+#else       // .NET Standard 2.0 compliant implementation.
+
+    /// <inheritdoc/>
+    public override FileDataAdapter<XmlParameter> CreateAdapter() => new XmlDataAdapter(this);
+
+
+    /// <inheritdoc/>
+    protected override FileDataReader CreateDataReader(IEnumerable<FileStatement> fileStatements, LoggerServices loggerServices) =>
+        new XmlDataReader(fileStatements, FileConnection.FileReader, FileTransaction == null ? null : FileTransaction.TransactionScopedRows, CreateWriter, loggerServices);
+
+#endif
 }

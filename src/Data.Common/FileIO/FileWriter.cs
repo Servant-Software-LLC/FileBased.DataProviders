@@ -19,7 +19,8 @@ public abstract class FileWriter
         fileReader = fileConnection.FileReader;
         fileTransaction = fileCommand.FileTransaction;
 
-        dataSetWriter = new(((IFileConnectionInternal)fileConnection).CreateDataSetWriter(fileStatement));
+        Func<FileStatement, IDataSetWriter> writerFunc = ((IFileConnectionInternal)fileConnection).CreateDataSetWriter;
+        dataSetWriter = new(() => writerFunc(fileStatement));
     }
 
     public abstract int Execute();    

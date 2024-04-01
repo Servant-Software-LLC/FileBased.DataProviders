@@ -169,9 +169,11 @@ public abstract class FileDataReader : DbDataReader
         DataColumn NumericScale = new DataColumn(SchemaTableColumn.NumericScale, typeof(short));
         DataColumn DataType = GetSystemTypeDataColumn();
 
+#if !NETSTANDARD2_0
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2111:ReflectionToDynamicallyAccessedMembers",
             Justification = "The problem is Type.TypeInitializer which requires constructors on the Type instance." +
                 "In this case the TypeInitializer property is not accessed dynamically.")]
+#endif
         static DataColumn GetSystemTypeDataColumn() =>
             new DataColumn(SchemaTableColumn.DataType, typeof(Type));
 

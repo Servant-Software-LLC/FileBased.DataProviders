@@ -22,11 +22,26 @@ public class XmlTransaction : FileTransaction<XmlParameter>
         this.connection = connection;
     }
 
+#if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
+
     /// <inheritdoc />
     public override XmlCommand CreateCommand(string cmdText)
     {
         log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
         return new(cmdText, connection, this);
     }
+
+
+#else       // .NET Standard 2.0 compliant implementation.This method must return FileCommand<XmlParameter>, not XmlCommand.
+
+    /// <inheritdoc />
+    public override FileCommand<XmlParameter> CreateCommand(string cmdText)
+    {
+        log.LogDebug($"{GetType()}.{nameof(CreateCommand)}() called.  CommandText = {cmdText}");
+        return new XmlCommand(cmdText, connection, this);
+    }
+
+#endif
+
 
 }

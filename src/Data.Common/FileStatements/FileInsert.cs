@@ -27,7 +27,7 @@ public class FileInsert : FileStatement
 
     public IEnumerable<KeyValuePair<string, object>> GetValues()
     {
-        var result = columns.Zip(Values, (name, literalValue) => KeyValuePair.Create(((SqlColumn)name).ColumnName, literalValue.Value));
+        var result = columns.Zip(Values, (name, literalValue) => new KeyValuePair<string, object>(((SqlColumn)name).ColumnName, literalValue.Value));
 
         return result!;
     }

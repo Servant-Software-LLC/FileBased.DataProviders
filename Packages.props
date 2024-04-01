@@ -15,6 +15,9 @@
     <!-- Data.Csv -->
     <PackageReference Update="CsvHelper" Version="30.0.1" />
 
+	<!-- Data.Json -->
+	<PackageReference Update="System.Text.Json" Version="8.0.3" />
+		
     <!-- EF Core Providers -->
     <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />

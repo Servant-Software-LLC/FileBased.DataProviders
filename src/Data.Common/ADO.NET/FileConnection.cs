@@ -70,7 +70,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <param name="connectionString">The connection string used to open the database.</param>
     public FileConnection(FileConnectionString connectionString) 
     {
-        ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
+        if (connectionString is null)
+            throw new ArgumentNullException(nameof(connectionString));
+
         this.connectionString = connectionString;
         state = ConnectionState.Closed;
 
@@ -151,7 +153,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <param name="databaseName">The name of the database.</param>
     public override void ChangeDatabase(string databaseName)
     {
-        ArgumentNullException.ThrowIfNull(nameof(databaseName));
+        if (string.IsNullOrEmpty(databaseName))
+            throw new ArgumentNullException(nameof(databaseName));
+
         connectionString.DataSource = databaseName;
 
         //Other ADO.NET providers that support automatically creating a database when provided in

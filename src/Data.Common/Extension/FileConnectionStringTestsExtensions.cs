@@ -65,5 +65,5 @@ public static class FileConnectionStringTestsExtensions
         var clone = fileConnectionString.Clone();
         clone.LogLevel = minimumLogLevel;
         return clone;
-    }    
+    }
 }
