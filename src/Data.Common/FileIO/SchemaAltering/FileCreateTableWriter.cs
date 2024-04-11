@@ -2,7 +2,7 @@
 using SqlBuildingBlocks.Grammars.SQLServer;
 using SqlBuildingBlocks.LogicalEntities;
 
-namespace Data.Common.FileIO.Create;
+namespace Data.Common.FileIO.SchemaAltering;
 
 public abstract class FileCreateTableWriter : FileWriter
 {
@@ -29,7 +29,7 @@ public abstract class FileCreateTableWriter : FileWriter
 
         foreach (SqlColumnDefinition columnDefinition in fileStatement.Columns)
         {
-            var dataType = DataType.ToSystemType(columnDefinition.DataType.Name) ?? typeof(string);
+            var dataType = fileConnection.DataTypeAlwaysString ? typeof(string) : DataType.ToSystemType(columnDefinition.DataType.Name) ?? typeof(string);
             DataColumn newColumn = new(columnDefinition.ColumnName)
             {
                 DataType = dataType

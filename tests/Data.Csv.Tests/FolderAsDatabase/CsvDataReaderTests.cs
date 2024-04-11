@@ -22,21 +22,21 @@ public class CsvDataReaderTests
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>
-            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
-            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlySecondRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlySecondRow(() =>
-            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReturnSchemaColumnsData()
     {
         DataReaderTests.Reader_ShouldReturnSchemaColumnsData(() =>
-            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), true);
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
     [Fact]

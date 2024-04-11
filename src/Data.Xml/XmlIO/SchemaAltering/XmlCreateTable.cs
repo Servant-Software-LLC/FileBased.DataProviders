@@ -1,7 +1,7 @@
-﻿using Data.Common.FileIO.Create;
+﻿using Data.Common.FileIO.SchemaAltering;
 using System.Data.XmlClient;
 
-namespace Data.Xml.XmlIO.Create;
+namespace Data.Xml.XmlIO.SchemaAltering;
 
 internal class XmlCreateTable : FileCreateTableWriter
 {

@@ -6,7 +6,7 @@ namespace Data.Json.Tests.FileAsDatabase;
 
 public static class DataAdapterTests
 {
-    public static void Update_DataAdapter_Should_Update_Existing_Row<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypesAreAlwaysString = false)
+    public static void Update_DataAdapter_Should_Update_Existing_Row<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange - create connection and commands to insert and update data
@@ -48,7 +48,7 @@ public static class DataAdapterTests
         var row = dataTable.Rows[0];
         Assert.Equal("Boston", row["city"]);
         Assert.Equal("MA", row["state"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "32655" : 32655M, row["zip"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "32655" : 32655M, row["zip"]);
 
         dataSet = new DataSet();
         adapter = employeeSelectCommand.CreateAdapter();
@@ -59,7 +59,7 @@ public static class DataAdapterTests
         Assert.Single(dataTable.Rows);
         row = dataTable.Rows[0];
         Assert.Equal("Alice", row["name"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "60000" : 60000M, row["salary"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "60000" : 60000M, row["salary"]);
 
         // Close the connection
         connection.Close();
@@ -167,7 +167,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
-    public static void Adapter_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypesAreAlwaysString = false)
+    public static void Adapter_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -187,20 +187,20 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.IsType<string>(dataset.Tables![0].Rows[0]["name"]);
         Assert.Equal("Joe@gmail.com", dataset.Tables![0].Rows[0]["email"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[0]["email"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "56000" : 56000M, dataset.Tables[0].Rows[0]["salary"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "True" : true, dataset.Tables[0].Rows[0]["married"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "56000" : 56000M, dataset.Tables[0].Rows[0]["salary"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "True" : true, dataset.Tables[0].Rows[0]["married"]);
 
         //second row
         Assert.Equal("Bob", dataset.Tables[0].Rows[1]["name"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[1]["name"]);
         Assert.Equal("bob32@gmail.com", dataset.Tables[0].Rows[1]["email"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[1]["email"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "95000" : 95000M, dataset.Tables[0].Rows[1]["salary"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "95000" : 95000M, dataset.Tables[0].Rows[1]["salary"]);
         Assert.Equal(DBNull.Value, dataset.Tables[0].Rows[1]["married"]);
         connection.Close();
     }
 
-    public static void DataAdapter_ShouldFillTheDataSet_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, bool dataTypesAreAlwaysString = false)
+    public static void DataAdapter_ShouldFillTheDataSet_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -222,7 +222,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
 
         var row = locationsTable.Rows[0];
         Assert.Equal("New Braunfels", row["city"]);
-        Assert.Equal(dataTypesAreAlwaysString ? "78132" : 78132M, row["zip"]);
+        Assert.Equal(connection.DataTypeAlwaysString ? "78132" : 78132M, row["zip"]);
 
         // Close the connection
         connection.Close();

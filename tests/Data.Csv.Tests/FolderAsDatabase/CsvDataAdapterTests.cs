@@ -21,7 +21,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         {
             DataAdapterTests.Adapter_ShouldReturnData(
                    () => new CsvConnection(ConnectionStrings.Instance.
-                   FolderAsDB), true);
+                   FolderAsDB));
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         {
             DataAdapterTests.DataAdapter_ShouldFillTheDataSet_WithFilter(
                            () => new CsvConnection(ConnectionStrings.Instance.
-                           FolderAsDB), true);
+                           FolderAsDB));
         }
 
         [Fact]
@@ -52,8 +52,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         {
             var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
             DataAdapterTests.Update_DataAdapter_Should_Update_Existing_Row(
-                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId))
-            , true);
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
         }
 
         [Fact]

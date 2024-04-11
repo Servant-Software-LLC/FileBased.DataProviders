@@ -137,6 +137,21 @@ internal class FileStatementCreator
                 continue;
             }
 
+            if (sqlDefinition.Alter != null)
+            {
+                if (sqlDefinition.Alter.ColumnsToAdd.Count > 0)
+                {
+                    yield return new FileAddColumn(sqlDefinition.Alter, commandText);
+                    continue;
+                }
+
+                if (sqlDefinition.Alter.ColumnsToDrop.Count > 0)
+                {
+                    yield return new FileDropColumn(sqlDefinition.Alter, commandText);
+                    continue;
+                }
+            }
+
             throw ThrowHelper.GetQueryNotSupportedException();
         }
 

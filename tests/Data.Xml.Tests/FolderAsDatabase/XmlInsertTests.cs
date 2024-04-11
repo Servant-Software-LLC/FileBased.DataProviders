@@ -22,7 +22,7 @@ public class XmlInsertTests
     public void Insert_ShouldInsertNullData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertNullData(() => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false);
+        InsertTests.Insert_ShouldInsertNullData(() => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
@@ -38,8 +38,7 @@ public class XmlInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_NoLastRow(
-            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)), false
-        );
+            () => new XmlConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)));
 
     }
 
@@ -48,8 +47,7 @@ public class XmlInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_LastRow_Decimal(
-            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), false
-        );
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
 }

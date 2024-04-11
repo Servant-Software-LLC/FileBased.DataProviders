@@ -1,5 +1,5 @@
 ﻿using Data.Common.Utils;
-using Data.Json.JsonIO.Create;
+using Data.Json.JsonIO.SchemaAltering;
 
 namespace System.Data.JsonClient;
 
@@ -57,6 +57,8 @@ public class JsonCommand : FileCommand<JsonParameter>
         FileInsert insertStatement => new JsonInsert(insertStatement, (JsonConnection)Connection!, this),
         FileUpdate updateStatement => new JsonUpdate(updateStatement, (JsonConnection)Connection!, this),
         FileCreateTable createTableStatement => new JsonCreateTable(createTableStatement, (JsonConnection)Connection!, this),
+        FileDropColumn dropTableStatement => new JsonDropColumn(dropTableStatement, (JsonConnection)Connection!, this),
+        FileAddColumn addColumnStatement => new JsonAddColumn(addColumnStatement, (JsonConnection)Connection!, this),
 
         _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")
     };

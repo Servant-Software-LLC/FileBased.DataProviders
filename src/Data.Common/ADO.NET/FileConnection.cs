@@ -122,6 +122,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public bool CaseInsensitive => true;
 
     /// <summary>
+    /// Indicates whether all data columns are always a string.
+    /// </summary>
+    public virtual bool DataTypeAlwaysString => false;
+
+    /// <summary>
     /// Begins a new transaction.
     /// </summary>
     /// <returns>The new transaction.</returns>

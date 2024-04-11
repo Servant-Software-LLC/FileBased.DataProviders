@@ -1,7 +1,7 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
 
 namespace Data.Common.FileIO.Write;
-public class FileUpdateWriter : FileWriter
+public abstract class FileUpdateWriter : FileWriter
 {
     private readonly FileUpdate fileUpdate;
 
