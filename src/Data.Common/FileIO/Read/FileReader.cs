@@ -1,5 +1,4 @@
 ﻿using Data.Common.Utils;
-using SqlBuildingBlocks;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;

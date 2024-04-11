@@ -22,7 +22,7 @@ public class CsvInsertTests
     public void Insert_ShouldInsertNullData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldInsertNullData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)), true);
+        InsertTests.Insert_ShouldInsertNullData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
@@ -38,8 +38,7 @@ public class CsvInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_NoLastRow(
-            () => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)),
-        true);
+            () => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)));
     }
 
     [Fact]
@@ -47,7 +46,6 @@ public class CsvInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_IndentityColumn_LastRow_Decimal(
-            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)),
-        true);
+            () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 }

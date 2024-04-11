@@ -1,7 +1,7 @@
-﻿using Data.Common.FileIO.Create;
+﻿using Data.Common.FileIO.SchemaAltering;
 using System.Data.CsvClient;
 
-namespace Data.Csv.CsvIO.Create;
+namespace Data.Csv.CsvIO.SchemaAltering;
 
 internal class CsvCreateTable : FileCreateTableWriter
 {

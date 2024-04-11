@@ -47,6 +47,6 @@ public partial class CsvTransactionTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         TransactionTests.
-                Transaction_MultipleInserts_GeneratingIdentity(() => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)), true);
+                Transaction_MultipleInserts_GeneratingIdentity(() => new CsvConnection(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId)));
     }
 }

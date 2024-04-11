@@ -21,9 +21,9 @@ internal class CsvReader : FileReader
         using (var reader = new StreamReader(path))
         using (var csv = new CsvHelper.CsvReader(reader, config))
         {
-            using (var dr = new CsvHelper.CsvDataReader(csv))
+            using (var dataReader = new CsvHelper.CsvDataReader(csv))
             {
-                dataTable.Load(dr);
+                dataTable.Load(dataReader);
             }
         }
 

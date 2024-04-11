@@ -189,8 +189,7 @@ public static class TransactionTests
         connection.Close();
     }
 
-    public static void Transaction_MultipleInserts_GeneratingIdentity<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection,
-                                                                                      bool dataTypeAlwaysString = false)
+    public static void Transaction_MultipleInserts_GeneratingIdentity<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         using (var connection = createFileConnection())
@@ -210,7 +209,7 @@ public static class TransactionTests
 
                     //first Row
                     Assert.True(reader.Read());
-                    Assert.Equal(dataTypeAlwaysString ? "1" : 1m, reader["BlogId"]);
+                    Assert.Equal(connection.DataTypeAlwaysString ? "1" : 1m, reader["BlogId"]);
 
                     //There should be no second row.
                     Assert.False(reader.Read());
@@ -226,7 +225,7 @@ public static class TransactionTests
 
                     //first Row
                     Assert.True(reader.Read());
-                    Assert.Equal(dataTypeAlwaysString ? "2" : 2m, reader["BlogId"]);
+                    Assert.Equal(connection.DataTypeAlwaysString ? "2" : 2m, reader["BlogId"]);
 
                     //There should be no second row.
                     Assert.False(reader.Read());
@@ -243,11 +242,11 @@ public static class TransactionTests
             Assert.Equal(2, dataSet.Tables[0].Rows.Count);
 
             var firstRow = dataSet.Tables[0].Rows[0];
-            Assert.Equal(dataTypeAlwaysString ? "1" : 1m, firstRow["BlogId"]);
+            Assert.Equal(connection.DataTypeAlwaysString ? "1" : 1m, firstRow["BlogId"]);
             Assert.Equal("http://blogs.msdn.com/adonet", firstRow["Url"]);
 
             var secondRow = dataSet.Tables[0].Rows[1];
-            Assert.Equal(dataTypeAlwaysString ? "2" : 2m, secondRow["BlogId"]);
+            Assert.Equal(connection.DataTypeAlwaysString ? "2" : 2m, secondRow["BlogId"]);
             Assert.Equal("https://www.billboard.com/", secondRow["Url"]);
 
         }

@@ -1,7 +1,7 @@
-﻿using Data.Common.FileIO.Create;
+﻿using Data.Common.FileIO.SchemaAltering;
 using System.Data.JsonClient;
 
-namespace Data.Json.JsonIO.Create;
+namespace Data.Json.JsonIO.SchemaAltering;
 
 internal class JsonCreateTable : FileCreateTableWriter
 {

@@ -28,8 +28,9 @@ public class SqlGrammar : Grammar
         UpdateStmt updateStmt = new(this, selectStmt);
         DeleteStmt deleteStmt = new(this, updateStmt.TableName, updateStmt.WhereClauseOpt, updateStmt.ReturningClauseOpt);
         CreateTableStmt createTableStmt = new(this, id, dataType);
+        AlterStmt alterStmt = new(this, id, dataType);
 
-        Stmt stmt = new(this, selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt);
+        Stmt stmt = new(this, selectStmt, insertStmt, updateStmt, deleteStmt, createTableStmt, alterStmt);
         StmtLine stmtLine = new(this, stmt);
 
         Root = stmtLine;

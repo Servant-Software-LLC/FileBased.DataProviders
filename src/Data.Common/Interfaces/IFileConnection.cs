@@ -12,4 +12,5 @@ public interface IFileConnection : IDbConnection
     FileReader FileReader { get; }
     LoggerServices LoggerServices { get; }
     bool CaseInsensitive { get; }
+    bool DataTypeAlwaysString { get; }
 }
