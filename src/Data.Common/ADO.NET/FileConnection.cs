@@ -216,6 +216,41 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     }
 
     /// <summary>
+    /// Lists all the possible schema categories
+    /// </summary>
+    /// <returns></returns>
+    public override DataTable GetSchema()
+    {
+        DataTable schemaCollections = new DataTable("MetaDataCollections");
+        schemaCollections.Columns.Add(new DataColumn("CollectionName", typeof(string)));
+        schemaCollections.Columns.Add(new DataColumn("NumberOfRestrictions", typeof(int)));
+        schemaCollections.Columns.Add(new DataColumn("NumberOfIdentifierParts", typeof(int)));
+
+        // Populate the table with information about each schema collection.
+        schemaCollections.Rows.Add("Tables", 0, 0); // Example: No restrictions, adjust if needed
+        schemaCollections.Rows.Add("Columns", 0, 0); // Example: No restrictions, adjust if needed
+
+        // Add more collections as supported by your provider.
+        // For example, Indexes, Views, Procedures, etc., if applicable.
+
+        return schemaCollections;
+    }
+
+    public DataTable GetSchema(string collectionName)
+    {
+        switch (collectionName.ToUpperInvariant())
+        {
+            case "TABLES":
+                return GetTablesSchema();
+            case "COLUMNS":
+                return GetColumnsSchema();
+            default:
+                throw new ArgumentException("Unsupported schema collection");
+        }
+    }
+
+
+    /// <summary>
     /// Disposes the connection.
     /// </summary>
     protected new void Dispose()
@@ -237,6 +272,34 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
 
         //Assume that this is referring to FolderAsDatabase
         return PathType.Directory;
+    }
+
+    private DataTable GetTablesSchema()
+    {
+        string query = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES";
+        return ExecuteQuery(query);
+    }
+
+    private DataTable GetColumnsSchema()
+    {
+        string query = "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS";
+        return ExecuteQuery(query);
+    }
+
+    private DataTable ExecuteQuery(string query)
+    {
+        DataTable schemaTable = new DataTable();
+        using (var command = CreateCommand(query))
+        {
+            command.Connection = this;
+            Open(); // Ensure connection is open
+            using (var reader = command.ExecuteReader())
+            {
+                schemaTable.Load(reader);
+            }
+            Close(); // Close the connection explicitly if not using 'using' statement
+        }
+        return schemaTable;
     }
 
 }
