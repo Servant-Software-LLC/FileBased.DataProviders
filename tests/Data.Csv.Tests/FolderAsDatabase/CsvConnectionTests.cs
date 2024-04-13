@@ -32,4 +32,14 @@ public class CsvConnectionTests
     public void ChangeDatabase_DatabaseDoesNotExist_AutoCreate() =>
         ConnectionTests.ChangeDatabase_DatabaseDoesNotExist_AutoCreate(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.bogusFolderDB);
+
+    [Fact]
+    public void GetSchema_Tables() =>
+        ConnectionTests.GetSchema_Tables(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+
+    [Fact]
+    public void GetSchema_Columns() =>
+        ConnectionTests.GetSchema_Columns(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
 }

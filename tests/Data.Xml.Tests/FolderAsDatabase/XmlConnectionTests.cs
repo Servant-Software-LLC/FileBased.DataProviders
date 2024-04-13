@@ -32,4 +32,14 @@ public class XmlConnectionTests
     public void ChangeDatabase_DatabaseDoesNotExist_AutoCreate() =>
         ConnectionTests.ChangeDatabase_DatabaseDoesNotExist_AutoCreate(() =>
             new XmlConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.bogusFolderDB);
+
+    [Fact]
+    public void GetSchema_Tables() =>
+        ConnectionTests.GetSchema_Tables(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+
+    [Fact]
+    public void GetSchema_Columns() =>
+        ConnectionTests.GetSchema_Columns(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
 }
