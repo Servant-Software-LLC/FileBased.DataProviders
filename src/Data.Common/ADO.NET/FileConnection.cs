@@ -236,7 +236,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         return schemaCollections;
     }
 
-    public DataTable GetSchema(string collectionName)
+    public override DataTable GetSchema(string collectionName)
     {
         switch (collectionName.ToUpperInvariant())
         {
