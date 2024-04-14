@@ -268,6 +268,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var dataSet = new DataSet();
         var connection = createFileConnection();
         var adapter = connection.CreateDataAdapter("SELECT * FROM employees");
+
         // Act
         var tables = adapter.FillSchema(dataSet, SchemaType.Source);
 
