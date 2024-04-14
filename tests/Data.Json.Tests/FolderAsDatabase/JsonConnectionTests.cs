@@ -33,4 +33,14 @@ public class JsonConnectionTests
         ConnectionTests.ChangeDatabase_DatabaseDoesNotExist_AutoCreate(() =>
             new JsonConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.bogusFolderDB);
 
+    [Fact]
+    public void GetSchema_Tables() =>
+        ConnectionTests.GetSchema_Tables(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+
+    [Fact]
+    public void GetSchema_Columns() =>
+        ConnectionTests.GetSchema_Columns(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+
 }
