@@ -159,7 +159,6 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     {
         log.LogInformation($"{GetType()}.{nameof(Dispose)}() called.  CommandText = {CommandText}");
 
-        FileConnection?.Close();
         CommandText = string.Empty;
         Parameters.Clear();
     }
