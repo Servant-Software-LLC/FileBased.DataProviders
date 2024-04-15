@@ -292,12 +292,10 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         using (var command = CreateCommand(query))
         {
             command.Connection = this;
-            Open(); // Ensure connection is open
             using (var reader = command.ExecuteReader())
             {
                 schemaTable.Load(reader);
             }
-            Close(); // Close the connection explicitly if not using 'using' statement
         }
         return schemaTable;
     }
