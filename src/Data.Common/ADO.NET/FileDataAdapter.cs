@@ -9,7 +9,7 @@ namespace System.Data.FileClient;
 /// Represents a base class for file-based data adapters.
 /// </summary>
 /// <typeparam name="TFileParameter">The type of the file parameter.</typeparam>
-public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposable
+public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private ILogger<FileDataAdapter<TFileParameter>> log => connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
@@ -82,46 +82,6 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     }
 
     /// <summary>
-    /// Gets or sets the select command.
-    /// </summary>
-    /// <value>
-    /// The select command.
-    /// </value>
-    public IDbCommand? SelectCommand { get; set; }
-
-    /// <summary>
-    /// Gets or sets the update command.
-    /// </summary>
-    /// <value>
-    /// The update command.
-    /// </value>
-    public IDbCommand? UpdateCommand { get; set; }
-
-    /// <summary>
-    /// Gets or sets the missing mapping action.
-    /// </summary>
-    /// <value>
-    /// The missing mapping action.
-    /// </value>
-    public MissingMappingAction MissingMappingAction { get; set; }
-
-    /// <summary>
-    /// Gets or sets the missing schema action.
-    /// </summary>
-    /// <value>
-    /// The missing schema action.
-    /// </value>
-    public MissingSchemaAction MissingSchemaAction { get; set; }
-
-    /// <summary>
-    /// Gets the table mappings.
-    /// </summary>
-    /// <value>
-    /// The table mappings.
-    /// </value>
-    public ITableMappingCollection TableMappings { get; }
-
-    /// <summary>
     /// Fills the specified data set.
     /// </summary>
     /// <param name="dataSet">The data set.</param>
@@ -137,7 +97,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     /// or
     /// {nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.
     /// </exception>
-    public int Fill(DataSet dataSet)
+    public override int Fill(DataSet dataSet)
     {
         if (connection == null)
             throw new InvalidOperationException($"A connection cannot be inferred when calling the {nameof(Fill)} method");
@@ -194,7 +154,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     /// or
     /// {nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.
     /// </exception>
-    public DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
+    public override DataTable[] FillSchema(DataSet dataSet, SchemaType schemaType)
     {
         if (SelectCommand == null)
             throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
@@ -241,7 +201,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     /// Gets the fill parameters.
     /// </summary>
     /// <returns></returns>
-    public IDataParameter[] GetFillParameters()
+    public override IDataParameter[] GetFillParameters()
     {
         IDataParameter[]? value = null;
         if (SelectCommand != null)
@@ -273,7 +233,7 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
     /// or
     /// {nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.
     /// </exception>
-    public int Update(DataSet dataSet)
+    public override int Update(DataSet dataSet)
     {
         // dataSet.Tables.Clear();
         if (dataSet == null)
@@ -363,10 +323,4 @@ public abstract class FileDataAdapter<TFileParameter> : IDataAdapter, IDisposabl
         return columnNames;
     }
 
-    /// <summary>
-    /// Disposes this instance.
-    /// </summary>
-    public void Dispose()
-    {
-    }
 }
