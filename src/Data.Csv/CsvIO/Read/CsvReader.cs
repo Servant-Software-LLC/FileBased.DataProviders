@@ -51,8 +51,15 @@ internal class CsvReader : FileReader
     protected override void ReadFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
+
         var dataTable = new DataTable(tableName);
-        FillDataTable(path,dataTable);
+
+        //Check if the contents of the file contains any non-whitespace characters
+        if (HasNonWhitespaceCharacter(path))
+        {
+            FillDataTable(path, dataTable);
+        }
+
         DataSet!.Tables.Add(dataTable);
     }
 
@@ -77,4 +84,20 @@ internal class CsvReader : FileReader
         throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
 
     #endregion
+
+    private static bool HasNonWhitespaceCharacter(string path)
+    {
+        using (StreamReader reader = new StreamReader(path))
+        {
+            int character;
+            while ((character = reader.Read()) != -1)
+            {
+                if (!char.IsWhiteSpace((char)character))
+                {
+                    return true; // Short-circuit as soon as we find a non-whitespace character
+                }
+            }
+        }
+        return false; // No non-whitespace character found
+    }
 }

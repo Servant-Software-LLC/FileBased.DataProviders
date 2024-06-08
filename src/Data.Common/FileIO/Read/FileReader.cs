@@ -135,6 +135,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 DataSet ??= new DataSet();
 
+                //Optimization:  Only need to check if the file exists in the folder.  We don't need to load the table into memory.
                 return ExistsInFolder(tableName);
             }
 
@@ -151,6 +152,42 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
     }
 
+    public int? ColumnsOnTable(string tableName)
+    {
+        FileWriter._rwLock.EnterReadLock();
+
+        try
+        {
+            EnsureFileSystemWatcher();
+
+            if (fileConnection.FolderAsDatabase)
+            {
+                DataSet ??= new DataSet();
+
+                if (!ExistsInFolder(tableName))
+                    return null;
+
+                if (DataSet.Tables.Contains(tableName))
+                    DataSet.Tables.Remove(tableName);
+
+                ReadFromFolder(tableName);
+            } 
+            else if (DataSet == null)
+            {
+                ReadFromFile();
+
+            }
+
+            if (!DataSet.Tables.Contains(tableName))
+                return null;
+
+            return DataSet.Tables[tableName].Columns.Count;
+        }
+        finally
+        {
+            FileWriter._rwLock.ExitReadLock();
+        }
+    }
 
     private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
     {

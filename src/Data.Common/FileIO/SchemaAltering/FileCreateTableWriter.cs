@@ -38,16 +38,29 @@ public abstract class FileCreateTableWriter : FileWriter
             newTable.Columns.Add(newColumn);
         }
 
-        var tableExists = fileReader.TableExists(fileStatement.FromTable.TableName);
+        var columnsOnTable = fileReader.ColumnsOnTable(fileStatement.FromTable.TableName);
 
-        if (tableExists)
-            throw new InvalidOperationException($"The database already contains a table named {tableName}. Statement = {fileStatement}");
+        bool tableWithNoColumns = false;
+        if (columnsOnTable.HasValue)
+        {
+            //Only allow the table to be 'created' if there are no columns on the table.
+            if (columnsOnTable.Value > 0)
+                throw new InvalidOperationException($"The database already contains a table named {tableName}. Statement = {fileStatement}");
+
+            tableWithNoColumns = true;
+        }
 
         try
         {
             _rwLock.EnterWriteLock();
             //as we have modified the json file so we don't need to update the tables
             fileReader.StopWatching();
+
+            if (tableWithNoColumns)
+            {
+                //Remove the table from the DataSet.
+                fileReader.DataSet.Tables.Remove(tableName);
+            }
 
             fileReader.DataSet.Tables.Add(newTable);
         }
