@@ -14,6 +14,7 @@
 	  
     <!-- Data.Csv -->
     <PackageReference Update="CsvHelper" Version="30.0.1" />
+    <PackageReference Update="Microsoft.Data.Analysis" Version="0.21.1" />
 
 	<!-- Data.Json -->
 	<PackageReference Update="System.Text.Json" Version="8.0.3" />

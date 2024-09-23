@@ -37,17 +37,17 @@ public static class AlterTableTests
             command = connection.CreateCommand(selectColumns);
             using var reader = command.ExecuteReader();
 
-            Assert.True(reader.Read());
+            Assert.True(reader.Read(), "Unable to read the first record.");
             Assert.Equal(tableName, reader.GetString(0));
             Assert.Equal(columnName, reader.GetString(1));
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(int)).FullName, reader.GetString(2));
 
-            Assert.True(reader.Read());
+            Assert.True(reader.Read(), "Unable to read the second record.");
             Assert.Equal(tableName, reader.GetString(0));
             Assert.Equal("Id", reader.GetString(1));
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(int)).FullName, reader.GetString(2));
 
-            Assert.False(reader.Read());
+            Assert.False(reader.Read(), "There shouldn't have been a third record.");
         }
 
     }

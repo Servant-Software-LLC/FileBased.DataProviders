@@ -1,4 +1,6 @@
 ﻿using CsvHelper.Configuration;
+using Data.Csv.Utils;
+using Microsoft.Data.Analysis;
 using System.Data.CsvClient;
 using System.Globalization;
 
@@ -11,40 +13,90 @@ internal class CsvReader : FileReader
     {
     }
 
-    void FillDataTable(string path, DataTable dataTable)
+    private DataTable FillDataTable(string path, string tableName)
     {
+        //Determine the schema of the DataTable
+        DataTable results = new DataTable(tableName);
+        CreateDataTableSchema(path, results);
+
+        bool hasHeader = results.Columns.Count > 0;
+
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             MissingFieldFound = null,
+            HasHeaderRecord = hasHeader
         };
 
+        // Read the raw data into a temporary DataTable
+        var dataTable = new DataTable();
         using (var reader = new StreamReader(path))
         using (var csv = new CsvHelper.CsvReader(reader, config))
         {
+            // Initialize CsvDataReader with the CsvReader and DataTable schema
             using (var dataReader = new CsvHelper.CsvDataReader(csv))
             {
+                // Load data into DataTable
                 dataTable.Load(dataReader);
             }
         }
 
-        //Post processing to replace String.Empty with DBNull.Value on DataTable, because for some unknown reason,
-        //the values in the DataRows when there are two consecutive commas mostly end up being a DBNull, but for a
-        //unit test, Insert_ShouldInsertNullData, it will sometimes be String.Empty.
+        // Copy the data from the temporary DataTable to the results DataTable
         foreach (DataRow row in dataTable.Rows)
         {
+            var newRow = results.NewRow();
             foreach (DataColumn column in dataTable.Columns)
             {
-                if (row[column] is string value && string.IsNullOrEmpty(value))
+                // Check for empty strings and set them to DBNull
+                if (row[column] is string value && string.IsNullOrEmpty(value) || row[column] == null)
                 {
                     //Temporarily toggle the ReadOnly property to false, so we can change its value.
                     bool wasReadOnly = column.ReadOnly;
                     column.ReadOnly = false;
-                    row[column] = DBNull.Value;
+                    newRow[column.ColumnName] = DBNull.Value;
                     column.ReadOnly = wasReadOnly;
                 }
+                else
+                {
+                    var rawValue = row[column];
+                    var expectedType = results.Columns[column.ColumnName].DataType;
+
+                    // Convert value to the correct type
+                    var convertedValue = rawValue == DBNull.Value ? DBNull.Value : Convert.ChangeType(rawValue, expectedType);
+                    newRow[column.ColumnName] = convertedValue;
+                }
             }
+
+            results.Rows.Add(newRow);
         }
 
+        return results;
+    }
+
+    private void CreateDataTableSchema(string path, DataTable dataTable, long numberOfRowsToReadForInference = 10)
+    {
+
+
+        // Load CSV into DataFrame to infer data types
+        DataFrame df = CsvDataFrameLoader.LoadDataFrameWithQuotedFields(path, numberOfRowsToReadForInference);
+
+        foreach (DataFrameColumn column in df.Columns)
+        {
+            DataColumn dataColumn = new DataColumn
+            {
+                ColumnName = column.Name,
+                DataType = GetClrType(column.DataType)
+            };
+            dataTable.Columns.Add(dataColumn);
+        }
+    }
+
+    private Type GetClrType(Type dataFrameColumnType)
+    {
+        // Convert float to decimal
+        if (dataFrameColumnType == typeof(float))
+            return typeof(decimal);
+
+        return dataFrameColumnType;
     }
 
     #region Folder Read Update
@@ -52,22 +104,21 @@ internal class CsvReader : FileReader
     {
         var path = fileConnection.GetTablePath(tableName);
 
-        var dataTable = new DataTable(tableName);
+        DataTable dataTable = null;
 
         //Check if the contents of the file contains any non-whitespace characters
         if (HasNonWhitespaceCharacter(path))
         {
-            FillDataTable(path, dataTable);
+            dataTable = FillDataTable(path, tableName);
         }
 
-        DataSet!.Tables.Add(dataTable);
+        DataSet!.Tables.Add(dataTable ?? new DataTable(tableName));
     }
 
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
-        var dataTable = new DataTable(tableName);
-        FillDataTable(path, dataTable);
+        var dataTable = FillDataTable(path, tableName);
         //remove if exist
         if (DataSet!.Tables[tableName]!=null)
         DataSet!.Tables.Remove(tableName);
