@@ -18,7 +18,7 @@ public abstract class FileAddColumnWriter : FileWriter
     {
         log.LogDebug($"{nameof(FileAddColumnWriter)}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
 
-        //TODO: ALTER TABLE DROP COLUMN is not supported within transactions at the moment.
+        //TODO: ALTER TABLE ADD COLUMN is not supported within transactions at the moment.
 
         try
         {
