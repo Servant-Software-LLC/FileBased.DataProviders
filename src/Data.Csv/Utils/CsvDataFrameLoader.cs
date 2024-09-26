@@ -13,11 +13,34 @@ internal static class CsvDataFrameLoader
         // Step 1: Read the first N lines
         var records = ReadFirstNLines(filePath, numberOfLines);
 
+        if (records.Count == 1)
+        {
+            if (records[0] is string[] columnNames)
+            {
+                return UnableToDetermineColumnTypes(columnNames);
+            }
+        }
+
         // Step 2: Write records to CSV string with quoted fields
         var csvContent = WriteRecordsWithQuotedFields(records);
 
         // Step 3: Load DataFrame from CSV string
         var df = LoadDataFrameFromCsvString(csvContent);
+
+        return df;
+    }
+
+    private static DataFrame UnableToDetermineColumnTypes(string[] columnNames)
+    {
+        DataFrame df = new DataFrame();
+
+        // Loop through the column names and add StringDataFrameColumns to the DataFrame
+        foreach (string columnName in columnNames)
+        {
+            // Create a new column with string data type
+            var column = new StringDataFrameColumn(columnName);
+            df.Columns.Add(column);
+        }
 
         return df;
     }
@@ -63,8 +86,8 @@ internal static class CsvDataFrameLoader
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            HasHeaderRecord = false, // We'll write the header manually
-            ShouldQuote = args => true, // Quote all fields            
+            HasHeaderRecord = true,
+            ShouldQuote = args => (args.Row.Row > 1), // Quote all data fields, skipping the header
         };
 
         var stringBuilder = new StringBuilder();
@@ -73,6 +96,7 @@ internal static class CsvDataFrameLoader
         using (var writer = new StringWriter(stringBuilder))
         using (var csv = new CsvWriter(writer, config))
         {
+            // Enumerate the records
             foreach (var record in records)
             {
                 if (record is not string[])
@@ -101,11 +125,7 @@ internal static class CsvDataFrameLoader
 
     private static DataFrame LoadDataFrameFromCsvString(string csvContent)
     {
-        byte[] byteArray = Encoding.UTF8.GetBytes(csvContent);
-        using (MemoryStream stream = new MemoryStream(byteArray))
-        {
-            var df = DataFrame.LoadCsv(stream);
-            return df;
-        }
+        var df = DataFrame.LoadCsvFromString(csvContent);
+        return df;
     }
 }

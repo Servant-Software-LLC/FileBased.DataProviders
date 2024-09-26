@@ -13,13 +13,21 @@ internal class CsvReader : FileReader
     {
     }
 
+    // Read the data from the folder to create a DataTable
     private DataTable FillDataTable(string path, string tableName)
     {
         //Determine the schema of the DataTable
         DataTable results = new DataTable(tableName);
         CreateDataTableSchema(path, results);
 
-        bool hasHeader = results.Columns.Count > 0;
+        FillDataTable(path, results);
+        return results;
+    }
+
+    // Fill the DataTable with the data from the CSV file
+    private void FillDataTable(string path, DataTable dataTable)
+    {
+        bool hasHeader = dataTable.Columns.Count > 0;
 
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -28,7 +36,7 @@ internal class CsvReader : FileReader
         };
 
         // Read the raw data into a temporary DataTable
-        var dataTable = new DataTable();
+        var tempDataTable = new DataTable();
         using (var reader = new StreamReader(path))
         using (var csv = new CsvHelper.CsvReader(reader, config))
         {
@@ -36,18 +44,18 @@ internal class CsvReader : FileReader
             using (var dataReader = new CsvHelper.CsvDataReader(csv))
             {
                 // Load data into DataTable
-                dataTable.Load(dataReader);
+                tempDataTable.Load(dataReader);
             }
         }
 
         // Copy the data from the temporary DataTable to the results DataTable
-        foreach (DataRow row in dataTable.Rows)
+        foreach (DataRow row in tempDataTable.Rows)
         {
-            var newRow = results.NewRow();
+            var newRow = dataTable.NewRow();
             foreach (DataColumn column in dataTable.Columns)
             {
                 // Check for empty strings and set them to DBNull
-                if (row[column] is string value && string.IsNullOrEmpty(value) || row[column] == null)
+                if (row[column.ColumnName] is string value && string.IsNullOrEmpty(value) || row[column.ColumnName] == null)
                 {
                     //Temporarily toggle the ReadOnly property to false, so we can change its value.
                     bool wasReadOnly = column.ReadOnly;
@@ -57,8 +65,8 @@ internal class CsvReader : FileReader
                 }
                 else
                 {
-                    var rawValue = row[column];
-                    var expectedType = results.Columns[column.ColumnName].DataType;
+                    var rawValue = row[column.ColumnName];
+                    var expectedType = dataTable.Columns[column.ColumnName].DataType;
 
                     // Convert value to the correct type
                     var convertedValue = rawValue == DBNull.Value ? DBNull.Value : Convert.ChangeType(rawValue, expectedType);
@@ -66,16 +74,13 @@ internal class CsvReader : FileReader
                 }
             }
 
-            results.Rows.Add(newRow);
+            dataTable.Rows.Add(newRow);
         }
-
-        return results;
     }
+
 
     private void CreateDataTableSchema(string path, DataTable dataTable, long numberOfRowsToReadForInference = 10)
     {
-
-
         // Load CSV into DataFrame to infer data types
         DataFrame df = CsvDataFrameLoader.LoadDataFrameWithQuotedFields(path, numberOfRowsToReadForInference);
 
@@ -118,11 +123,18 @@ internal class CsvReader : FileReader
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
-        var dataTable = FillDataTable(path, tableName);
-        //remove if exist
-        if (DataSet!.Tables[tableName]!=null)
-        DataSet!.Tables.Remove(tableName);
-        DataSet!.Tables.Add(dataTable);
+
+        // Determine if the table exists in the DataSet, if not create it.
+        var dataTable = DataSet!.Tables[tableName];
+        if (dataTable == null)
+        {
+            var newDataTable = FillDataTable(path, tableName);
+            DataSet!.Tables.Add(newDataTable);
+            return;
+        }
+
+        // Fill the existing DataTable with the new data
+        FillDataTable(path, dataTable);
     }
     #endregion
 
