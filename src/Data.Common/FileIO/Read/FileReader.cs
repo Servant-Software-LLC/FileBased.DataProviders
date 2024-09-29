@@ -2,6 +2,7 @@
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
+using System.Data;
 
 namespace Data.Common.FileIO.Read;
 
@@ -120,6 +121,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                 FileWriter._rwLock.ExitReadLock();
         }
 
+        returnValue.AcceptChanges(); // Sets RowState of all rows to Unchanged
         return returnValue;
     }
 
@@ -272,7 +274,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                 dataSets.Add(SchemaDataSet);
 
             QueryEngine queryEngine = new(dataSets, fileSelect.SqlSelect);
-            return queryEngine.QueryAsDataTable();
+            DataTable dataTable = queryEngine.QueryAsDataTable();
+            return dataTable;
         }
 
         //Parser is not a FileSelect
