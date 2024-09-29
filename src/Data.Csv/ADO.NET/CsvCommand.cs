@@ -47,7 +47,8 @@ public class CsvCommand : FileCommand<CsvParameter>
     public override CsvParameter CreateParameter() => new();
 
     /// <inheritdoc/>
-    public override CsvParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
+    public override CsvParameter CreateParameter(string parameterName, object value) => 
+        value is DbType dbType ? new(parameterName, dbType) : new(parameterName, value);
 
     /// <inheritdoc />
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
