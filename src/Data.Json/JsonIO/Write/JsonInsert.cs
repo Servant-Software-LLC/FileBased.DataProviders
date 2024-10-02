@@ -14,18 +14,29 @@ internal class JsonInsert : FileInsertWriter
 
     protected override object DefaultIdentityValue() => 1;
 
-    protected override bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
-    {
-        if (dataColumn.DataType == typeof(decimal)) 
-        {
-            var lastRowColumnValue = lastRow[dataColumn.ColumnName];
-            if (lastRowColumnValue is decimal decValue)
-                newRow[dataColumn.ColumnName] = decValue + 1m;
+    protected override bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow) => 
+        Default_DecimalHandled(dataColumn, lastRow, newRow);
 
-            return true;
+    protected override void RealizeSchema(DataTable dataTable)
+    {
+        //Add missing columns, since we can now determine the schema
+
+        foreach (var val in fileStatement.GetValues())
+        {
+            var dataColumnType = GetDataColumnType(val.Value);
+            dataTable.Columns.Add(val.Key, dataColumnType);
         }
 
-        return false;
+        foreach (var columnNameHint in fileStatement.ColumnNameHints)
+        {
+            if (dataTable.Columns.Contains(columnNameHint))
+                continue;
+
+            if (ColumnNameIndicatesIdentity(columnNameHint))
+                dataTable.Columns.Add(columnNameHint, typeof(decimal));
+            else
+                dataTable.Columns.Add(columnNameHint);
+        }
     }
 
 }

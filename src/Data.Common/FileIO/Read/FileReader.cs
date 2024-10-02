@@ -2,7 +2,6 @@
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
-using System.Data;
 
 namespace Data.Common.FileIO.Read;
 

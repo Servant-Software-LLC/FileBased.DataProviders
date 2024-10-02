@@ -99,10 +99,6 @@ public static class DataAdapterTests
         var employeeInsertCommand = connection.CreateCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)");
         employeeInsertCommand.ExecuteNonQuery();
 
-        // DEBUG message to show the number of rows in the locations table
-        var employeesTable = connection.FileReader.DataSet.Tables["employees"];
-        Debug.WriteLine($"After inserts.  employees.Rows = {employeesTable.Rows.Count}(expected 5)");
-
         // Fill a dataset with the row from the employee table that we want to update
         var selectEmployeeCommand = connection.CreateCommand("SELECT name, salary FROM employees WHERE name = 'Alice'");
         var adapter = selectEmployeeCommand.CreateAdapter();
@@ -139,9 +135,6 @@ public static class DataAdapterTests
 
         Assert.Equal(1, rowsUpdated);
 
-        // DEBUG message to show the number of rows in the in-memory dataset of the connection
-        employeesTable = connection.FileReader.DataSet.Tables["employees"];
-        Debug.WriteLine($"After updates.  employees.Rows = {employeesTable.Rows.Count}(expected 5)");
 
         // Act - retrieve the updated data using a DataReader
         dataSet = new DataSet();

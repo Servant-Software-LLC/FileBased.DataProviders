@@ -14,7 +14,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
 {
     private ILogger<FileDataAdapter<TFileParameter>> log => connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
 
-    private DataRow? lastDataRowChanged;
     private FileConnection<TFileParameter>? connection;
 
     /// <summary>
@@ -133,8 +132,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
             .ToList()
             .ForEach(dataTable.Columns.Remove);
 
-        dataTable.RowChanged += DataTable_RowChanged;
-
         dataTable.TableName = "Table";
         dataSet.Tables.Clear();
         dataSet.Tables.Add(dataTable);
@@ -235,9 +232,11 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     /// </exception>
     public override int Update(DataSet dataSet)
     {
-        // dataSet.Tables.Clear();
         if (dataSet == null)
             throw new ArgumentNullException($"{nameof(dataSet)} cannot be null");
+
+        if (dataSet.Tables.Count == 0)
+            throw new InvalidOperationException($"{nameof(dataSet)} does not contain any tables.");
 
         if (UpdateCommand == null)
             throw new InvalidOperationException($"Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
@@ -255,30 +254,37 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
 
         log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
 
-        var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
-        if (query is not FileUpdate updateStatement)
+        var dataTable = dataSet.Tables[0];
+        var changedDataRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Modified).ToList();
+        int rowsAffected = 0;
+        foreach (DataRow changedDataRow in changedDataRows)
         {
-            throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
-        }
-
-        //check if source column is set and has parameters
-        if (UpdateCommand.Parameters.Count > 0)
-        {
-            foreach (IDbDataParameter parameter in UpdateCommand.Parameters)
+            //check if source column is set and has parameters
+            if (UpdateCommand.Parameters.Count > 0)
             {
-                if (!string.IsNullOrEmpty(parameter.SourceColumn)
-                    &&
-                    lastDataRowChanged != null
-                    &&
-                    lastDataRowChanged.Table.Columns.Contains(parameter.SourceColumn))
+                foreach (IDbDataParameter parameter in UpdateCommand.Parameters)
                 {
-                    parameter.Value = lastDataRowChanged[parameter.SourceColumn];
+                    if (!string.IsNullOrEmpty(parameter.SourceColumn))
+                    {
+                        if (!dataTable.Columns.Contains(parameter.SourceColumn))
+                            throw new InvalidOperationException($"The source column '{parameter.SourceColumn}' does not exist in the DataTable passed into the Update method.");
+
+                        parameter.Value = changedDataRow[parameter.SourceColumn];
+                    }
                 }
             }
+
+            var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
+            if (query is not FileUpdate updateStatement)
+            {
+                throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
+            }
+
+            var updater = CreateWriter(query);
+            rowsAffected += updater.Execute();
         }
 
-        var updater = CreateWriter(query);
-        return updater.Execute();
+        return rowsAffected;
     }
 
     /// <summary>
@@ -287,14 +293,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     /// <param name="fileQuery">The file query.</param>
     /// <returns></returns>
     protected abstract FileWriter CreateWriter(FileStatement fileQuery);
-
-    private void DataTable_RowChanged(object sender, DataRowChangeEventArgs e)
-    {
-        if (e.Action == DataRowAction.Change)
-        {
-            lastDataRowChanged = e.Row;
-        }
-    }
 
     private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)
     {

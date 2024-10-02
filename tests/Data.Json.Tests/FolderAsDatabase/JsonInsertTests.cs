@@ -51,7 +51,7 @@ public class JsonInsertTests
     [Fact]
     public void Insert_IndentityColumn_NoLastRow()
     {
-        //NOTE: Without a single row, there is no way for the Json Provider to 'know' of an indentity column
+        //TODO: Without a single row, there is no way for the Json Provider to 'know' of an indentity column
     }
 
     [Fact]

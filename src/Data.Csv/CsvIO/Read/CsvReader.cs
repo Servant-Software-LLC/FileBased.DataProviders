@@ -134,6 +134,7 @@ internal class CsvReader : FileReader
         }
 
         // Fill the existing DataTable with the new data
+        dataTable.Rows.Clear();
         FillDataTable(path, dataTable);
     }
     #endregion

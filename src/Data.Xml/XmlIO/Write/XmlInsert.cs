@@ -27,4 +27,7 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
 
         return false;
     }
+
+    protected override void RealizeSchema(DataTable dataTable) => throw new NotImplementedException();
+
 }
