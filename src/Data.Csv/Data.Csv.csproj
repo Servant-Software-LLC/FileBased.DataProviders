@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
     <LangVersion>11.0</LangVersion>	  
@@ -13,6 +13,7 @@
     <None Include="..\..\README.Data.Csv.md" Link="README.Data.Csv.md" Pack="true" PackagePath="\" />
 
     <PackageReference Include="CsvHelper" />
+    <PackageReference Include="Microsoft.Data.Analysis" />
 
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
   </ItemGroup>

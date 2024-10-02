@@ -5,7 +5,7 @@ namespace Data.Common.FileIO.Write;
 public abstract class FileInsertWriter : FileWriter
 {
     private ILogger<FileInsertWriter> log => fileConnection.LoggerServices.CreateLogger<FileInsertWriter>();
-    private readonly FileInsert fileStatement;
+    protected readonly FileInsert fileStatement;
 
     public FileInsertWriter(FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
         : base(fileConnection, fileCommand, fileStatement)
@@ -75,9 +75,9 @@ public abstract class FileInsertWriter : FileWriter
         var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
 
         //Check if we need to add columns on the first INSERT of data into this table.
-        if (SchemaUnknownWithoutData && dataTable.Columns.Count == 0)
+        if (SchemaUnknownWithoutData && dataTable.Rows.Count == 0)
         {
-            AddMissingColumns(dataTable);
+            RealizeSchema(dataTable);
         }
 
         var row = dataTable!.NewRow();
@@ -104,6 +104,20 @@ public abstract class FileInsertWriter : FileWriter
     }
 
     protected abstract bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow);
+
+    public static bool Default_DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
+    {
+        if (dataColumn.DataType == typeof(decimal))
+        {
+            var lastRowColumnValue = lastRow[dataColumn.ColumnName];
+            if (lastRowColumnValue is decimal decValue)
+                newRow[dataColumn.ColumnName] = decValue + 1m;
+
+            return true;
+        }
+
+        return false;
+    }
 
     private void AddMissingIdentityValues(DataTable dataTable, DataRow newRow)
     {
@@ -164,27 +178,9 @@ public abstract class FileInsertWriter : FileWriter
     protected static bool ColumnNameIndicatesIdentity(string columnName) =>
         string.Compare(columnName, "Id", true) == 0 || columnName.EndsWith("Id", StringComparison.InvariantCultureIgnoreCase);
 
-    private void AddMissingColumns(DataTable dataTable)
-    {
-        foreach (var val in fileStatement.GetValues())
-        {
-            var jsonType = GetJsonType(val.Value);
-            dataTable.Columns.Add(val.Key, jsonType);
-        }
+    protected abstract void RealizeSchema(DataTable dataTable);
 
-        foreach (var columnNameHint in fileStatement.ColumnNameHints)
-        {
-            if (dataTable.Columns.Contains(columnNameHint))
-                continue;
-
-            if (ColumnNameIndicatesIdentity(columnNameHint))
-                dataTable.Columns.Add(columnNameHint, typeof(decimal));
-            else
-                dataTable.Columns.Add(columnNameHint);
-        }
-    }
-
-    private Type GetJsonType(object value) => value switch
+    protected Type GetDataColumnType(object value) => value switch
     {
         int => typeof(decimal),
         long => typeof(decimal),

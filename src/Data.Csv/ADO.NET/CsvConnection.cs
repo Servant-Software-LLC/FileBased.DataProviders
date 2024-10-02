@@ -31,7 +31,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc />
     public override string FileExtension => "csv";
 
-    public override bool DataTypeAlwaysString => true;
+    //public override bool DataTypeAlwaysString => true;
 
     /// <inheritdoc />
     public override void Open()

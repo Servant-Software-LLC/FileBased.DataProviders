@@ -40,9 +40,13 @@ internal class JsonReader : FileReader
     protected override void UpdateFromFolder(string tableName)
     {
         var path = fileConnection.GetTablePath(tableName);
+
+        // Read the json file
         using JsonDocument doc = Read(path);
         var element = doc.RootElement;
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+
+        // Determine if the table exists in the DataSet, if not create it.
         var dataTable = DataSet!.Tables[tableName];
         if (dataTable == null)
         {
@@ -50,6 +54,8 @@ internal class JsonReader : FileReader
             dataTable.TableName = tableName;
             DataSet!.Tables.Add(dataTable);
         }
+
+        // Clear the table and fill it with the new data
         dataTable!.Clear();
         Fill(dataTable, element);
     }

@@ -1,63 +1,150 @@
 using System.Data;
 using System.Data.FileClient;
+using System.Diagnostics;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
 
 public static class DataAdapterTests
 {
-    public static void Update_DataAdapter_Should_Update_Existing_Row<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static void Update_DataAdapter_Should_Update_Existing_Row_LocationsTable<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
-        // Arrange - create connection and commands to insert and update data
+        //
+        // Arrange
+        //
+
+        // Create connection 
         var connection = createFileConnection();
         connection.Open();
 
-        var locationInsertCommand = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', 90001)");
-        var employeeInsertCommand = connection.CreateCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)");
+        // Create insert new data row into locations table
+        var insertLocationCommand = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Boston', 'MA', 90001)");
+        insertLocationCommand.ExecuteNonQuery();
 
-        var locationUpdateCommand = connection.CreateCommand("UPDATE locations SET zip = 32655 WHERE city = 'Boston'");
-        var employeeUpdateCommand = connection.CreateCommand("UPDATE employees SET salary = 60000 WHERE name = 'Alice'");
+        // DEBUG message to show the number of rows in the locations table
+        var locationsTable = connection.FileReader.DataSet.Tables["locations"];
+        Debug.WriteLine($"After inserts.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
 
-        var locationSelectCommand = connection.CreateCommand("SELECT city, state, zip FROM locations WHERE zip = 32655");
-        var employeeSelectCommand = connection.CreateCommand("SELECT name, salary FROM employees WHERE name = 'Alice'");
-
-        // Act - insert a row into locations and employees tables
-        locationInsertCommand.ExecuteNonQuery();
-        employeeInsertCommand.ExecuteNonQuery();
-
-        // Update the inserted row using a DataAdapter
-        var adapter = locationSelectCommand.CreateAdapter();
-        adapter.UpdateCommand = locationUpdateCommand;
+        // Fill a dataset with the row from the locations table that we want to update
+        var selectLocationTargetRowCommand = connection.CreateCommand("SELECT city, zip FROM locations WHERE city = 'Boston'");
+        var adapter = selectLocationTargetRowCommand.CreateAdapter();
         var dataSet = new DataSet();
-        adapter.Fill(dataSet);
-        adapter.Update(dataSet);
+        int rowsFilled = adapter.Fill(dataSet);      // Should just create a table named 'Table' with the schema of the locations table and one row in it.
 
-        adapter = employeeSelectCommand.CreateAdapter();
-        adapter.UpdateCommand = employeeUpdateCommand;
-        dataSet = new DataSet();
-        adapter.Fill(dataSet);
-        adapter.Update(dataSet);
+        Assert.Equal(1, rowsFilled);
+        Assert.Equal(rowsFilled, dataSet.Tables[0].Rows.Count);
+        var filledRow = dataSet.Tables[0].Rows[0];
+        Assert.Equal("Boston", filledRow["city"]);
+        Assert.Equal(90001M, filledRow["zip"]);
 
-        // Act - retrieve the updated data using a DataReader
+        //
+        // Act
+        //
+
+        // Update the zip in the DataSet (which is in-memory and is not connected to the database)
+        filledRow["zip"] = 32655;
+
+        // Update the row in the database
+        var updateLocationCommand = connection.CreateCommand("UPDATE locations SET zip = @zip WHERE city = @city");
+        var cityParameter = updateLocationCommand.CreateParameter("city", DbType.String);
+        cityParameter.SourceColumn = "city";
+        updateLocationCommand.Parameters.Add(cityParameter);
+        var zipParameter = updateLocationCommand.CreateParameter("zip", DbType.Int32);
+        zipParameter.SourceColumn = "zip";
+        updateLocationCommand.Parameters.Add(zipParameter);
+        adapter.UpdateCommand = updateLocationCommand;
+        int rowsUpdated = adapter.Update(dataSet);
+
+        // 
+        // Assert
+        //
+
+        Assert.Equal(1, rowsUpdated);
+
+        // DEBUG message to show the number of rows in the in-memory dataset of the connection
+        locationsTable = connection.FileReader.DataSet.Tables["locations"];
+        Debug.WriteLine($"After updates.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
+
+        // Retrieve the updated data using a DataReader
         dataSet = new DataSet();
+        var locationSelectCommand = connection.CreateCommand("SELECT city, state, zip FROM locations WHERE city = 'Boston'");
         adapter = locationSelectCommand.CreateAdapter();
         adapter.Fill(dataSet);
+
+        // Assert - check that the updated data is retrieved correctly
         var dataTable = dataSet.Tables[0];
-        Assert.Single(dataTable.Rows);
+        Assert.True(1 == dataTable.Rows.Count, $"Expected only 1 location with the zip code of 32655.  Actual locations: {dataTable.Rows.Count}");
         var row = dataTable.Rows[0];
         Assert.Equal("Boston", row["city"]);
         Assert.Equal("MA", row["state"]);
         Assert.Equal(connection.DataTypeAlwaysString ? "32655" : 32655M, row["zip"]);
 
+        // Close the connection
+        connection.Close();
+    }
+
+    public static void Update_DataAdapter_Should_Update_Existing_Row_EmployeesTable<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        //
+        // Arrange
+        //
+
+        // Create connection 
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Create insert new data row into employee table
+        var employeeInsertCommand = connection.CreateCommand("INSERT INTO employees (name, salary) VALUES ('Alice', 60)");
+        employeeInsertCommand.ExecuteNonQuery();
+
+        // Fill a dataset with the row from the employee table that we want to update
+        var selectEmployeeCommand = connection.CreateCommand("SELECT name, salary FROM employees WHERE name = 'Alice'");
+        var adapter = selectEmployeeCommand.CreateAdapter();
+        var dataSet = new DataSet();
+        var rowsFilled = adapter.Fill(dataSet);     // Should just create a table named 'Table' with the schema of the employees table and one row in it.
+
+        Assert.Equal(1, rowsFilled);
+        Assert.Equal(rowsFilled, dataSet.Tables[0].Rows.Count);
+        var filledRow = dataSet.Tables[0].Rows[0];
+        Assert.Equal("Alice", filledRow["name"]);
+        Assert.Equal(60M, filledRow["salary"]);
+
+        //
+        // Act
+        //
+
+        // Update the salary in the DataSet (which is in-memory and is not connected to the database)
+        filledRow["salary"] = 60000;
+
+        // Update the row in the database
+        var updateEmployeeCommand = connection.CreateCommand("UPDATE employees SET salary = @salary WHERE name = @name");
+        var nameParameter = updateEmployeeCommand.CreateParameter("name", DbType.String);
+        nameParameter.SourceColumn = "name";
+        updateEmployeeCommand.Parameters.Add(nameParameter);
+        var salaryParameter = updateEmployeeCommand.CreateParameter("salary", DbType.Int32);
+        salaryParameter.SourceColumn = "salary";
+        updateEmployeeCommand.Parameters.Add(salaryParameter);
+        adapter.UpdateCommand = updateEmployeeCommand;
+        int rowsUpdated = adapter.Update(dataSet);
+
+        // 
+        // Assert
+        //
+
+        Assert.Equal(1, rowsUpdated);
+
+
+        // Act - retrieve the updated data using a DataReader
         dataSet = new DataSet();
-        adapter = employeeSelectCommand.CreateAdapter();
+        adapter = selectEmployeeCommand.CreateAdapter();
         adapter.Fill(dataSet);
-        dataTable = dataSet.Tables[0];
 
         // Assert - check that the updated data is retrieved correctly
-        Assert.Single(dataTable.Rows);
-        row = dataTable.Rows[0];
+        var dataTable = dataSet.Tables[0];
+        Assert.True(1 == dataTable.Rows.Count, $"Expected only 1 employee with name = 'Alice'.  Actual employees: {dataTable.Rows.Count}");
+        var row = dataTable.Rows[0];
         Assert.Equal("Alice", row["name"]);
         Assert.Equal(connection.DataTypeAlwaysString ? "60000" : 60000M, row["salary"]);
 
@@ -65,7 +152,8 @@ public static class DataAdapterTests
         connection.Close();
     }
 
-    public static void Adapter_ShouldFillDatasetWithInnerJoinFileAsDB<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    //TODO: Shouldn't we test this on the FolderAsDatabase tests?
+    public static void Fill_ShouldPopulateDatasetWithInnerJoinFileAsDB<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -80,8 +168,10 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
 ";
         var adapter = command.CreateAdapter();
         var dataSet = new DataSet();
+
         // Act
         adapter.Fill(dataSet);
+
         // Assert
         var table = dataSet.Tables[0];
         Assert.True(table.Rows.Count > 0, "No records were returned in the INNER JOINs");
@@ -140,7 +230,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         }
     }
 
-    public static void DataAdapter_ShouldFillTheDataSet<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static void Fill_ShouldPopulateTheDataSet<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -148,20 +238,26 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var adapter = connection.CreateDataAdapter("SELECT * FROM locations");
 
         // Act
-        var dataset = new DataSet();
-        adapter.Fill(dataset);
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
 
         // Assert
-        Assert.True(dataset.Tables[0].Rows.Count > 0);
-        Assert.Equal(4, dataset.Tables[0].Columns.Count);
+        var filledTable = dataSet.Tables[0];
+        Assert.True(filledTable.Rows.Count > 0);
+        Assert.Equal(4, filledTable.Columns.Count);
+        foreach(DataRow row in filledTable.Rows)
+        {
+            // Check that the row state is Unchanged.
+            Assert.Equal(DataRowState.Unchanged, row.RowState);
+        }
 
         // Fill the employees table
         adapter.SelectCommand!.CommandText = "SELECT * FROM employees";
-        adapter.Fill(dataset);
+        adapter.Fill(dataSet);
 
         // Assert
-        Assert.True(dataset.Tables[0].Rows.Count > 0);
-        Assert.Equal(4, dataset.Tables[0].Columns.Count);
+        Assert.True(dataSet.Tables[0].Rows.Count > 0);
+        Assert.Equal(4, dataSet.Tables[0].Columns.Count);
 
         // Close the connection
         connection.Close();
@@ -200,7 +296,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
-    public static void DataAdapter_ShouldFillTheDataSet_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static void Fill_ShouldPopulateTheDataSet_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange

@@ -2,6 +2,13 @@
 
 public static class FileConnectionExtensions
 {
+    /// <summary>
+    /// Provides a full file path to the table file.
+    /// </summary>
+    /// <param name="fileConnection"></param>
+    /// <param name="tableName">Name of table</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static string GetTablePath(this IFileConnection fileConnection, string tableName)
     {
         var pathType = GetPathType(fileConnection);

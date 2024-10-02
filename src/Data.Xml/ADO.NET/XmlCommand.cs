@@ -42,7 +42,8 @@ public class XmlCommand : FileCommand<XmlParameter>
     public override XmlParameter CreateParameter() => new();
 
     /// <inheritdoc/>
-    public override XmlParameter CreateParameter(string parameterName, object value) => new(parameterName, value);
+    public override XmlParameter CreateParameter(string parameterName, object value) =>
+        value is DbType dbType ? new(parameterName, dbType) : new(parameterName, value);
 
     /// <inheritdoc/>
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
