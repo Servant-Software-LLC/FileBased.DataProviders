@@ -10,6 +10,7 @@ internal class JsonReader : FileReader
     {
     }
 
+    // Create a JsonDocument from the file (the file could be a database or a table)
     private JsonDocument Read(string path)
     {
         var jsonDocumentOptions = new JsonDocumentOptions
