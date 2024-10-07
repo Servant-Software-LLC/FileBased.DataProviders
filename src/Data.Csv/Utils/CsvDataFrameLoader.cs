@@ -8,10 +8,10 @@ namespace Data.Csv.Utils;
 
 internal static class CsvDataFrameLoader
 {
-    public static DataFrame LoadDataFrameWithQuotedFields(string filePath, long numberOfLines)
+    public static DataFrame LoadDataFrameWithQuotedFields(TextReader textReader, long numberOfLines)
     {
         // Step 1: Read the first N lines
-        var records = ReadFirstNLines(filePath, numberOfLines);
+        var records = ReadFirstNLines(textReader, numberOfLines);
 
         if (records.Count == 1)
         {
@@ -45,7 +45,7 @@ internal static class CsvDataFrameLoader
         return df;
     }
 
-    private static List<dynamic> ReadFirstNLines(string filePath, long numberOfLines)
+    private static List<dynamic> ReadFirstNLines(TextReader textReader, long numberOfLines)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -56,8 +56,7 @@ internal static class CsvDataFrameLoader
             TrimOptions = TrimOptions.Trim,
         };
 
-        using (var reader = new StreamReader(filePath))
-        using (var csv = new CsvHelper.CsvReader(reader, config))
+        using (var csv = new CsvHelper.CsvReader(textReader, config))
         {
             var records = new List<dynamic>();
 

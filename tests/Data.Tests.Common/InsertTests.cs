@@ -145,8 +145,11 @@ public static class InsertTests
         var rowsAffected = command.ExecuteNonQuery();
 
         // Assert
-        var jsonFileContents = File.ReadAllText(connection.GetTablePath(locationsTableName));
-        Assert.Contains("\n", jsonFileContents);
+        using (var textReader = connection.DataSourceProvider.GetTextReader(locationsTableName))
+        {
+            var fileContents = textReader.ReadToEnd();
+            Assert.Contains("\n", fileContents);
+        }
     }
 
     public static void Insert_ShouldBeFormattedForFile<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
@@ -162,8 +165,8 @@ public static class InsertTests
         var rowsAffected = command.ExecuteNonQuery();
 
         // Assert
-        var jsonFileContents = File.ReadAllText(connection.Database);
-        Assert.Contains("\n", jsonFileContents);
+        var fileContents = File.ReadAllText(connection.Database);
+        Assert.Contains("\n", fileContents);
     }
 
     public static void Insert_IndentityColumn_NoLastRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)

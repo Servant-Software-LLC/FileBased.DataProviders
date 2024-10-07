@@ -1,4 +1,6 @@
-﻿namespace Data.Common.FileException;
+﻿using Data.Common.DataSource;
+
+namespace Data.Common.FileException;
 
 internal static class ThrowHelper
 {
@@ -7,9 +9,9 @@ internal static class ThrowHelper
     //private const string COLUMN_NOT_FOUND = "{0} Not found";
     //private const string INVALID_CON_STRING = "The connection string is not a valid connection string. It should be like 'DataSource=<FilePath>;'";
 
-    public static void ThrowIfInvalidPath(PathType pathType, string pathToDatabase)
+    public static void ThrowIfInvalidPath(DataSourceType pathType, string pathToDatabase)
     {
-        if (pathType==PathType.None)
+        if (pathType==DataSourceType.None)
         {
             throw new InvalidConnectionStringException(pathToDatabase);
         }

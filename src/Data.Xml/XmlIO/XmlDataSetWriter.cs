@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Data.Common.DataSource;
+using Microsoft.Extensions.Logging;
 
 namespace Data.Xml.XmlIO;
 
@@ -16,7 +17,7 @@ internal class XmlDataSetWriter : IDataSetWriter
 
     public void WriteDataSet(DataSet dataSet)
     {
-        if (fileConnection.PathType == PathType.Directory)
+        if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
             SaveFolderAsDB(fileQuery.FromTable.TableName, dataSet);
         }
@@ -31,9 +32,9 @@ internal class XmlDataSetWriter : IDataSetWriter
         try
         {
             log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
-            using (var fileStream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
+            using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(string.Empty))
             {
-                dataSet.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+                dataSet.WriteXml(textWriter, XmlWriteMode.WriteSchema);
             }
         }
         catch (Exception ex)
@@ -43,7 +44,7 @@ internal class XmlDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string? tableName, DataSet dataSet)
+    private void SaveFolderAsDB(string tableName, DataSet dataSet)
     {
         try
         {
@@ -53,11 +54,10 @@ internal class XmlDataSetWriter : IDataSetWriter
 
             foreach (DataTable table in tablesToWrite)
             {
-                var path = fileConnection.GetTablePath(table.TableName);
-                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
-                using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
+                using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
                 {
-                    table.WriteXml(fileStream, XmlWriteMode.WriteSchema);
+                    table.WriteXml(textWriter, XmlWriteMode.WriteSchema);
                 }
             }
         }
