@@ -1,4 +1,5 @@
-﻿using Irony.Parsing;
+﻿using Data.Common.DataSource;
+using Irony.Parsing;
 
 namespace Data.Common.FileStatements;
 
@@ -22,11 +23,11 @@ public class FileCreateDatabase<TFileParameter> : FileAdminStatement<TFileParame
         if (string.IsNullOrEmpty(database))
             throw new ArgumentNullException(nameof(database), $"The database must be specified!");
 
-        var pathType = FileConnection<TFileParameter>.GetPathType(database, fileConnection.FileExtension);
+        var pathType = GetDataSourceType(database, fileConnection.FileExtension);
 
         switch (pathType)
         {
-            case PathType.File:
+            case DataSourceType.File:
 
                 //If the database file already exists.
                 if (File.Exists(database))
@@ -36,7 +37,7 @@ public class FileCreateDatabase<TFileParameter> : FileAdminStatement<TFileParame
                 fileConnection.CreateFileAsDatabase(database);
                 break;
 
-            case PathType.Directory:
+            case DataSourceType.Directory:
 
                 //If the database folder already exists.
                 if (Directory.Exists(database))

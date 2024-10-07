@@ -1,4 +1,5 @@
-﻿using Irony.Parsing;
+﻿using Data.Common.DataSource;
+using Irony.Parsing;
 
 namespace Data.Common.FileStatements;
 
@@ -19,11 +20,11 @@ public class FileDropDatabase<TFileParameter> : FileAdminStatement<TFileParamete
             throw new ArgumentNullException(nameof(Database), $"The database must be specified!");
 
         var providerFileExtension = fileCommand.FileConnection.FileExtension;
-        var pathType = FileConnection<TFileParameter>.GetPathType(Database, providerFileExtension);
+        var pathType = GetDataSourceType(Database, providerFileExtension);
 
         switch (pathType)
         {
-            case PathType.File:
+            case DataSourceType.File:
 
                 //If the database file doesn't exists, just return that nothing was done.
                 if (!File.Exists(Database))
@@ -34,7 +35,7 @@ public class FileDropDatabase<TFileParameter> : FileAdminStatement<TFileParamete
 
                 break;
 
-            case PathType.Directory:
+            case DataSourceType.Directory:
 
                 //If the database folder doesn't exist, just return that nothing was done.
                 if (!Directory.Exists(Database))

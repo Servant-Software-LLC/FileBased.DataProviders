@@ -1,4 +1,4 @@
-using Data.Common.Enum;
+using Data.Common.DataSource;
 using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
 
@@ -20,7 +20,7 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual string bogusFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Database_BOGUS.{Guid.NewGuid()}.{Extension}");
     public virtual string withTrailingCommaFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithTrailingComma");
 
-    public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(PathType.Admin)}:" };
+    public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(DataSourceType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = File };

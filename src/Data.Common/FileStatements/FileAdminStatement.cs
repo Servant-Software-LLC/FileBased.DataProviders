@@ -1,4 +1,5 @@
-﻿using Data.Common.Parsing;
+﻿using Data.Common.DataSource;
+using Data.Common.Parsing;
 using Irony.Parsing;
 
 namespace Data.Common.FileStatements;
@@ -56,4 +57,19 @@ public abstract class FileAdminStatement<TFileParameter>
 
         return command;        
     }
+
+    internal static DataSourceType GetDataSourceType(string database, string providerFileExtension)
+    {
+        if (FileConnectionExtensions.IsAdmin(database))
+            return DataSourceType.Admin;
+
+        //Does this look like a file with the appropriate file extension?
+        var fileExtension = Path.GetExtension(database);
+        if (!string.IsNullOrEmpty(fileExtension) && string.Compare(fileExtension, $".{providerFileExtension}", true) == 0)
+            return DataSourceType.File;
+
+        //Assume that this is referring to FolderAsDatabase
+        return DataSourceType.Directory;
+    }
+
 }

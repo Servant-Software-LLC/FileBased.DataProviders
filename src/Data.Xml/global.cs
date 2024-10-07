@@ -6,6 +6,5 @@ global using Data.Xml.XmlIO.Read;
 global using Data.Xml.XmlIO.Write;
 global using Data.Xml.XmlIO.Delete;
 global using Data.Common.Interfaces;
-global using Data.Common.Enum;
 global using Data.Common.Extension;
 global using Data.Common.FileIO.Read;

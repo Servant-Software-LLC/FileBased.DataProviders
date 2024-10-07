@@ -1,4 +1,6 @@
-﻿namespace Data.Json.JsonException;
+﻿using Data.Common.DataSource;
+
+namespace Data.Json.JsonException;
 
 internal static class ThrowHelper
 {
@@ -7,10 +9,10 @@ internal static class ThrowHelper
     public static void ThrowIfInvalidJson(JsonElement jsonElement, IFileConnection jsonConnection)
     {
         if (!(jsonElement.ValueKind == JsonValueKind.Object &&
-             jsonConnection.PathType == PathType.File)
+             jsonConnection.DataSourceType == DataSourceType.File)
              &&
              !(jsonElement.ValueKind == JsonValueKind.Array &&
-             jsonConnection.PathType == PathType.Directory)
+             jsonConnection.DataSourceType == DataSourceType.Directory)
              )
         {
             throw new InvalidJsonFileException(INVALID_JSON);

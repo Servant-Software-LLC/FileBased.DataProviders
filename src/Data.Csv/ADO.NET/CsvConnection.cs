@@ -1,6 +1,6 @@
-﻿using Data.Common.Utils.ConnectionString;
+﻿using Data.Common.DataSource;
+using Data.Common.Utils.ConnectionString;
 using Data.Csv.CsvIO;
-using System.Data.Common;
 
 namespace System.Data.CsvClient;
 
@@ -51,7 +51,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc/>
     private void EnsureNotFileAsDatabase()
     {
-        if (PathType == PathType.File)
+        if (DataSourceType == DataSourceType.File)
         {
             throw new InvalidOperationException("File as database is not supported in Csv Provider");
 
@@ -87,7 +87,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     public override FileTransaction<CsvParameter> BeginTransaction(IsolationLevel il) => BeginTransaction();
 
     /// <inheritdoc/>
-    protected override DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
+    protected override System.Data.Common.DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
 
     /// <inheritdoc/>
     public override FileDataAdapter<CsvParameter> CreateDataAdapter(string query) => new CsvDataAdapter(query, this);

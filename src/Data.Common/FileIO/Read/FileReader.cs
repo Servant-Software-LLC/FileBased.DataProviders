@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.DataSource;
+using Data.Common.Utils;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
@@ -25,11 +26,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     /// 
     protected abstract void ReadFromFolder(string tableName);
     protected abstract void UpdateFromFolder(string tableName);
-    protected virtual bool ExistsInFolder(string tableName)
-    {
-        var path = fileConnection.GetTablePath(tableName);
-        return File.Exists(path);
-    }
 
     /// <summary>
     /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
@@ -98,7 +94,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                     }        
                     catch (Exception ex)
                     {
-                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.GetTableFileName(table)}, in '{fileConnection.Database}'", ex);
+                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.DataSourceProvider.StorageIdentifier(table)}, in '{fileConnection.Database}'", ex);
                     }
                 }
             }
@@ -136,8 +132,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 DataSet ??= new DataSet();
 
-                //Optimization:  Only need to check if the file exists in the folder.  We don't need to load the table into memory.
-                return ExistsInFolder(tableName);
+                //Optimization: Only need to check if the file exists in the folder.  We don't need to load the table into memory.
+                return fileConnection.DataSourceProvider.StorageExists(tableName);
             }
 
             if (DataSet == null)
@@ -165,7 +161,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 DataSet ??= new DataSet();
 
-                if (!ExistsInFolder(tableName))
+                // Check if the file exists in the folder.  If it doesn't, then the table doesn't exist.
+                if (!fileConnection.DataSourceProvider.StorageExists(tableName))
                     return null;
 
                 if (DataSet.Tables.Contains(tableName))
@@ -228,7 +225,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     {
         if (tablesToUpdate.Count > 0)
         {
-            if (fileConnection.PathType == PathType.File)
+            if (fileConnection.DataSourceType == DataSourceType.File)
             {
                 UpdateFromFile();
             }

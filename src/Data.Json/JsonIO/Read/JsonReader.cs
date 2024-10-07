@@ -10,26 +10,9 @@ internal class JsonReader : FileReader
     {
     }
 
-    // Create a JsonDocument from the file (the file could be a database or a table)
-    private JsonDocument Read(string path)
-    {
-        var jsonDocumentOptions = new JsonDocumentOptions
-        {
-            CommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true,
-        };
-
-        //ThrowHelper.ThrowIfInvalidPath(path);
-        using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
-        {
-            return JsonDocument.Parse(stream, jsonDocumentOptions);
-        }
-    }
-
     protected override void ReadFromFolder(string tableName)
     {
-        var path = fileConnection.GetTablePath(tableName);
-        using JsonDocument doc = Read(path);
+        using JsonDocument doc = Read(tableName);
         var element = doc.RootElement;
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         var dataTable = CreateNewDataTable(element);
@@ -40,10 +23,8 @@ internal class JsonReader : FileReader
 
     protected override void UpdateFromFolder(string tableName)
     {
-        var path = fileConnection.GetTablePath(tableName);
-
         // Read the json file
-        using JsonDocument doc = Read(path);
+        using JsonDocument doc = Read(tableName);
         var element = doc.RootElement;
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
 
@@ -63,7 +44,7 @@ internal class JsonReader : FileReader
 
     protected override void ReadFromFile()
     {
-        using JsonDocument doc = Read(fileConnection.Database);
+        using JsonDocument doc = Read(string.Empty);
         var element = doc.RootElement;
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         var dataBaseEnumerator = element.EnumerateObject();
@@ -81,7 +62,7 @@ internal class JsonReader : FileReader
     {
         DataSet!.Clear();
 
-        using JsonDocument doc = Read(fileConnection.Database);
+        using JsonDocument doc = Read(string.Empty);
         var element = doc.RootElement;
         Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         foreach (DataTable item in DataSet.Tables)
@@ -93,7 +74,25 @@ internal class JsonReader : FileReader
 
     }
 
-    private IEnumerable<(string name, Type type)> GetFields(JsonElement table)
+    // Create a JsonDocument from the file (the file could be a database or a table)
+    private JsonDocument Read(string tableName)
+    {
+        var jsonDocumentOptions = new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        };
+
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        {
+            //Read the entire content from the TextReader into a string
+            string jsonString = textReader.ReadToEnd();
+
+            return JsonDocument.Parse(jsonString, jsonDocumentOptions);
+        }
+    }
+
+    private static IEnumerable<(string name, Type type)> GetFields(JsonElement table)
     {
         var arrayEnumerator = table.EnumerateArray();
         if (!arrayEnumerator.Any())
@@ -107,7 +106,7 @@ internal class JsonReader : FileReader
         return enumerator.Select(x => (x.Name, x.Value.ValueKind.GetClrFieldType()));
     }
 
-    private void Fill(DataTable dataTable, JsonElement jsonElement)
+    private static void Fill(DataTable dataTable, JsonElement jsonElement)
     {
         //fill datatables
         foreach (var row in jsonElement.EnumerateArray())
@@ -124,7 +123,7 @@ internal class JsonReader : FileReader
 
     }
 
-    private DataTable CreateNewDataTable(JsonElement jsonElement)
+    private static DataTable CreateNewDataTable(JsonElement jsonElement)
     {
         DataTable dataTable = new DataTable();
         foreach (var col in GetFields(jsonElement))

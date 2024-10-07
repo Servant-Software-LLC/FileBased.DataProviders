@@ -1,4 +1,6 @@
-﻿using System.Data.XmlClient;
+﻿using SqlBuildingBlocks;
+using System.Data;
+using System.Data.XmlClient;
 
 namespace Data.Xml.XmlIO.Read;
 
@@ -11,44 +13,52 @@ internal class XmlReader : FileReader
     }
     protected override void ReadFromFolder(string tableName)
     {
-        var path = fileConnection.GetTablePath(tableName);
-        var dataSet = new DataSet();
-        dataSet.ReadXml(path);
-        dataSet.Tables[0].TableName = tableName;
-        DataSet!.Tables.Add(dataSet.Tables[0].Copy());
-        dataSet.Dispose();
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        using (var tempDataSet = new DataSet())
+        {            
+            tempDataSet.ReadXml(textReader);
+            tempDataSet.Tables[0].TableName = tableName;
+            DataSet!.Tables.Add(tempDataSet.Tables[0].Copy());
+        }
     }
+
     protected override void UpdateFromFolder(string tableName)
     {
-        var path = fileConnection.GetTablePath(tableName);
-        var dataSet = new DataSet();
-        dataSet.ReadXml(path);
-      
-      
-        var oldDataTable = DataSet!.Tables[tableName];
-        var newDataTable = dataSet.Tables[0].Copy();
-        if (oldDataTable != null)
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        using (var tempDataSet = new DataSet())
         {
-            oldDataTable = newDataTable.Copy();
+            tempDataSet.ReadXml(textReader);
+
+            var oldDataTable = DataSet!.Tables[tableName];
+            var newDataTable = tempDataSet.Tables[0].Copy();
+            if (oldDataTable != null)
+            {
+                oldDataTable = newDataTable.Copy();
+            }
+            else
+            {
+                DataSet!.Tables.Add(newDataTable);
+                oldDataTable = newDataTable;
+            }
+            oldDataTable.TableName = tableName;
         }
-        else
-        {
-            DataSet!.Tables.Add(newDataTable);
-            oldDataTable = newDataTable;
-        }
-        oldDataTable.TableName = tableName;
-        dataSet.Dispose();
     }
 
     protected override void ReadFromFile()
     {
-      
-        DataSet = new DataSet();
-        DataSet.ReadXml(fileConnection.Database);
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(string.Empty))
+        {
+            DataSet = new DataSet();
+            DataSet.ReadXml(textReader);
+        }
     }
+
     protected override void UpdateFromFile()
     {
-        DataSet!.Clear();
-        DataSet.ReadXml(fileConnection.Database);
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(string.Empty))
+        {
+            DataSet!.Clear();
+            DataSet.ReadXml(fileConnection.Database);
+        }
     }
 }
