@@ -1,5 +1,4 @@
 using Data.Common.DataSource;
-using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
 
 namespace Data.Tests.Common.Utils;
@@ -8,39 +7,29 @@ public abstract class ConnectionStringsBase : IConnectionStrings
 {
     public abstract string Extension { get; }
 
-    protected virtual string Folder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder");
-    protected virtual string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{Extension}");
-    public virtual string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{Extension}");
-    public virtual string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
-    protected virtual string FolderEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "EmptyDatabase");
-    protected virtual string FileEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyDatabase.{Extension}");
-    public virtual string gettingStartedFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted.{Extension}");
-    public virtual string gettingStartedFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted");
-    public virtual string bogusFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Folder_BOGUS.{Guid.NewGuid()}");
-    public virtual string bogusFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Database_BOGUS.{Guid.NewGuid()}.{Extension}");
-    public virtual string withTrailingCommaFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithTrailingComma");
+    public DatabaseFullPaths Database => new DatabaseFullPaths(Extension);
 
     public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(DataSourceType.Admin)}:" };
-    public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Folder };
+    public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Database.Folder };
 
-    public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = File };
+    public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = Database.File };
 
-    public virtual FileConnectionString EmptyWithTablesFolderAsDB => new FileConnectionString() { DataSource = FolderEmptyWithTables };
-    public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = FileEmptyWithTables };
+    public virtual FileConnectionString EmptyWithTablesFolderAsDB => new FileConnectionString() { DataSource = Database.FolderEmptyWithTables };
+    public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = Database.FileEmptyWithTables };
 
-    public virtual FileConnectionString eComFileDB => new FileConnectionString() { DataSource = eComFileDataBase };
+    public virtual FileConnectionString eComFileDB => new FileConnectionString() { DataSource = Database.eComFileDataBase };
 
-    public virtual FileConnectionString eComFolderDB => new FileConnectionString() { DataSource = eComFolderDataBase };
+    public virtual FileConnectionString eComFolderDB => new FileConnectionString() { DataSource = Database.eComFolderDataBase };
 
-    public virtual FileConnectionString gettingStartedFileDB => new FileConnectionString() { DataSource = gettingStartedFileDataBase };
+    public virtual FileConnectionString gettingStartedFileDB => new FileConnectionString() { DataSource = Database.gettingStartedFileDataBase };
 
-    public virtual FileConnectionString gettingStartedFolderDB => new FileConnectionString() { DataSource = gettingStartedFolderDataBase };
+    public virtual FileConnectionString gettingStartedFolderDB => new FileConnectionString() { DataSource = Database.gettingStartedFolderDataBase };
 
-    public virtual FileConnectionString bogusFileDB => new FileConnectionString() { DataSource = bogusFileDataBase };
+    public virtual FileConnectionString bogusFileDB => new FileConnectionString() { DataSource = Database.bogusFileDataBase };
 
-    public virtual FileConnectionString bogusFolderDB => new FileConnectionString() { DataSource = bogusFolderDataBase };
+    public virtual FileConnectionString bogusFolderDB => new FileConnectionString() { DataSource = Database.bogusFolderDataBase };
 
-    public virtual FileConnectionString withTrailingCommaDB => new FileConnectionString() { DataSource = withTrailingCommaFolderDataBase };
+    public virtual FileConnectionString withTrailingCommaDB => new FileConnectionString() { DataSource = Database.withTrailingCommaFolderDataBase };
 
     public static ConnectionStringsBase Instance => throw new NotImplementedException();
 

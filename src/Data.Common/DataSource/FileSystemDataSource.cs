@@ -7,6 +7,8 @@ public class FileSystemDataSource : IDataSourceProvider
 {
     private readonly string path;
     private readonly string fileExtension;
+    private FileSystemWatcher fileWatcher;
+    private readonly IFileConnection fileConnection;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileSystemDataSource"/> class.
@@ -15,11 +17,12 @@ public class FileSystemDataSource : IDataSourceProvider
     /// <param name="dataSourceType">The type of the data source (Directory or File).</param>
     /// <param name="fileExtension">The file extension used for table files when the data source type is Directory.</param>
     /// <exception cref="ArgumentNullException">Thrown when the provided path is null or empty.</exception>
-    public FileSystemDataSource(string path, DataSourceType dataSourceType, string fileExtension)
+    public FileSystemDataSource(string path, DataSourceType dataSourceType, string fileExtension, IFileConnection fileConnection)
     {
         this.path = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : path;
         DataSourceType = dataSourceType;
         this.fileExtension = fileExtension;
+        this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
     }
 
     /// <summary>
@@ -85,11 +88,64 @@ public class FileSystemDataSource : IDataSourceProvider
         _ => throw new InvalidOperationException($"Cannot get a storage identifier for a data source of type {DataSourceType}")
     };
 
+    /// <summary>
+    /// Starts watching the file system for changes in the data source.
+    /// </summary>
+    public void StartWatching()
+    {
+        if (fileWatcher != null)
+        {
+            fileWatcher.Changed -= FileWatcher_Changed;
+            fileWatcher.Changed += FileWatcher_Changed;
+        }
+    }
+
+    /// <summary>
+    /// Stops watching the file system for changes in the data source.
+    /// </summary>
+    public void StopWatching()
+    {
+        if (fileWatcher != null)
+            fileWatcher.Changed -= FileWatcher_Changed;
+    }
+
+    /// <summary>
+    /// Ensures that the file system watcher is properly initialized and active.
+    /// </summary>
+    public void EnsureWatcher()
+    {
+        if (fileWatcher == null)
+        {
+            fileWatcher = new FileSystemWatcher();
+            fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            if (fileConnection.FolderAsDatabase)
+            {
+                fileWatcher.Path = fileConnection.Database;
+                fileWatcher.Filter = $"*.{fileConnection.FileExtension}";
+            }
+            else
+            {
+                var file = new FileInfo(fileConnection.Database);
+                fileWatcher.Path = file.DirectoryName!;
+                fileWatcher.Filter = file.Name;
+            }
+            fileWatcher.EnableRaisingEvents = true;
+        }
+    }
+
+    /// <summary>
+    /// Occurs when a file in the data source is changed externally.
+    /// </summary>
+    public event DataSourceEventHandler Changed;
+
     private TextReader GetTextReader_FolderAsDB(string tableName)
     {
         var pathToTableFile = GetTablePath(tableName);
         return GetTextReaderFromFilePath(pathToTableFile);
     }
+
+    private void FileWatcher_Changed(object sender, FileSystemEventArgs e) =>
+        Changed?.Invoke(sender, new DataSourceEventArgs(Path.GetFileNameWithoutExtension(e.FullPath)));
 
     private TextReader GetTextReader_FileAsDB() => GetTextReaderFromFilePath(path);
 

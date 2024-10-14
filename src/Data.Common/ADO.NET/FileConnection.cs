@@ -212,14 +212,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Open()
     {
-        if (IsCustomDataSource)
+        if (DataSourceProvider is null)
         {
-            if (DataSourceProvider is null)
-                throw new InvalidOperationException("The DataSourceProvider property must be set when using a custom data source.");
-        }
-        else
-        {
-
             if (!CreateIfNotExist)
             {
                 ThrowHelper.ThrowIfInvalidPath(DataSourceType, Database);
@@ -233,7 +227,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
             var dataSourceType = DataSourceType;
             if (dataSourceType == DataSourceType.Directory || dataSourceType == DataSourceType.File)
             {
-                DataSourceProvider = new FileSystemDataSource(Database, dataSourceType, FileExtension);
+                DataSourceProvider = new FileSystemDataSource(Database, dataSourceType, FileExtension, this);
             }
         }
 
@@ -309,7 +303,4 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         }
         return schemaTable;
     }
-
-    private bool IsCustomDataSource => string.Compare(connectionString.DataSource, $":Custom:", true) == 0;
-
 }

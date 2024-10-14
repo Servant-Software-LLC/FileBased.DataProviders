@@ -12,7 +12,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     private const string SchemaTable = "TABLES";
     private const string SchemaColumn = "COLUMNS";
 
-    private FileSystemWatcher? fileWatcher;
     protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
@@ -40,27 +39,16 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         DataSet = null;
     }
 
-    public void StartWatching()
-    {
-        if (fileWatcher != null)
-        {
+    public void StartWatching() => fileConnection.DataSourceProvider.StartWatching();
 
-            fileWatcher.Changed -= JsonWatcher_Changed;
-            fileWatcher.Changed += JsonWatcher_Changed;
-        }
-    }
-    public void StopWatching()
-    {
-        if (fileWatcher != null)
-            fileWatcher.Changed -= JsonWatcher_Changed;
-    }
+    public void StopWatching() => fileConnection.DataSourceProvider.StopWatching();
 
     public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
     {
         DataTable returnValue;
 
         if (shouldLock)
-            FileWriter._rwLock.EnterReadLock();
+            FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -113,7 +101,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         finally
         {
             if (shouldLock)
-                FileWriter._rwLock.ExitReadLock();
+                FileWriter.readerWriterLock.ExitReadLock();
         }
 
         returnValue.AcceptChanges(); // Sets RowState of all rows to Unchanged
@@ -122,7 +110,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     public bool TableExists(string tableName)
     {
-        FileWriter._rwLock.EnterReadLock();
+        FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -145,13 +133,13 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter._rwLock.ExitReadLock();
+            FileWriter.readerWriterLock.ExitReadLock();
         }
     }
 
     public int? ColumnsOnTable(string tableName)
     {
-        FileWriter._rwLock.EnterReadLock();
+        FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -183,11 +171,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter._rwLock.ExitReadLock();
+            FileWriter.readerWriterLock.ExitReadLock();
         }
     }
 
-    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
+    private void FileWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         //we dont need to update anything if dataset is null
         if (DataSet == null)
@@ -385,27 +373,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     }
 
 
-    private void EnsureFileSystemWatcher()
-    {
-        if (fileWatcher == null)
-        {
-            fileWatcher = new FileSystemWatcher();
-            fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            if (fileConnection.FolderAsDatabase)
-            {
-                fileWatcher.Path = fileConnection.Database;
-                fileWatcher.Filter = $"*.{fileConnection.FileExtension}";
-            }
-            else
-            {
-                var file = new FileInfo(fileConnection.Database);
-                fileWatcher.Path = file.DirectoryName!;
-                fileWatcher.Filter = file.Name;
-            }
-            fileWatcher.EnableRaisingEvents = true;
-        }
-    }
-  
+    private void EnsureFileSystemWatcher() => fileConnection.DataSourceProvider.EnsureWatcher();  
 
     private IEnumerable<string> GetFilesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
         Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}") :

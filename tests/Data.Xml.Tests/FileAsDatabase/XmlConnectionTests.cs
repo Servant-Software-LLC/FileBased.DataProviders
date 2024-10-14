@@ -21,7 +21,7 @@ public class XmlConnectionTests
     [Fact]
     public void ChangeDatabase_DatabaseExists() =>
         ConnectionTests.ChangeDatabase_DatabaseExists(() =>
-            new XmlConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.eComFileDataBase);
+            new XmlConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.eComFileDataBase);
 
     [Fact]
     public void ChangeDatabase_DatabaseDoesNotExist() =>

@@ -51,10 +51,9 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc/>
     private void EnsureNotFileAsDatabase()
     {
-        if (DataSourceType == DataSourceType.File)
+        if (DataSourceProvider == null && DataSourceType == DataSourceType.File)
         {
             throw new InvalidOperationException("File as database is not supported in Csv Provider");
-
         }
     }
 

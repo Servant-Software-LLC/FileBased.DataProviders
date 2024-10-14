@@ -1,5 +1,6 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
+using Data.Tests.Common.Utils;
 using System.Data.CsvClient;
 using System.Reflection;
 using Xunit;
@@ -16,6 +17,14 @@ public class CsvInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Insert_ShouldInsertData_CustomDataSource()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertData(() =>
+            CustomDataSourceFactory.CreateFolder((connectionString) => new CsvConnection(connectionString), ConnectionStrings.Instance));
     }
 
     [Fact]

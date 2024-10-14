@@ -36,6 +36,8 @@
     <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
 	<PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />
+	<PackageReference Update="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+		
   </ItemGroup>
 </Project>
 

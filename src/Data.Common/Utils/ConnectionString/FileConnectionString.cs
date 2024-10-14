@@ -13,6 +13,8 @@ public class FileConnectionString : IConnectionStringProperties
     public static implicit operator string(FileConnectionString connectionString) => connectionString.ConnectionString;
     public static implicit operator FileConnectionString(string connectionString) => new FileConnectionString(connectionString);
 
+    public static FileConnectionString CustomDataSource = new FileConnectionString($"{nameof(FileConnectionStringKeyword.DataSource)}=:Custom:");
+
     public string ConnectionString 
     {
         get

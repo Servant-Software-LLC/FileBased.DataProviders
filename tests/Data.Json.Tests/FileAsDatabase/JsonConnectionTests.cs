@@ -21,7 +21,7 @@ public class JsonConnectionTests
     [Fact]
     public void ChangeDatabase_DatabaseExists() =>
         ConnectionTests.ChangeDatabase_DatabaseExists(() =>
-            new JsonConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.eComFileDataBase);
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.eComFileDataBase);
 
     [Fact]
     public void ChangeDatabase_DatabaseDoesNotExist() =>
