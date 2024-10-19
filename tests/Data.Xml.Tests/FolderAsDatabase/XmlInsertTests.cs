@@ -35,11 +35,12 @@ public class XmlInsertTests
     }
 
     [Fact]
-    public void Insert_JsonShouldBeFormatted()
+    public void Insert_ShouldBeFormatted()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        InsertTests.Insert_ShouldBeFormatted(() =>
-        new XmlConnection(ConnectionStrings.Instance.FolderAsDB.AddFormatted(true).Sandbox("Sandbox", sandboxId)));
+        var sandboxConnectionString = ConnectionStrings.Instance.FolderAsDB.AddFormatted(true).Sandbox("Sandbox", sandboxId);
+
+        InsertTests.Insert_ShouldBeFormatted(() => new XmlConnection(sandboxConnectionString));
     }
 
     [Fact]

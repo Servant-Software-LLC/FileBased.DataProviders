@@ -52,9 +52,10 @@ public class JsonInsertTests
     [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
-        InsertTests.Insert_ShouldBeFormatted(() =>
-        new JsonConnection(ConnectionStrings.Instance
-        .FolderAsDB.AddFormatted(true)));
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        var sandboxConnectionString = ConnectionStrings.Instance.FolderAsDB.AddFormatted(true).Sandbox("Sandbox", sandboxId);
+
+        InsertTests.Insert_ShouldBeFormatted(() => new JsonConnection(sandboxConnectionString));
     }
 
     [Fact]
