@@ -15,5 +15,6 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Data.Common\Data.Common.csproj" />
 	  <ProjectReference Include="..\..\src\EFCore.Common\EFCore.Common.csproj" />
+	  <ProjectReference Include="..\Data.Tests.Common\Data.Tests.Common.csproj" />
 	</ItemGroup>
 </Project>

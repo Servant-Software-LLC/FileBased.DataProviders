@@ -23,7 +23,7 @@ public class CsvDataReaderTests
     public void Reader_ShouldReadData_StreamedDataSource()
     {
         DataReaderTests.Reader_ShouldReadData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new CsvConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
     }
 
     [Fact]

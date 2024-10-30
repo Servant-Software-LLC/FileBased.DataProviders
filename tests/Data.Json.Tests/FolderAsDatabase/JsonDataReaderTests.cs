@@ -23,7 +23,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReadData_StreamedDataSource()
     {
         DataReaderTests.Reader_ShouldReadData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new JsonConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new JsonConnection(connectionString)));
     }
 
     [Fact]

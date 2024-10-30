@@ -375,11 +375,9 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     private void EnsureFileSystemWatcher() => fileConnection.DataSourceProvider.EnsureWatcher();  
 
-    private IEnumerable<string> GetFilesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
-        Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}") :
+    private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
+        fileConnection.DataSourceProvider.GetTableNames() :
         throw new ArgumentException($"The file connection for {GetType()} doesn't have a DataSource which is a folder.");
-
-    private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
 
     private static bool IsSchemaTable(SqlTable sqlTable) => string.Compare(sqlTable.DatabaseName, SchemaDatabase) == 0;
 

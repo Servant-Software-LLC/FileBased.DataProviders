@@ -24,7 +24,7 @@ public class CsvInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new CsvConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
     }
 
     [Fact]

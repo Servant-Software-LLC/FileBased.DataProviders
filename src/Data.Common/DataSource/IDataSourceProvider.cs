@@ -19,6 +19,12 @@ public interface IDataSourceProvider
     bool StorageExists(string tableName);
 
     /// <summary>
+    /// Lists all tables of the data source
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<string> GetTableNames();
+
+    /// <summary>
     /// Gets a <see cref="TextReader"/> to read data from the specified table.
     /// </summary>
     /// <param name="tableName">The name of the table.</param>

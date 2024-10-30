@@ -1,4 +1,6 @@
-﻿namespace Data.Common.DataSource;
+﻿using SqlBuildingBlocks;
+
+namespace Data.Common.DataSource;
 
 /// <summary>
 /// Provides a data source implementation for file system-based storage.
@@ -44,6 +46,18 @@ public class FileSystemDataSource : IDataSourceProvider
                 return File.Exists(GetTablePath(tableName));
             case DataSourceType.File:
                 return File.Exists(path);
+            default:
+                throw new InvalidOperationException($"Cannot check storage for a data source of type {DataSourceType}");
+        }
+    }
+
+    public IEnumerable<string> GetTableNames()
+    {
+        switch (DataSourceType)
+        {
+            case DataSourceType.Directory:
+                var tableFiles = Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}");
+                return tableFiles.Select(Path.GetFileNameWithoutExtension);
             default:
                 throw new InvalidOperationException($"Cannot check storage for a data source of type {DataSourceType}");
         }

@@ -23,7 +23,7 @@ public class XmlDataReaderTests
     public void Reader_ShouldReadData_StreamedDataSource()
     {
         DataReaderTests.Reader_ShouldReadData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new XmlConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new XmlConnection(connectionString)));
     }
 
     [Fact]

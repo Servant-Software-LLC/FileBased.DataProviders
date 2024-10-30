@@ -6,24 +6,27 @@ namespace Data.Tests.Common.Utils;
 
 public static class CustomDataSourceFactory
 {
-    public static FileConnection<TFileParameter> CreateFolder<TFileParameter>(Func<FileConnectionString, FileConnection<TFileParameter>> createConnection, ConnectionStringsBase connectionStringsBase)
+    public static FileConnection<TFileParameter> VirtualFolderAsDB<TFileParameter>(Func<FileConnectionString, FileConnection<TFileParameter>> createConnection)
             where TFileParameter : FileParameter<TFileParameter>, new()
     {
         var connection = createConnection(FileConnectionString.CustomDataSource);
         var database = new DatabaseFullPaths(connection.FileExtension);
         var folderPath = database.Folder;
-        var employeesTableName = "employees";
         var extension = connection.FileExtension;
-        var employeesPath = Path.Combine(folderPath, $"{employeesTableName}.{extension}");
-        var employeesFormFile = FormFileUtils.MockFormFile(employeesPath, extension);
-        var locationsTableName = "locations";
-        var locationsPath = Path.Combine(folderPath, $"{locationsTableName}.{extension}");
-        var locationsFormFile = FormFileUtils.MockFormFile(locationsPath, extension);
-        var dataSourceProvider = new StreamedDataSource(employeesTableName, employeesFormFile.OpenReadStream());
-        dataSourceProvider.AddTable(locationsTableName, locationsFormFile.OpenReadStream());
+
+        var dataSourceProvider = new StreamedDataSource();
+        AddTableToDataSource(folderPath, "employees", extension, dataSourceProvider);
+        AddTableToDataSource(folderPath, "locations", extension, dataSourceProvider);
+
         connection.DataSourceProvider = dataSourceProvider;
 
         return connection;
+    }
 
+    public static void AddTableToDataSource(string folderPath, string tableName, string fileExtension, StreamedDataSource dataSourceProvider)
+    {
+        var tablePath = Path.Combine(folderPath, $"{tableName}.{fileExtension}");
+        var tableFormFile = FormFileUtils.MockFormFile(tablePath, fileExtension);
+        dataSourceProvider.AddTable(tableName, tableFormFile.OpenReadStream());
     }
 }

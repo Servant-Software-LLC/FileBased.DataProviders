@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Data.Common.DataSource;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFCore.Common.Tests.Models;
 
@@ -6,6 +7,8 @@ namespace EFCore.Common.Tests.Models;
 public abstract class BloggingContextBase : DbContext
 {
     public string ConnectionString { get; set; } 
+
+    public IDataSourceProvider DataSourceProvider { get; set; }
 
     public DbSet<Blog> Blogs { get; set; }
     public DbSet<Post> Posts { get; set; }

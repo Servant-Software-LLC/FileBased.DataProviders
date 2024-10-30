@@ -24,7 +24,7 @@ public class JsonInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new JsonConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new JsonConnection(connectionString)));
     }
 
     [Fact]

@@ -13,6 +13,11 @@ public class StreamedDataSource : IDataSourceProvider
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamedDataSource"/> class.
     /// </summary>
+    public StreamedDataSource() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamedDataSource"/> class.
+    /// </summary>
     /// <param name="tableName">The name of the initial table.</param>
     /// <param name="utf8TableData">The stream containing UTF-8 encoded data for the initial table.</param>
     /// <exception cref="ArgumentNullException">
@@ -53,6 +58,8 @@ public class StreamedDataSource : IDataSourceProvider
     /// <param name="tableName">The name of the table to check.</param>
     /// <returns>True if the table exists in the data source; otherwise, false.</returns>
     public bool StorageExists(string tableName) => tables.ContainsKey(tableName);
+
+    public IEnumerable<string> GetTableNames() => tables.Keys;
 
     /// <summary>
     /// Gets a <see cref="TextReader"/> for the specified table.

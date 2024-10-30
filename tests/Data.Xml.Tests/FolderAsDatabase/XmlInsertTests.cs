@@ -24,7 +24,7 @@ public class XmlInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() =>
-            CustomDataSourceFactory.CreateFolder((connectionString) => new XmlConnection(connectionString), ConnectionStrings.Instance));
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new XmlConnection(connectionString)));
     }
 
     [Fact]

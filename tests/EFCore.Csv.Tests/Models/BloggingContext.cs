@@ -10,6 +10,10 @@ public class BloggingContext : BloggingContextBase
         if (string.IsNullOrEmpty(ConnectionString))
             throw new ArgumentNullException(nameof(ConnectionString));
 
-        options.UseCsv(ConnectionString).EnableSensitiveDataLogging();
+        var builder = options.UseCsv(ConnectionString);
+        if (DataSourceProvider != null)
+            builder = builder.UseDataSource(DataSourceProvider);
+
+        builder.EnableSensitiveDataLogging();
     }
 }
