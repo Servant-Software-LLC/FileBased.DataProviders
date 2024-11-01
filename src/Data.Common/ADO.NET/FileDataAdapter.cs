@@ -113,29 +113,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
-
-        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
-            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
-
-        var selectQuery = FileStatementCreator.CreateSelect(fileCommand, log);
-        var fileReader = connection.FileReader;
-
-        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
-        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
-
-        var cols = GetColumns(dataTable, selectQuery);
-        dataTable.Columns
-            .Cast<DataColumn>()
-            .Where(column => !cols.Contains(column.ColumnName))
-            .Select(column => column.ColumnName)
-            .ToList()
-            .ForEach(dataTable.Columns.Remove);
-
-        dataTable.TableName = "Table";
-        dataSet.Tables.Clear();
-        dataSet.Tables.Add(dataTable);
-        return dataTable.Rows.Count;
+        return AutoOpenCloseConnection(dataSet, Fill_Inner);
     }
 
     /// <summary>
@@ -167,31 +145,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         if (connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
-            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
-
-        log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
-
-        var selectQuery = FileStatementCreator.CreateSelect((FileCommand<TFileParameter>)SelectCommand, log);
-        var fileReader = connection.FileReader;
-
-        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
-        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
-        var cols = GetColumns(dataTable, selectQuery);
-        dataTable.Columns
-            .Cast<DataColumn>()
-            .Where(column => !cols.Contains(column.ColumnName))
-            .Select(column => column.ColumnName)
-            .ToList()
-            .ForEach(dataTable.Columns.Remove);
-
-        if (dataSet.Tables["Table"] != null)
-        {
-            dataSet.Tables.Remove("Table");
-        }
-
-        dataTable.Rows.Clear();
-        return new DataTable[] { dataTable };
+        return AutoOpenCloseConnection(dataSet, FillSchema_Inner);
     }
 
     /// <summary>
@@ -293,6 +247,95 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     /// <param name="fileQuery">The file query.</param>
     /// <returns></returns>
     protected abstract FileWriter CreateWriter(FileStatement fileQuery);
+
+    private DataTable[] FillSchema_Inner(DataSet dataSet)
+    {
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
+        log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
+
+        var selectQuery = FileStatementCreator.CreateSelect((FileCommand<TFileParameter>)SelectCommand, log);
+        var fileReader = connection.FileReader;
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+        var cols = GetColumns(dataTable, selectQuery);
+        dataTable.Columns
+            .Cast<DataColumn>()
+            .Where(column => !cols.Contains(column.ColumnName))
+            .Select(column => column.ColumnName)
+            .ToList()
+            .ForEach(dataTable.Columns.Remove);
+
+        if (dataSet.Tables["Table"] != null)
+        {
+            dataSet.Tables.Remove("Table");
+        }
+
+        dataTable.Rows.Clear();
+        return new DataTable[] { dataTable };
+    }
+
+    private int Fill_Inner(DataSet dataSet)
+    {
+        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
+
+        if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
+            throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
+
+        var selectQuery = FileStatementCreator.CreateSelect(fileCommand, log);
+        var fileReader = connection.FileReader;
+
+        var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
+        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+
+        var cols = GetColumns(dataTable, selectQuery);
+        dataTable.Columns
+            .Cast<DataColumn>()
+            .Where(column => !cols.Contains(column.ColumnName))
+            .Select(column => column.ColumnName)
+            .ToList()
+            .ForEach(dataTable.Columns.Remove);
+
+        dataTable.TableName = "Table";
+        dataSet.Tables.Clear();
+        dataSet.Tables.Add(dataTable);
+        return dataTable.Rows.Count;
+    }
+
+    private TReturn AutoOpenCloseConnection<TReturn>(DataSet dateSet, Func<DataSet, TReturn> action)
+    {
+        //Determine if the connection has been opened.  Typical behavior is that the connection will be automatically opened if it is closed and if so, then will be closed at the end of the Fill operation.
+        bool connectionOpened = connection.State == ConnectionState.Open;
+        bool overrideCreateIfNotExists = !connection.CreateIfNotExist;
+        if (!connectionOpened)
+        {
+            if (overrideCreateIfNotExists)
+            {
+                connection.CreateIfNotExist = true;
+            }
+
+            connection.Open();
+        }
+
+        try
+        {
+            return action(dateSet);
+        }
+        finally
+        {
+            if (!connectionOpened)
+            {
+                if (overrideCreateIfNotExists)
+                {
+                    connection.CreateIfNotExist = false;
+                }
+
+                connection.Close();
+            }
+        }
+    }
 
     private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)
     {

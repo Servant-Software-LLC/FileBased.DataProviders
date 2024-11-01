@@ -13,19 +13,66 @@ internal class CsvReader : FileReader
     {
     }
 
+    #region Folder Read Update
+    protected override void ReadFromFolder(string tableName)
+    {
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        {
+            DataTable dataTable = null;
+
+            //Check if the contents of the file contains any non-whitespace characters
+            if (HasNonWhitespaceCharacter(textReader))
+            {
+                dataTable = FillDataTable(textReader, tableName);
+            }
+
+            DataSet!.Tables.Add(dataTable ?? new DataTable(tableName));
+        }
+    }
+
+    protected override void UpdateFromFolder(string tableName)
+    {
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        {
+            // Determine if the table exists in the DataSet, if not create it.
+            var dataTable = DataSet!.Tables[tableName];
+            if (dataTable == null)
+            {
+                var newDataTable = FillDataTable(textReader, tableName);
+                DataSet!.Tables.Add(newDataTable);
+                return;
+            }
+
+            // Fill the existing DataTable with the new data
+            dataTable.Rows.Clear();
+            FillDataTable(textReader, dataTable);
+        }
+    }
+    #endregion
+
+    #region File Read Update
+
+    protected override void ReadFromFile() =>
+        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
+
+    protected override void UpdateFromFile() =>
+        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
+
+    #endregion
+
     // Read the data from the folder to create a DataTable
-    private DataTable FillDataTable(string path, string tableName)
+    private DataTable FillDataTable(TextReader textReader, string tableName)
     {
         //Determine the schema of the DataTable
         DataTable results = new DataTable(tableName);
-        CreateDataTableSchema(path, results);
+        CreateDataTableSchema(results);
 
-        FillDataTable(path, results);
+        FillDataTable(textReader, results);
         return results;
     }
 
     // Fill the DataTable with the data from the CSV file
-    private void FillDataTable(string path, DataTable dataTable)
+    private void FillDataTable(TextReader textReader, DataTable dataTable)
     {
         bool hasHeader = dataTable.Columns.Count > 0;
 
@@ -37,7 +84,7 @@ internal class CsvReader : FileReader
 
         // Read the raw data into a temporary DataTable
         var tempDataTable = new DataTable();
-        using (var reader = new StreamReader(path))
+        using (var reader = fileConnection.DataSourceProvider.GetTextReader(dataTable.TableName))
         using (var csv = new CsvHelper.CsvReader(reader, config))
         {
             // Initialize CsvDataReader with the CsvReader and DataTable schema
@@ -79,19 +126,22 @@ internal class CsvReader : FileReader
     }
 
 
-    private void CreateDataTableSchema(string path, DataTable dataTable, long numberOfRowsToReadForInference = 10)
+    private void CreateDataTableSchema(DataTable dataTable, long numberOfRowsToReadForInference = 10)
     {
-        // Load CSV into DataFrame to infer data types
-        DataFrame df = CsvDataFrameLoader.LoadDataFrameWithQuotedFields(path, numberOfRowsToReadForInference);
-
-        foreach (DataFrameColumn column in df.Columns)
+        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(dataTable.TableName))
         {
-            DataColumn dataColumn = new DataColumn
+            // Load CSV into DataFrame to infer data types
+            DataFrame df = CsvDataFrameLoader.LoadDataFrameWithQuotedFields(textReader, numberOfRowsToReadForInference);
+
+            foreach (DataFrameColumn column in df.Columns)
             {
-                ColumnName = column.Name,
-                DataType = GetClrType(column.DataType)
-            };
-            dataTable.Columns.Add(dataColumn);
+                DataColumn dataColumn = new DataColumn
+                {
+                    ColumnName = column.Name,
+                    DataType = GetClrType(column.DataType)
+                };
+                dataTable.Columns.Add(dataColumn);
+            }
         }
     }
 
@@ -104,64 +154,17 @@ internal class CsvReader : FileReader
         return dataFrameColumnType;
     }
 
-    #region Folder Read Update
-    protected override void ReadFromFolder(string tableName)
+    private static bool HasNonWhitespaceCharacter(TextReader textReader)
     {
-        var path = fileConnection.GetTablePath(tableName);
-
-        DataTable dataTable = null;
-
-        //Check if the contents of the file contains any non-whitespace characters
-        if (HasNonWhitespaceCharacter(path))
+        int character;
+        while ((character = textReader.Read()) != -1)
         {
-            dataTable = FillDataTable(path, tableName);
-        }
-
-        DataSet!.Tables.Add(dataTable ?? new DataTable(tableName));
-    }
-
-    protected override void UpdateFromFolder(string tableName)
-    {
-        var path = fileConnection.GetTablePath(tableName);
-
-        // Determine if the table exists in the DataSet, if not create it.
-        var dataTable = DataSet!.Tables[tableName];
-        if (dataTable == null)
-        {
-            var newDataTable = FillDataTable(path, tableName);
-            DataSet!.Tables.Add(newDataTable);
-            return;
-        }
-
-        // Fill the existing DataTable with the new data
-        dataTable.Rows.Clear();
-        FillDataTable(path, dataTable);
-    }
-    #endregion
-
-    #region File Read Update
-
-    protected override void ReadFromFile() => 
-        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
-
-    protected override void UpdateFromFile() =>
-        throw new NotSupportedException("FileAsDatabase is not supported for the CSV provider.");
-
-    #endregion
-
-    private static bool HasNonWhitespaceCharacter(string path)
-    {
-        using (StreamReader reader = new StreamReader(path))
-        {
-            int character;
-            while ((character = reader.Read()) != -1)
+            if (!char.IsWhiteSpace((char)character))
             {
-                if (!char.IsWhiteSpace((char)character))
-                {
-                    return true; // Short-circuit as soon as we find a non-whitespace character
-                }
+                return true; // Short-circuit as soon as we find a non-whitespace character
             }
         }
+
         return false; // No non-whitespace character found
     }
 }

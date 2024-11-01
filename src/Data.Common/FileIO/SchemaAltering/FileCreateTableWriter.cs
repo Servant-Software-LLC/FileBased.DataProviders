@@ -52,7 +52,7 @@ public abstract class FileCreateTableWriter : FileWriter
 
         try
         {
-            _rwLock.EnterWriteLock();
+            readerWriterLock.EnterWriteLock();
             //as we have modified the json file so we don't need to update the tables
             fileReader.StopWatching();
 
@@ -69,7 +69,7 @@ public abstract class FileCreateTableWriter : FileWriter
             Save();
 
             fileReader.StartWatching();
-            _rwLock.ExitWriteLock();
+            readerWriterLock.ExitWriteLock();
         }
 
         return -1;

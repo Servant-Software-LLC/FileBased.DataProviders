@@ -21,7 +21,7 @@ public class CsvConnectionTests
     [Fact]
     public void ChangeDatabase_DatabaseExists() =>
         ConnectionTests.ChangeDatabase_DatabaseExists(() => 
-            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.eComFolderDataBase);
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), ConnectionStrings.Instance.Database.eComFolderDataBase);
 
     [Fact]
     public void ChangeDatabase_DatabaseDoesNotExist() => 

@@ -1,5 +1,6 @@
 using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
+using Data.Tests.Common.Utils;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -16,6 +17,13 @@ public class JsonDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
         new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReadData_StreamedDataSource()
+    {
+        DataReaderTests.Reader_ShouldReadData(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new JsonConnection(connectionString)));
     }
 
     [Fact]

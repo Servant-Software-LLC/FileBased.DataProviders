@@ -1,30 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using EFCore.Common.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EFCore.Xml.Infrastructure.Internal;
 
-public class XmlOptionsExtensionInfo : DbContextOptionsExtensionInfo
+/// <summary>
+/// Provides information about the <see cref="XmlOptionsExtension"/>.
+/// </summary>
+public class XmlOptionsExtensionInfo : FileOptionsExtensionInfo
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="XmlOptionsExtensionInfo"/> class.
+    /// </summary>
+    /// <param name="extension">The <see cref="XmlOptionsExtension"/> instance.</param>
     public XmlOptionsExtensionInfo(XmlOptionsExtension extension)
         : base(extension)
     {
     }
 
-    public override bool IsDatabaseProvider => true;
-
-    public override string LogFragment => $"Using Xml Provider - ConnectionString: {ConnectionString}";
-
-    public override int GetServiceProviderHashCode() => ConnectionString.GetHashCode();
+    protected override string ProviderName => "Xml";
 
     public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => other is XmlOptionsExtensionInfo;
-
-    public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-    {
-        debugInfo["Xml:ConnectionString"] = ConnectionString;
-    }
-
-    public override XmlOptionsExtension Extension => (XmlOptionsExtension)base.Extension;
-    private string ConnectionString => Extension.Connection == null ?
-                                            Extension.ConnectionString :
-                                            Extension.Connection.ConnectionString;
 }
 

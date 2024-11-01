@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.DataSource;
+using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
@@ -29,6 +30,8 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override string DataSource => connectionString.DataSource;
 
+    public IDataSourceProvider DataSourceProvider { get; set; }
+
     /// <summary>
     /// Gets a value indicating whether the database is formatted.
     /// </summary>
@@ -42,7 +45,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets a value indicating whether to create the database if it does not exist.
     /// </summary>
-    public bool CreateIfNotExist => connectionString.CreateIfNotExist ?? false;
+    public bool CreateIfNotExist
+    {
+        get => connectionString.CreateIfNotExist ?? false;
+        internal set => connectionString.CreateIfNotExist = value;
+    }
 
     /// <summary>
     /// Gets the name of the database.
@@ -99,17 +106,17 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets the path type of the database.
     /// </summary>
-    public PathType PathType => this.GetPathType();
+    public DataSourceType DataSourceType => DataSourceProvider != null ? DataSourceProvider.DataSourceType : this.GetDataSourceType();
 
     /// <summary>
     /// Gets a value indicating whether the database is a folder.
     /// </summary>
-    public bool FolderAsDatabase => PathType == PathType.Directory;
+    public bool FolderAsDatabase => DataSourceType == DataSourceType.Directory;
 
     /// <summary>
     /// Gets a value indicating whether the database is in admin mode.
     /// </summary>
-    public bool AdminMode => PathType == PathType.Admin;
+    public bool AdminMode => DataSourceType == DataSourceType.Admin;
 
     /// <summary>
     /// Gets the file reader for the database.
@@ -161,6 +168,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         if (string.IsNullOrEmpty(databaseName))
             throw new ArgumentNullException(nameof(databaseName));
 
+        DataSourceProvider = null;
         connectionString.DataSource = databaseName;
 
         //Other ADO.NET providers that support automatically creating a database when provided in
@@ -168,7 +176,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         //already exists (SQL Server LocalDB) or just throws a NotSupportedException regardless
         //of whether the database exists or not (SQLite).
         //Therefore, we will not automatically create the database if it doesn't exist and throw.
-        ThrowHelper.ThrowIfInvalidPath(PathType, databaseName);
+        ThrowHelper.ThrowIfInvalidPath(DataSourceType, databaseName);
     }
 
     /// <summary>
@@ -204,12 +212,23 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Open()
     {
-        if (!CreateIfNotExist)
-            ThrowHelper.ThrowIfInvalidPath(PathType, Database);
-        else
+        if (DataSourceProvider is null)
         {
-            if (PathType == PathType.None)
-                FileCreateDatabase<TFileParameter>.Execute(this, Database);
+            if (!CreateIfNotExist)
+            {
+                ThrowHelper.ThrowIfInvalidPath(DataSourceType, Database);
+            }
+            else
+            {
+                if (DataSourceType == DataSourceType.None)
+                    FileCreateDatabase<TFileParameter>.Execute(this, Database);
+            }
+
+            var dataSourceType = DataSourceType;
+            if (dataSourceType == DataSourceType.Directory || dataSourceType == DataSourceType.File)
+            {
+                DataSourceProvider = new FileSystemDataSource(Database, dataSourceType, FileExtension, this);
+            }
         }
 
         state = ConnectionState.Open;
@@ -259,21 +278,6 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         state = ConnectionState.Closed;
     }
 
-
-    internal static PathType GetPathType(string database, string providerFileExtension)
-    {
-        if (FileConnectionExtensions.IsAdmin(database))
-            return PathType.Admin;
-
-        //Does this look like a file with the appropriate file extension?
-        var fileExtension = Path.GetExtension(database);
-        if (!string.IsNullOrEmpty(fileExtension) && string.Compare(fileExtension, $".{providerFileExtension}", true) == 0)
-            return PathType.File;
-
-        //Assume that this is referring to FolderAsDatabase
-        return PathType.Directory;
-    }
-
     private DataTable GetTablesSchema()
     {
         string query = "SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES";
@@ -299,5 +303,4 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         }
         return schemaTable;
     }
-
 }

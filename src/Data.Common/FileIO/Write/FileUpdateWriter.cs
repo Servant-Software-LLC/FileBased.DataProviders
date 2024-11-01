@@ -18,7 +18,7 @@ public abstract class FileUpdateWriter : FileWriter
             if (!IsTransaction)
             {
                 // As we have modified the File file so we don't need to update the tables
-                _rwLock.EnterWriteLock();
+                readerWriterLock.EnterWriteLock();
                 fileReader.StopWatching();
             }
 
@@ -30,38 +30,40 @@ public abstract class FileUpdateWriter : FileWriter
 
             var rowsAffected = dataView.Count;
 
-            //don't update now if it is a transaction
+            //Don't update now if it is a transaction
             if (IsTransactedLater)
             {
                 fileTransaction!.Writers.Add(this);
-                return rowsAffected;
             }
-            foreach (DataRowView dataRow in dataView)
+            else
             {
-                foreach (SqlAssignment assignment in fileUpdate.Assignments)
+                //This is not a transaction so update the data now
+                foreach (DataRowView dataRow in dataView)
                 {
-                    var columnName = assignment.Column.ColumnName;
-                    dataTable.Columns[columnName]!.ReadOnly = false;
-
-                    if (assignment.Value == null)
+                    foreach (SqlAssignment assignment in fileUpdate.Assignments)
                     {
-                        var assignmentRight = assignment.Parameter != null ? $"{assignment.Parameter}({nameof(assignment.Parameter)})" : assignment.Function != null ? $"{assignment.Function}({nameof(assignment.Function)})" : "Unknown type";
-                        throw new Exception($"Right side of the assigment did not supply a literal value.  Probably parameter or function wasn't resolved.  Right = {assignmentRight}");
-                    }
+                        var columnName = assignment.Column.ColumnName;
+                        dataTable.Columns[columnName]!.ReadOnly = false;
 
-                    dataRow[columnName] = assignment.Value.Value;
+                        if (assignment.Value == null)
+                        {
+                            var assignmentRight = assignment.Parameter != null ? $"{assignment.Parameter}({nameof(assignment.Parameter)})" : assignment.Function != null ? $"{assignment.Function}({nameof(assignment.Function)})" : "Unknown type";
+                            throw new Exception($"Right side of the assigment did not supply a literal value.  Probably parameter or function wasn't resolved.  Right = {assignmentRight}");
+                        }
+
+                        dataRow[columnName] = assignment.Value.Value;
+                    }
                 }
             }
 
+            Save();
             return rowsAffected;
         }
         finally
         {
-            Save();
-
             if (!IsTransaction)
             {
-                _rwLock.ExitWriteLock();
+                readerWriterLock.ExitWriteLock();
                 fileReader.StartWatching();
             }
         }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Data.Common.DataSource;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace Data.Json.JsonIO;
@@ -17,13 +18,13 @@ public class JsonDataSetWriter : IDataSetWriter
 
     public void WriteDataSet(DataSet dataSet)
     {
-        if (fileConnection.PathType == PathType.Directory)
+        if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
             SaveFolderAsDB(fileStatement.FromTable.TableName, dataSet);
         }
         else
         {
-            SaveToFile(dataSet);
+            SaveFileAsDB(dataSet);
         }
     }
 
@@ -89,11 +90,11 @@ public class JsonDataSetWriter : IDataSetWriter
         jsonWriter.WriteEndArray();
     }
 
-    private void SaveToFile(DataSet dataSet)
+    private void SaveFileAsDB(DataSet dataSet)
     {
         try
         {
-            log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
+            log.LogDebug($"{GetType()}.{nameof(SaveFileAsDB)}(). Saving file {fileConnection.Database}");
 
             string jsonString;
             using (var stream = new MemoryStream())
@@ -113,15 +114,14 @@ public class JsonDataSetWriter : IDataSetWriter
 
             log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
 
-            using (var stream = new FileStream(fileConnection.Database, FileMode.Create, FileAccess.Write))
-            using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+            using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(string.Empty))
             {
-                writer.Write(jsonString);
+                textWriter.Write(jsonString);
             }
         }
         catch (Exception ex)
         {
-            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveToFile)}().  Error: {ex}");
+            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveFileAsDB)}().  Error: {ex}");
             throw;
         }
     }
@@ -136,18 +136,28 @@ public class JsonDataSetWriter : IDataSetWriter
 
             foreach (DataTable table in tablesToWrite)
             {
-                var path = fileConnection.GetTablePath(table.TableName);
-                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {path}");
-                using (var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
-                using (var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
+
+                string jsonString;
+                using (var stream = new MemoryStream())
                 {
-                    WriteTable(jsonWriter, table, false);
+                    using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
+                    {
+                        WriteTable(jsonWriter, table, false);
+                    }
+
+                    jsonString = Encoding.UTF8.GetString(stream.ToArray());
+                }
+
+                using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
+                {
+                    textWriter.Write(jsonString);
                 }
             }
         }
         catch (Exception ex)
         {
-            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveToFile)}().  Error: {ex}");
+            log.LogError($"Failed to JsonDataSetWriter.{nameof(SaveFileAsDB)}().  Error: {ex}");
             throw;
         }
 

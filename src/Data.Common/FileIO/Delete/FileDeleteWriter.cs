@@ -16,8 +16,8 @@ public abstract class FileDeleteWriter : FileWriter
         {
             if (!IsTransaction)
             {
-                //as we have modified the json file so we don't need to update the tables
-                _rwLock.EnterWriteLock();
+                //as we have modified the database file so we don't need to update the tables
+                readerWriterLock.EnterWriteLock();
                 fileReader.StopWatching();
             }
 
@@ -49,7 +49,7 @@ public abstract class FileDeleteWriter : FileWriter
             if (!IsTransaction)
             {
                 fileReader.StartWatching();
-                _rwLock.ExitWriteLock();
+                readerWriterLock.ExitWriteLock();
             }
         }
     }

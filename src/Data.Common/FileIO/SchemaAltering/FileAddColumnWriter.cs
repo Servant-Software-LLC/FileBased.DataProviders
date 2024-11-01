@@ -24,7 +24,7 @@ public abstract class FileAddColumnWriter : FileWriter
         {
 
             // As we have modified the File file so we don't need to update the tables
-            _rwLock.EnterWriteLock();
+            readerWriterLock.EnterWriteLock();
             fileReader.StopWatching();
 
             var dataTable = fileReader.ReadFile(fileAddColumn, null, false);
@@ -55,7 +55,7 @@ public abstract class FileAddColumnWriter : FileWriter
         {
             Save();
 
-            _rwLock.ExitWriteLock();
+            readerWriterLock.ExitWriteLock();
             fileReader.StartWatching();
         }
 

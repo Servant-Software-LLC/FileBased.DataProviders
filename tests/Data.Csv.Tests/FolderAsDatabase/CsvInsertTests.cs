@@ -1,5 +1,6 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
+using Data.Tests.Common.Utils;
 using System.Data.CsvClient;
 using System.Reflection;
 using Xunit;
@@ -19,6 +20,14 @@ public class CsvInsertTests
     }
 
     [Fact]
+    public void Insert_ShouldInsertData_CustomDataSource()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertData(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
+    }
+
+    [Fact]
     public void Insert_ShouldInsertNullData()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -26,11 +35,12 @@ public class CsvInsertTests
     }
 
     [Fact]
-    public void Insert_JsonShouldBeFormatted()
+    public void Insert_ShouldBeFormatted()
     {
-        InsertTests.Insert_ShouldBeFormatted(() =>
-        new CsvConnection(ConnectionStrings.Instance
-        .FolderAsDB.AddFormatted(true)));
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        var sandboxConnectionString = ConnectionStrings.Instance.FolderAsDB.AddFormatted(true).Sandbox("Sandbox", sandboxId);
+
+        InsertTests.Insert_ShouldBeFormatted(() => new CsvConnection(sandboxConnectionString));
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using Data.Common.Extension;
 using Data.Tests.Common;
+using Data.Tests.Common.Utils;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
@@ -16,6 +17,14 @@ public class JsonInsertTests
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void Insert_ShouldInsertData_CustomDataSource()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        InsertTests.Insert_ShouldInsertData(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new JsonConnection(connectionString)));
     }
 
     [Fact]
@@ -43,9 +52,10 @@ public class JsonInsertTests
     [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
-        InsertTests.Insert_ShouldBeFormatted(() =>
-        new JsonConnection(ConnectionStrings.Instance
-        .FolderAsDB.AddFormatted(true)));
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        var sandboxConnectionString = ConnectionStrings.Instance.FolderAsDB.AddFormatted(true).Sandbox("Sandbox", sandboxId);
+
+        InsertTests.Insert_ShouldBeFormatted(() => new JsonConnection(sandboxConnectionString));
     }
 
     [Fact]

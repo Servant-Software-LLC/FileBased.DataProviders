@@ -24,7 +24,7 @@ public abstract class FileWriter
     }
 
     public abstract int Execute();    
-    internal static ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
+    internal static ReaderWriterLockSlim readerWriterLock = new ReaderWriterLockSlim();
 
     public bool IsTransaction
         => fileTransaction != null;

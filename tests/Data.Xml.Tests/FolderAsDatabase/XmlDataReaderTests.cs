@@ -1,5 +1,6 @@
 using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
+using Data.Tests.Common.Utils;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;
@@ -16,6 +17,13 @@ public class XmlDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
         new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReadData_StreamedDataSource()
+    {
+        DataReaderTests.Reader_ShouldReadData(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new XmlConnection(connectionString)));
     }
 
     [Fact]

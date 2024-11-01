@@ -10,6 +10,10 @@ public class BloggingContext : BloggingContextBase
         if (string.IsNullOrEmpty(ConnectionString))
             throw new ArgumentNullException(nameof(ConnectionString));
 
-        options.UseJson(ConnectionString).EnableSensitiveDataLogging();
+        var builder = options.UseJson(ConnectionString);
+        if (DataSourceProvider != null)
+            builder = builder.UseDataSource(DataSourceProvider);
+
+        builder.EnableSensitiveDataLogging();
     }
 }

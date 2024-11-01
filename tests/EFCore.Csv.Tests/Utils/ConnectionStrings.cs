@@ -5,7 +5,7 @@ namespace EFCore.Csv.Tests.Utils;
 
 public class ConnectionStrings : ConnectionStringsBase
 {
-    public override string Extension => "cvs";
+    public override string Extension => "csv";
 
     public override FileConnectionString gettingStartedFileDB => throw new NotImplementedException();
     public override FileConnectionString gettingStartedWithDataFileDB => throw new NotImplementedException();

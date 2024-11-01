@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.DataSource;
+using Data.Common.Utils;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.QueryProcessing;
@@ -11,7 +12,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     private const string SchemaTable = "TABLES";
     private const string SchemaColumn = "COLUMNS";
 
-    private FileSystemWatcher? fileWatcher;
     protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
@@ -25,11 +25,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     /// 
     protected abstract void ReadFromFolder(string tableName);
     protected abstract void UpdateFromFolder(string tableName);
-    protected virtual bool ExistsInFolder(string tableName)
-    {
-        var path = fileConnection.GetTablePath(tableName);
-        return File.Exists(path);
-    }
 
     /// <summary>
     /// Reads in file from disk, creates DataTable instances for every table and adds them to the <see cref="DataSet"/>
@@ -44,27 +39,16 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         DataSet = null;
     }
 
-    public void StartWatching()
-    {
-        if (fileWatcher != null)
-        {
+    public void StartWatching() => fileConnection.DataSourceProvider.StartWatching();
 
-            fileWatcher.Changed -= JsonWatcher_Changed;
-            fileWatcher.Changed += JsonWatcher_Changed;
-        }
-    }
-    public void StopWatching()
-    {
-        if (fileWatcher != null)
-            fileWatcher.Changed -= JsonWatcher_Changed;
-    }
+    public void StopWatching() => fileConnection.DataSourceProvider.StopWatching();
 
     public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
     {
         DataTable returnValue;
 
         if (shouldLock)
-            FileWriter._rwLock.EnterReadLock();
+            FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -98,7 +82,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                     }        
                     catch (Exception ex)
                     {
-                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.GetTableFileName(table)}, in '{fileConnection.Database}'", ex);
+                        throw new TableNotFoundException($"Table '{table}' not found as file, {fileConnection.DataSourceProvider.StorageIdentifier(table)}, in '{fileConnection.Database}'", ex);
                     }
                 }
             }
@@ -117,7 +101,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         finally
         {
             if (shouldLock)
-                FileWriter._rwLock.ExitReadLock();
+                FileWriter.readerWriterLock.ExitReadLock();
         }
 
         returnValue.AcceptChanges(); // Sets RowState of all rows to Unchanged
@@ -126,7 +110,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     public bool TableExists(string tableName)
     {
-        FileWriter._rwLock.EnterReadLock();
+        FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -136,8 +120,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 DataSet ??= new DataSet();
 
-                //Optimization:  Only need to check if the file exists in the folder.  We don't need to load the table into memory.
-                return ExistsInFolder(tableName);
+                //Optimization: Only need to check if the file exists in the folder.  We don't need to load the table into memory.
+                return fileConnection.DataSourceProvider.StorageExists(tableName);
             }
 
             if (DataSet == null)
@@ -149,13 +133,13 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter._rwLock.ExitReadLock();
+            FileWriter.readerWriterLock.ExitReadLock();
         }
     }
 
     public int? ColumnsOnTable(string tableName)
     {
-        FileWriter._rwLock.EnterReadLock();
+        FileWriter.readerWriterLock.EnterReadLock();
 
         try
         {
@@ -165,7 +149,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 DataSet ??= new DataSet();
 
-                if (!ExistsInFolder(tableName))
+                // Check if the file exists in the folder.  If it doesn't, then the table doesn't exist.
+                if (!fileConnection.DataSourceProvider.StorageExists(tableName))
                     return null;
 
                 if (DataSet.Tables.Contains(tableName))
@@ -186,11 +171,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter._rwLock.ExitReadLock();
+            FileWriter.readerWriterLock.ExitReadLock();
         }
     }
 
-    private void JsonWatcher_Changed(object sender, FileSystemEventArgs e)
+    private void FileWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         //we dont need to update anything if dataset is null
         if (DataSet == null)
@@ -228,7 +213,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     {
         if (tablesToUpdate.Count > 0)
         {
-            if (fileConnection.PathType == PathType.File)
+            if (fileConnection.DataSourceType == DataSourceType.File)
             {
                 UpdateFromFile();
             }
@@ -388,33 +373,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     }
 
 
-    private void EnsureFileSystemWatcher()
-    {
-        if (fileWatcher == null)
-        {
-            fileWatcher = new FileSystemWatcher();
-            fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            if (fileConnection.FolderAsDatabase)
-            {
-                fileWatcher.Path = fileConnection.Database;
-                fileWatcher.Filter = $"*.{fileConnection.FileExtension}";
-            }
-            else
-            {
-                var file = new FileInfo(fileConnection.Database);
-                fileWatcher.Path = file.DirectoryName!;
-                fileWatcher.Filter = file.Name;
-            }
-            fileWatcher.EnableRaisingEvents = true;
-        }
-    }
-  
+    private void EnsureFileSystemWatcher() => fileConnection.DataSourceProvider.EnsureWatcher();  
 
-    private IEnumerable<string> GetFilesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
-        Directory.GetFiles(fileConnection.Database, $"*.{fileConnection.FileExtension}") :
+    private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => fileConnection.FolderAsDatabase ?
+        fileConnection.DataSourceProvider.GetTableNames() :
         throw new ArgumentException($"The file connection for {GetType()} doesn't have a DataSource which is a folder.");
-
-    private IEnumerable<string> GetTableNamesFromFolderAsDatabase() => GetFilesFromFolderAsDatabase().Select(x => Path.GetFileNameWithoutExtension(x));
 
     private static bool IsSchemaTable(SqlTable sqlTable) => string.Compare(sqlTable.DatabaseName, SchemaDatabase) == 0;
 

@@ -1,23 +1,29 @@
-﻿using EFCore.Common.Tests.Models;
+﻿using Data.Common.DataSource;
+using EFCore.Common.Tests.Models;
 using Xunit;
 
 namespace EFCore.Common.Tests;
 
 public static class GettingStartedTests<TBloggingContext> where TBloggingContext : BloggingContextBase, new()
 {
-    public static void Create_AddBlog(string connectionString) 
+    public static void Create_AddBlog(string connectionString, IDataSourceProvider dataSourceProvider = null) 
     {
         using var db = new TBloggingContext();
         db.ConnectionString = connectionString;
+        if (dataSourceProvider != null)
+            db.DataSourceProvider = dataSourceProvider;
 
         db.Add(new Blog { Url = "http://blogs.msdn.com/adonet" });
         db.SaveChanges();
     }
 
-    public static void Read_FirstBlog(string connectionString)
+    public static void Read_FirstBlog(string connectionString, IDataSourceProvider dataSourceProvider = null)
     {
         using var db = new TBloggingContext();
         db.ConnectionString = connectionString;
+        if (dataSourceProvider != null)
+            db.DataSourceProvider = dataSourceProvider;
+
         db.Database.EnsureCreated();
 
         var firstBlog = new Blog { Url = "http://blogs.msdn.com/adonet" };

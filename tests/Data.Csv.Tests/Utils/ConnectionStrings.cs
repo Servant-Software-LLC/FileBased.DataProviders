@@ -5,7 +5,7 @@ namespace Data.Csv.Tests;
 
 public class ConnectionStrings : ConnectionStringsBase
 {
-    public override string Extension => "cvs";
+    public override string Extension => "csv";
 
     public override FileConnectionString FileAsDB => throw new NotImplementedException();
     public override FileConnectionString EmptyWithTablesFileAsDB => throw new NotImplementedException();
