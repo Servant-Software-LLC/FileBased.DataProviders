@@ -18,9 +18,9 @@
     </xs:element>
   </xs:schema>
   <Posts>
-	  <PostId>1</PostId>
-	  <Title>Hello World</Title>
-	  <Content>I wrote an app using EF Core!</Content>
-	  <BlogId>1</BlogId>
+      <PostId>1</PostId>
+      <Title>Hello World</Title>
+      <Content>I wrote an app using EF Core!</Content>
+      <BlogId>1</BlogId>
   </Posts>
 </NewDataSet>

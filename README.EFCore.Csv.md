@@ -35,7 +35,7 @@ public class MyDbContext : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-	    var connectionString = new FileConnectionString() { DataSource = "path/to/your/data.json" };
+        var connectionString = new FileConnectionString() { DataSource = "path/to/your/data.json" };
         optionsBuilder.UseCsv(connectionString);
     }
 }

@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
-	  <PackageId>ServantSoftware.EFCore.Csv</PackageId>
-	  <Title>ServantSoftware.EFCore.Csv</Title>
-	  <Product>EFCore Csv Data Provider</Product>
-	  <PackageReadmeFile>README.EFCore.Csv.md</PackageReadmeFile>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	</PropertyGroup>
+    <PropertyGroup>
+      <TargetFramework>net7.0</TargetFramework>
+      <PackageId>ServantSoftware.EFCore.Csv</PackageId>
+      <Title>ServantSoftware.EFCore.Csv</Title>
+      <Product>EFCore Csv Data Provider</Product>
+      <PackageReadmeFile>README.EFCore.Csv.md</PackageReadmeFile>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
 
-	<ItemGroup>
+    <ItemGroup>
       <None Include="..\..\README.EFCore.Csv.md" Link="README.EFCore.Csv.md" Pack="true" PackagePath="\" />
 
-	  <ProjectReference Include="..\Data.Csv\Data.Csv.csproj" />
+      <ProjectReference Include="..\Data.Csv\Data.Csv.csproj" />
 
-	  <ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
-	</ItemGroup>
+      <ProjectReference Include="..\EFCore.Common\EFCore.Common.csproj" />
+    </ItemGroup>
 </Project>

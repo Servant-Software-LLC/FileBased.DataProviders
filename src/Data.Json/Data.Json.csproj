@@ -12,9 +12,9 @@
   <ItemGroup>
     <None Include="..\..\README.Data.Json.md" Link="README.Data.Json.md" Pack="true" PackagePath="\" />
 
-	<PackageReference Include="System.Text.Json" />
-	  
+    <PackageReference Include="System.Text.Json" />
+      
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
-	  
+      
   </ItemGroup>
 </Project>

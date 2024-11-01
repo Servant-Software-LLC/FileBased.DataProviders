@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
-	  <LangVersion>11.0</LangVersion>
+      <TargetFramework>net7.0</TargetFramework>
+      <LangVersion>11.0</LangVersion>
 
-	  <ImplicitUsings>enable</ImplicitUsings>
+      <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<IsPackable>false</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Microsoft.NET.Test.Sdk" />
-	<PackageReference Include="xunit.runner.visualstudio">
-		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		<PrivateAssets>all</PrivateAssets>
-	</PackageReference>
-	<PackageReference Include="coverlet.collector">
-		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		<PrivateAssets>all</PrivateAssets>
-	</PackageReference>
-	<PackageReference Include="coverlet.msbuild">
-		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		<PrivateAssets>all</PrivateAssets>
-	</PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.runner.visualstudio">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Dapper" />
   </ItemGroup>
 

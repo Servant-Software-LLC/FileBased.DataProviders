@@ -6,7 +6,7 @@
     <PackageId>ServantSoftware.Data.Common</PackageId>
     <Title>ServantSoftware.Data.Common</Title>
     <Product>ADO.NET Common Data Provider</Product>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 

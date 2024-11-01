@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
-    <LangVersion>11.0</LangVersion>	  
+    <LangVersion>11.0</LangVersion>      
     <PackageId>ServantSoftware.Data.Csv</PackageId>
     <Title>ServantSoftware.Data.Csv</Title>
     <Product>ADO.NET Csv Data Provider</Product>
-	<PackageReadmeFile>README.Data.Csv.md</PackageReadmeFile>
+    <PackageReadmeFile>README.Data.Csv.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>

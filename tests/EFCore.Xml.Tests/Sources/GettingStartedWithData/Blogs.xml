@@ -16,12 +16,12 @@
     </xs:element>
   </xs:schema>
   <Blogs>
-	<BlogId>2</BlogId>
-	<Url>https://www.billboard.com/</Url>
+    <BlogId>2</BlogId>
+    <Url>https://www.billboard.com/</Url>
   </Blogs>
   <Blogs>
-	<BlogId>1</BlogId>
-	<Url>http://blogs.msdn.com/adonet</Url>
+    <BlogId>1</BlogId>
+    <Url>http://blogs.msdn.com/adonet</Url>
   </Blogs>
 
 </NewDataSet>
