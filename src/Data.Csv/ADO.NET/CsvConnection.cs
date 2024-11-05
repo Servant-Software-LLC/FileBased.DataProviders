@@ -4,13 +4,17 @@ using Data.Csv.CsvIO;
 
 namespace System.Data.CsvClient;
 
-
 /// <summary>
 /// Represents a connection for CSV operations.
 /// </summary>
 /// <inheritdoc/>
 public class CsvConnection : FileConnection<CsvParameter>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CsvConnection"/> class.
+    /// </summary>
+    public CsvConnection() { }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CsvConnection"/> class with the specified connection string.
     /// </summary>
@@ -86,7 +90,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     public override FileTransaction<CsvParameter> BeginTransaction(IsolationLevel il) => BeginTransaction();
 
     /// <inheritdoc/>
-    protected override System.Data.Common.DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
+    protected override Common.DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
 
     /// <inheritdoc/>
     public override FileDataAdapter<CsvParameter> CreateDataAdapter(string query) => new CsvDataAdapter(query, this);
