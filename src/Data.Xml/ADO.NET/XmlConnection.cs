@@ -1,16 +1,19 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Data.Xml.XmlIO;
-using System.Data.Common;
 using System.Xml.Linq;
 
 namespace System.Data.XmlClient;
-
 
 /// <summary>
 /// Represents a connection to an XML file that can be used to execute commands against the file.
 /// </summary>
 public class XmlConnection : FileConnection<XmlParameter>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="XmlConnection"/> class.
+    /// </summary>
+    public XmlConnection() { }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="XmlConnection"/> class with a connection string.
     /// </summary>
@@ -92,7 +95,7 @@ public class XmlConnection : FileConnection<XmlParameter>
     /// </summary>
     /// <param name="isolationLevel">The isolation level of the transaction.</param>
     /// <returns>A new <see cref="XmlTransaction"/> object.</returns>
-    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+    protected override Common.DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
     /// <summary>
     /// Creates a new data adapter with the specified query.

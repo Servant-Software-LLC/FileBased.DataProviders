@@ -3,7 +3,6 @@ using Data.Csv.CsvIO.SchemaAltering;
 
 namespace System.Data.CsvClient;
 
-
 /// <summary>
 /// Represents a command for CSV operations.
 /// </summary>
@@ -13,7 +12,7 @@ public class CsvCommand : FileCommand<CsvParameter>
     /// <summary>
     /// Initializes a new instance of the <see cref="CsvCommand"/> class.
     /// </summary>
-    public CsvCommand() { }
+    public CsvCommand() : base() { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CsvCommand"/> class with the specified command text.

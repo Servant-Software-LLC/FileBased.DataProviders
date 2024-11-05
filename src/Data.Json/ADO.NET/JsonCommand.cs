@@ -3,7 +3,6 @@ using Data.Json.JsonIO.SchemaAltering;
 
 namespace System.Data.JsonClient;
 
-
 /// <summary>
 /// Represents a command for JSON operations.
 /// </summary>
@@ -12,7 +11,7 @@ public class JsonCommand : FileCommand<JsonParameter>
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonCommand"/> class.
     /// </summary>
-    public JsonCommand() { }
+    public JsonCommand() : base() { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonCommand"/> class with the specified command text.
