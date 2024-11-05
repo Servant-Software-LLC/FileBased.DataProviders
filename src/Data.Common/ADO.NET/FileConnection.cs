@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace System.Data.FileClient;
 
-
 /// <summary>
 /// Represents a connection to a file-based database.
 /// </summary>
@@ -71,20 +70,24 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     LoggerServices IFileConnection.LoggerServices => LoggerServices;
     private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();
 
+    protected FileConnection()
+    {
+        state = ConnectionState.Closed;
+
+        LoggerServices = new LoggerServices(LogLevel);
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FileConnection{TFileParameter}"/> class.
     /// </summary>
     /// <param name="connectionString">The connection string used to open the database.</param>
-    public FileConnection(FileConnectionString connectionString) 
+    protected FileConnection(FileConnectionString connectionString) 
+        : this()
     {
         if (connectionString is null)
             throw new ArgumentNullException(nameof(connectionString));
 
         this.connectionString = connectionString;
-        state = ConnectionState.Closed;
-
-        LoggerServices = new LoggerServices(LogLevel);
-        log.LogInformation($"{GetType()} created.  ConnectionString = {connectionString}");
     }
 
     /// <summary>

@@ -3,7 +3,6 @@ using Data.Xml.XmlIO.SchemaAltering;
 
 namespace System.Data.XmlClient;
 
-
 /// <summary>
 /// Represents an XML command that is used to execute stored procedures and other commands at a data source.
 /// </summary>
@@ -12,7 +11,7 @@ public class XmlCommand : FileCommand<XmlParameter>
     /// <summary>
     /// Initializes a new instance of the <see cref="XmlCommand"/> class.
     /// </summary>
-    public XmlCommand() { }
+    public XmlCommand() : base() { }
 
     public XmlCommand(string command) : base(command) { }
 

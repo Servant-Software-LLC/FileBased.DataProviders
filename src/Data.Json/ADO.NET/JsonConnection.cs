@@ -1,15 +1,18 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Data.Json.JsonIO;
-using System.Data.Common;
 
 namespace System.Data.JsonClient;
-
 
 /// <summary>
 /// Represents a connection for JSON operations.
 /// </summary>
 public class JsonConnection : FileConnection<JsonParameter>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JsonConnection"/> class.
+    /// </summary>
+    public JsonConnection() { }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonConnection"/> class.
     /// </summary>
@@ -94,7 +97,7 @@ public class JsonConnection : FileConnection<JsonParameter>
     /// </summary>
     /// <param name="isolationLevel">The isolation level of the transaction.</param>
     /// <returns>A new <see cref="DbTransaction"/> instance.</returns>
-    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+    protected override Common.DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
     /// <summary>
     /// Creates a new <see cref="JsonDataAdapter"/> with the specified query.
