@@ -8,7 +8,7 @@ public interface IFileConnection : IDbConnection
     string FileExtension { get; }
     bool? Formatted { get; }
     DataSourceType DataSourceType { get; }
-    IDataSourceProvider DataSourceProvider { get; }
+    IDataSourceProvider DataSourceProvider { get; set; }
     bool FolderAsDatabase { get; }
     bool AdminMode { get; }
     FileReader FileReader { get; }
