@@ -12,7 +12,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
-    private ConnectionState state;
+    private ConnectionState state = ConnectionState.Closed;
 
     /// <summary>
     /// Gets the file extension of the database file.
@@ -22,7 +22,16 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets or sets the connection string used to open the database.
     /// </summary>
-    public override string ConnectionString { get => connectionString.ConnectionString!; set => connectionString.ConnectionString = value; }
+    public override string ConnectionString 
+    { 
+        get => connectionString.ConnectionString!;
+        set
+        {
+            connectionString.ConnectionString = value;
+            LoggerServices = new LoggerServices(LogLevel);
+            FileReader = !AdminMode ? CreateFileReader : null;
+        }
+    }
 
     /// <summary>
     /// Gets the data source of the database.
@@ -66,15 +75,14 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     protected abstract Func<FileStatement, IDataSetWriter> CreateDataSetWriter { get; }
     Func<FileStatement, IDataSetWriter> IFileConnectionInternal.CreateDataSetWriter => CreateDataSetWriter;
 
-    internal LoggerServices LoggerServices { get; }
+    internal LoggerServices LoggerServices { get; private set; }
     LoggerServices IFileConnection.LoggerServices => LoggerServices;
     private ILogger<FileConnection<TFileParameter>> log => LoggerServices.CreateLogger<FileConnection<TFileParameter>>();
 
     protected FileConnection()
     {
-        state = ConnectionState.Closed;
-
-        LoggerServices = new LoggerServices(LogLevel);
+        LoggerServices = new LoggerServices(LogLevel.None);
+        FileReader = CreateFileReader;
     }
 
     /// <summary>
@@ -82,12 +90,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     /// <param name="connectionString">The connection string used to open the database.</param>
     protected FileConnection(FileConnectionString connectionString) 
-        : this()
     {
         if (connectionString is null)
             throw new ArgumentNullException(nameof(connectionString));
 
-        this.connectionString = connectionString;
+        ConnectionString = connectionString;
     }
 
     /// <summary>
@@ -124,7 +131,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets the file reader for the database.
     /// </summary>
-    public FileReader FileReader { get; protected set; }
+    public FileReader FileReader { get; private set; }
+
+    protected abstract FileReader CreateFileReader { get; }
 
     /// <summary>
     /// Gets a value indicating whether the database is case-insensitive.
@@ -232,6 +241,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
             {
                 DataSourceProvider = new FileSystemDataSource(Database, dataSourceType, FileExtension, this);
             }
+        }
+        else
+        {
+            // If the data source provider is set, then properly set the connection string to custom.
+            ConnectionString = FileConnectionString.CustomDataSource;
         }
 
         state = ConnectionState.Open;

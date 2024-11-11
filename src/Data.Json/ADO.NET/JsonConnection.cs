@@ -25,15 +25,14 @@ public class JsonConnection : FileConnection<JsonParameter>
     /// </summary>
     /// <param name="connectionString">The connection string.</param>
     public JsonConnection(FileConnectionString connectionString)
-        : base(connectionString)
-    {
-        FileReader = !AdminMode ? new JsonReader(this) : null;
-    }
+        : base(connectionString) { }
 
     /// <summary>
     /// Gets the file extension associated with JSON files.
     /// </summary>
     public override string FileExtension => "json";
+
+    protected override FileReader CreateFileReader => new JsonReader(this);
 
 #if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
 

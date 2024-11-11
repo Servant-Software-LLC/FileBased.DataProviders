@@ -22,16 +22,14 @@ public class XmlConnection : FileConnection<XmlParameter>
         : this(new FileConnectionString(connectionString)) { }
 
     public XmlConnection(FileConnectionString connectionString)
-        : base(connectionString)
-    {
-        FileReader = !AdminMode ? new XmlReader(this) : null;
-    }
+        : base(connectionString) { }
 
     /// <summary>
     /// Gets the file extension for the XML file.
     /// </summary>
     public override string FileExtension => "xml";
 
+    protected override FileReader CreateFileReader => new XmlReader(this);
 
 #if NET7_0_OR_GREATER    // .NET 7 implementation that supports covariant return types
 

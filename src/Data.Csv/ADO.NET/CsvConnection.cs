@@ -27,15 +27,14 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// </summary>
     /// <param name="connectionString">The connection string to use.</param>
     public CsvConnection(FileConnectionString connectionString)
-        : base(connectionString)
-    {
-        FileReader = !AdminMode ? new CsvReader(this) : null;
-    }
+        : base(connectionString) { }
 
     /// <inheritdoc />
     public override string FileExtension => "csv";
 
     //public override bool DataTypeAlwaysString => true;
+
+    protected override FileReader CreateFileReader => new CsvReader(this);
 
     /// <inheritdoc />
     public override void Open()

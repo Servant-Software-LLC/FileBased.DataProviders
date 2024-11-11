@@ -6,13 +6,17 @@ public static class FileConnectionExtensions
 {
     public static DataSourceType GetDataSourceType(this IFileConnection fileConnection)
     {
-        if (IsAdmin(fileConnection.Database))
+        if (fileConnection.DataSourceProvider != null)
+            return fileConnection.DataSourceProvider.DataSourceType;
+
+        var database = fileConnection.Database;
+        if (IsAdmin(database))
             return DataSourceType.Admin;
 
-        if (File.Exists(fileConnection.Database))
+        if (File.Exists(database))
             return DataSourceType.File;
         
-        if (Directory.Exists(fileConnection.Database))
+        if (Directory.Exists(database))
             return DataSourceType.Directory;
 
         return DataSourceType.None;

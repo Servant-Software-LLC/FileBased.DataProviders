@@ -1,5 +1,7 @@
 ﻿using Data.Common.DataSource;
+using Data.Common.Interfaces;
 using Data.Common.Utils.ConnectionString;
+using System.Data.Common;
 using System.Data.FileClient;
 
 namespace Data.Tests.Common.Utils;
@@ -10,6 +12,17 @@ public static class CustomDataSourceFactory
             where TFileParameter : FileParameter<TFileParameter>, new()
     {
         var connection = createConnection(FileConnectionString.CustomDataSource);
+        return (FileConnection<TFileParameter>)SetupConnection(connection);
+    }
+
+    public static IFileConnection VirtualFolderAsDB(DbProviderFactory dbProviderFactory)
+    {
+        var connection = dbProviderFactory.CreateConnection() as IFileConnection;
+        return SetupConnection(connection!);
+    }
+
+    public static IFileConnection SetupConnection(IFileConnection connection)
+    {
         var database = new DatabaseFullPaths(connection.FileExtension);
         var folderPath = database.Folder;
         var extension = connection.FileExtension;
