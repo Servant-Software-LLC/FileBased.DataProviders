@@ -103,9 +103,7 @@ public abstract class FileInsertWriter : FileWriter
         return false;
     }
 
-    protected abstract bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow);
-
-    public static bool Default_DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
+    protected virtual bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
     {
         if (dataColumn.DataType == typeof(decimal))
         {

@@ -14,9 +14,5 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
 
     protected override object DefaultIdentityValue() => 1;
 
-    protected override bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow) =>
-        Default_DecimalHandled(dataColumn, lastRow, newRow);
-
     protected override void RealizeSchema(DataTable dataTable) => throw new NotImplementedException();
-
 }
