@@ -1,4 +1,5 @@
 ﻿using Data.Common.Extension;
+using Data.Tests.Common.Extensions;
 using System.Data;
 using System.Data.FileClient;
 using Xunit;
@@ -47,7 +48,7 @@ public static class InsertTests
     public static void Insert_ShouldInsertNullData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
-        const decimal id = 123054;
+        const float id = 123054;
 
         // Arrange
         using (var connection = createFileConnection())
@@ -78,7 +79,7 @@ public static class InsertTests
             Assert.Equal(4, fieldCount);
 
             //Verify values of the row.
-            Assert.Equal(connection.DataTypeAlwaysString ? id.ToString() : id, reader[0]);
+            Assert.Equal(connection.GetProperlyTypedValue(id), reader[0]);
             Assert.Equal("Seattle", reader[1]);
             Assert.True(reader.IsDBNull(2), $"Column 2 wasn't null: {(reader[2] == null ? "null" : reader[2].GetType()) }");
             Assert.True(reader.IsDBNull(3), $"Column 3 wasn't null: {(reader[3] == null ? "null" : reader[3].GetType()) }");
@@ -103,13 +104,13 @@ public static class InsertTests
             //Table: locations
             var locationsTable = dataset.Tables[0];
             var idColumn = locationsTable.Columns["id"];
-            Assert.Equal(typeof(decimal), idColumn.DataType);
+            Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), idColumn.DataType);
             var cityColumn = locationsTable.Columns["city"];
             Assert.Equal(typeof(string), cityColumn.DataType);
             var stateColumn = locationsTable.Columns["state"];
             Assert.Equal(typeof(string), stateColumn.DataType);
             var zipColumn = locationsTable.Columns["zip"];
-            Assert.Equal(typeof(decimal), zipColumn.DataType);
+            Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), zipColumn.DataType);
 
             adapter = connection.CreateDataAdapter("SELECT * FROM employees");
             adapter.Fill(dataset);
@@ -121,7 +122,7 @@ public static class InsertTests
             var emailColumn = employeesTable.Columns["email"];
             Assert.Equal(typeof(string), emailColumn.DataType);
             var salaryColumn = employeesTable.Columns["salary"];
-            Assert.Equal(typeof(decimal), salaryColumn.DataType);
+            Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), salaryColumn.DataType);
             var marriedColumn = employeesTable.Columns["married"];
 
             //NOTE:  When https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/22 is solved, then 
@@ -194,7 +195,7 @@ public static class InsertTests
 
                 //first Row
                 Assert.True(reader.Read());
-                Assert.Equal(connection.DataTypeAlwaysString ? "1" : 1m, reader["BlogId"]);
+                Assert.Equal(connection.GetProperlyTypedValue(1), reader["BlogId"]);
 
                 //There should be no second row.
                 Assert.False(reader.Read());
@@ -231,10 +232,10 @@ public static class InsertTests
 
                 //first Row
                 Assert.True(reader.Read());
-                Assert.Equal(connection.DataTypeAlwaysString ? "3" : 3m, reader["id"]);
+                Assert.Equal(connection.GetProperlyTypedValue(3), reader["id"]);
                 Assert.Equal("Seattle", reader["city"]);
                 Assert.Equal("Washington", reader["state"]);
-                Assert.Equal(connection.DataTypeAlwaysString ? "98101" : 98101m, reader["zip"]);
+                Assert.Equal(connection.GetProperlyTypedValue(98101), reader["zip"]);
 
                 //There should be no second row.
                 Assert.False(reader.Read());

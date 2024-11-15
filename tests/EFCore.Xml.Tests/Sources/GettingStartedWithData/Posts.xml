@@ -6,10 +6,10 @@
           <xs:element name="Posts">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="PostId" type="xs:decimal" minOccurs="0" />
+                <xs:element name="PostId" type="xs:double" minOccurs="0" />
                 <xs:element name="Title" type="xs:string" minOccurs="0" />
                 <xs:element name="Content" type="xs:string" minOccurs="0" />
-                <xs:element name="BlogId" type="xs:decimal" minOccurs="0" />
+                <xs:element name="BlogId" type="xs:double" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>

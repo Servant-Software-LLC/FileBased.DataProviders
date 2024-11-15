@@ -8,7 +8,7 @@ namespace System.Data.FileClient;
 /// Represents a connection to a file-based database.
 /// </summary>
 /// <typeparam name="TFileParameter">The type of file parameter.</typeparam>
-public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IFileConnectionInternal, IConnectionStringProperties
+public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnection, IFileConnectionInternal
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private readonly FileConnectionString connectionString = new();
@@ -49,6 +49,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// Gets the log level of the database.
     /// </summary>
     public LogLevel LogLevel => connectionString.LogLevel ?? LogLevel.None;
+
+    /// <summary>
+    /// Gets the preferred floating point data type.
+    /// </summary>
+    public FloatingPointDataType PreferredFloatingPointDataType => connectionString.PreferredFloatingPointDataType ?? FloatingPointDataType.Double;
 
     /// <summary>
     /// Gets a value indicating whether to create the database if it does not exist.

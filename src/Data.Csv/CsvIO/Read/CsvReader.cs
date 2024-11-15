@@ -1,4 +1,6 @@
-﻿using CsvHelper.Configuration;
+﻿using Data.Common.Extension;
+using CsvHelper.Configuration;
+using Data.Common.Utils.ConnectionString;
 using Data.Csv.Utils;
 using Microsoft.Data.Analysis;
 using System.Data.CsvClient;
@@ -138,20 +140,11 @@ internal class CsvReader : FileReader
                 DataColumn dataColumn = new DataColumn
                 {
                     ColumnName = column.Name,
-                    DataType = GetClrType(column.DataType)
+                    DataType = fileConnection.PreferredFloatingPointDataType.GetClrType(column.DataType)
                 };
                 dataTable.Columns.Add(dataColumn);
             }
         }
-    }
-
-    private Type GetClrType(Type dataFrameColumnType)
-    {
-        // Convert float to decimal
-        if (dataFrameColumnType == typeof(float))
-            return typeof(decimal);
-
-        return dataFrameColumnType;
     }
 
     private static bool HasNonWhitespaceCharacter(TextReader textReader)

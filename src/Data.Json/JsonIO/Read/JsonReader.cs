@@ -92,7 +92,7 @@ internal class JsonReader : FileReader
         }
     }
 
-    private static IEnumerable<(string name, Type type)> GetFields(JsonElement table)
+    private IEnumerable<(string name, Type type)> GetFields(JsonElement table)
     {
         var arrayEnumerator = table.EnumerateArray();
         if (!arrayEnumerator.Any())
@@ -103,7 +103,7 @@ internal class JsonReader : FileReader
             return x.EnumerateObject().Count();
         });
         var enumerator = maxFieldElement.EnumerateObject();
-        return enumerator.Select(x => (x.Name, x.Value.ValueKind.GetClrFieldType()));
+        return enumerator.Select(x => (x.Name, x.Value.ValueKind.GetClrFieldType(fileConnection)));
     }
 
     private static void Fill(DataTable dataTable, JsonElement jsonElement)
@@ -123,7 +123,7 @@ internal class JsonReader : FileReader
 
     }
 
-    private static DataTable CreateNewDataTable(JsonElement jsonElement)
+    private DataTable CreateNewDataTable(JsonElement jsonElement)
     {
         DataTable dataTable = new DataTable();
         foreach (var col in GetFields(jsonElement))

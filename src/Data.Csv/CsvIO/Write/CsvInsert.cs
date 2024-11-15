@@ -11,8 +11,6 @@ internal class CsvInsert : Common.FileIO.Write.FileInsertWriter
 
     public override bool SchemaUnknownWithoutData => true;
 
-    protected override object DefaultIdentityValue() => 1;
-
     protected override void RealizeSchema(DataTable dataTable)
     {
         // Update the data type of the columns in the data table, now that they can be determined.
@@ -36,7 +34,7 @@ internal class CsvInsert : Common.FileIO.Write.FileInsertWriter
                 {
                     if (dataTable.Columns.Contains(columnNameHint))
                     {
-                        dataTable.Columns[columnNameHint].DataType = typeof(decimal);
+                        dataTable.Columns[columnNameHint].DataType = fileConnection.PreferredFloatingPointDataType.ToType();
                     }
                 }
             }

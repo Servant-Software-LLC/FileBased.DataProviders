@@ -12,8 +12,6 @@ internal class JsonInsert : FileInsertWriter
 
     public override bool SchemaUnknownWithoutData => true;
 
-    protected override object DefaultIdentityValue() => 1;
-
     protected override void RealizeSchema(DataTable dataTable)
     {
         //Add missing columns, since we can now determine the schema
@@ -30,7 +28,7 @@ internal class JsonInsert : FileInsertWriter
                 continue;
 
             if (ColumnNameIndicatesIdentity(columnNameHint))
-                dataTable.Columns.Add(columnNameHint, typeof(decimal));
+                dataTable.Columns.Add(columnNameHint, fileConnection.PreferredFloatingPointDataType.ToType());
             else
                 dataTable.Columns.Add(columnNameHint);
         }

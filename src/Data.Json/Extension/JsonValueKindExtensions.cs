@@ -2,10 +2,10 @@
 
 internal static class JsonValueKindExtensions
 {
-    internal static Type GetClrFieldType(this JsonValueKind kind) => kind switch
+    internal static Type GetClrFieldType(this JsonValueKind kind, IFileConnection fileConnection) => kind switch
     {
         JsonValueKind.String => typeof(string),
-        JsonValueKind.Number => typeof(decimal),
+        JsonValueKind.Number => fileConnection.PreferredFloatingPointDataType.ToType(),
         JsonValueKind.True => typeof(bool),
         JsonValueKind.False => typeof(bool),
         JsonValueKind.Null => typeof(string),

@@ -8,7 +8,7 @@
               <xs:sequence>
                 <xs:element name="name" type="xs:string" minOccurs="0" />
                 <xs:element name="email" type="xs:string" minOccurs="0" />
-                <xs:element name="salary" type="xs:decimal" minOccurs="0" />
+                <xs:element name="salary" type="xs:double" minOccurs="0" />
                 <xs:element name="married" type="xs:boolean" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
@@ -16,10 +16,10 @@
           <xs:element name="locations">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="id" type="xs:decimal" minOccurs="0" />
+                <xs:element name="id" type="xs:double" minOccurs="0" />
                 <xs:element name="city" type="xs:string" minOccurs="0" />
                 <xs:element name="state" type="xs:string" minOccurs="0" />
-                <xs:element name="zip" type="xs:decimal" minOccurs="0" />
+                <xs:element name="zip" type="xs:double" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>

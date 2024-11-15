@@ -90,7 +90,7 @@ public abstract class FileInsertWriter : FileWriter
         return (dataTable, row);
     }
 
-    protected abstract object DefaultIdentityValue();
+    protected virtual object DefaultIdentityValue() => Convert.ChangeType(1, fileConnection.PreferredFloatingPointDataType.ToType());
     protected virtual bool GuidHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
     {
         var lastRowColumnValue = lastRow[dataColumn.ColumnName].ToString();

@@ -6,7 +6,7 @@
           <xs:element name="Customers">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ID" type="xs:decimal" minOccurs="0" />
+                <xs:element name="ID" type="xs:double" minOccurs="0" />
                 <xs:element name="CustomerName" type="xs:string" minOccurs="0" />
                 <xs:element name="Address" type="xs:string" minOccurs="0" />
                 <xs:element name="PhoneNumber" type="xs:string" minOccurs="0" />
@@ -16,30 +16,30 @@
           <xs:element name="Products">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ID" type="xs:decimal" minOccurs="0" />
+                <xs:element name="ID" type="xs:double" minOccurs="0" />
                 <xs:element name="Name" type="xs:string" minOccurs="0" />
                 <xs:element name="Description" type="xs:string" minOccurs="0" />
-                <xs:element name="Price" type="xs:decimal" minOccurs="0" />
+                <xs:element name="Price" type="xs:double" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
           <xs:element name="Orders">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ID" type="xs:decimal" minOccurs="0" />
-                <xs:element name="CustomerID" type="xs:decimal" minOccurs="0" />
+                <xs:element name="ID" type="xs:double" minOccurs="0" />
+                <xs:element name="CustomerID" type="xs:double" minOccurs="0" />
                 <xs:element name="OrderDate" type="xs:string" minOccurs="0" />
-                <xs:element name="TotalAmount" type="xs:decimal" minOccurs="0" />
+                <xs:element name="TotalAmount" type="xs:double" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
           <xs:element name="OrderItems">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ID" type="xs:decimal" minOccurs="0" />
-                <xs:element name="OrderID" type="xs:decimal" minOccurs="0" />
-                <xs:element name="ProductID" type="xs:decimal" minOccurs="0" />
-                <xs:element name="Quantity" type="xs:decimal" minOccurs="0" />
+                <xs:element name="ID" type="xs:double" minOccurs="0" />
+                <xs:element name="OrderID" type="xs:double" minOccurs="0" />
+                <xs:element name="ProductID" type="xs:double" minOccurs="0" />
+                <xs:element name="Quantity" type="xs:double" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>

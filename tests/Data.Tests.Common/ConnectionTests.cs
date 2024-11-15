@@ -152,8 +152,9 @@ public static class ConnectionTests
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         //Arrange
-        DataTable schemaTable = null;
+        DataTable schemaTable = null!;
         bool dataTypeAlwaysString;
+        FloatingPointDataType preferredFloatingPointDataType;
         using (var connection = createConnection())
         {
             var connectionStringWithCreate = new FileConnectionString(connection.ConnectionString).AddCreateIfNotExist(true);
@@ -161,7 +162,8 @@ public static class ConnectionTests
 
             connection.Open();
 
-            dataTypeAlwaysString = createConnection().DataTypeAlwaysString;
+            dataTypeAlwaysString = connection.DataTypeAlwaysString;
+            preferredFloatingPointDataType = connection.PreferredFloatingPointDataType;
 
             //Act
             schemaTable = connection.GetSchema("Columns");
@@ -177,7 +179,7 @@ public static class ConnectionTests
         var sortedSchemaTable = dataView.ToTable();
 
         var boolDataType = (dataTypeAlwaysString ? typeof(string) : typeof(bool)).FullName!;
-        var decimalDataType = (dataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName!;
+        var decimalDataType = (dataTypeAlwaysString ? typeof(string) : preferredFloatingPointDataType.ToType()).FullName!;
 
         AssertColumnMetadata(sortedSchemaTable.Rows[0], "employees", "email", typeof(string).FullName!);
         AssertColumnMetadata(sortedSchemaTable.Rows[1], "employees", "married", boolDataType);

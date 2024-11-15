@@ -1,3 +1,4 @@
+using Data.Tests.Common.Extensions;
 using System.Data;
 using System.Data.FileClient;
 using System.Diagnostics;
@@ -36,7 +37,7 @@ public static class DataAdapterTests
         Assert.Equal(rowsFilled, dataSet.Tables[0].Rows.Count);
         var filledRow = dataSet.Tables[0].Rows[0];
         Assert.Equal("Boston", filledRow["city"]);
-        Assert.Equal(90001M, filledRow["zip"]);
+        Assert.Equal(connection.GetProperlyTypedValue(90001), filledRow["zip"]);
 
         //
         // Act
@@ -78,7 +79,7 @@ public static class DataAdapterTests
         var row = dataTable.Rows[0];
         Assert.Equal("Boston", row["city"]);
         Assert.Equal("MA", row["state"]);
-        Assert.Equal(connection.DataTypeAlwaysString ? "32655" : 32655M, row["zip"]);
+        Assert.Equal(connection.GetProperlyTypedValue(32655), row["zip"]);
 
         // Close the connection
         connection.Close();
@@ -109,7 +110,7 @@ public static class DataAdapterTests
         Assert.Equal(rowsFilled, dataSet.Tables[0].Rows.Count);
         var filledRow = dataSet.Tables[0].Rows[0];
         Assert.Equal("Alice", filledRow["name"]);
-        Assert.Equal(60M, filledRow["salary"]);
+        Assert.Equal(connection.GetProperlyTypedValue(60), filledRow["salary"]);
 
         //
         // Act
@@ -146,7 +147,7 @@ public static class DataAdapterTests
         Assert.True(1 == dataTable.Rows.Count, $"Expected only 1 employee with name = 'Alice'.  Actual employees: {dataTable.Rows.Count}");
         var row = dataTable.Rows[0];
         Assert.Equal("Alice", row["name"]);
-        Assert.Equal(connection.DataTypeAlwaysString ? "60000" : 60000M, row["salary"]);
+        Assert.Equal(connection.GetProperlyTypedValue(60000), row["salary"]);
 
         // Close the connection
         connection.Close();
@@ -283,7 +284,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.IsType<string>(dataset.Tables![0].Rows[0]["name"]);
         Assert.Equal("Joe@gmail.com", dataset.Tables![0].Rows[0]["email"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[0]["email"]);
-        Assert.Equal(connection.DataTypeAlwaysString ? "56000" : 56000M, dataset.Tables[0].Rows[0]["salary"]);
+        Assert.Equal(connection.GetProperlyTypedValue(56000), dataset.Tables[0].Rows[0]["salary"]);
         Assert.Equal(connection.DataTypeAlwaysString ? "True" : true, dataset.Tables[0].Rows[0]["married"]);
 
         //second row
@@ -291,7 +292,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.IsType<string>(dataset.Tables[0].Rows[1]["name"]);
         Assert.Equal("bob32@gmail.com", dataset.Tables[0].Rows[1]["email"]);
         Assert.IsType<string>(dataset.Tables[0].Rows[1]["email"]);
-        Assert.Equal(connection.DataTypeAlwaysString ? "95000" : 95000M, dataset.Tables[0].Rows[1]["salary"]);
+        Assert.Equal(connection.GetProperlyTypedValue(95000), dataset.Tables[0].Rows[1]["salary"]);
         Assert.Equal(DBNull.Value, dataset.Tables[0].Rows[1]["married"]);
         connection.Close();
     }
@@ -318,7 +319,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
 
         var row = locationsTable.Rows[0];
         Assert.Equal("New Braunfels", row["city"]);
-        Assert.Equal(connection.DataTypeAlwaysString ? "78132" : 78132M, row["zip"]);
+        Assert.Equal(connection.GetProperlyTypedValue(78132), row["zip"]);
 
         // Close the connection
         connection.Close();

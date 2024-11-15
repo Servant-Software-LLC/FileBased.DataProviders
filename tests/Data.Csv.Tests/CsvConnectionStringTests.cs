@@ -90,4 +90,27 @@ public class CsvConnectionStringTests
         Assert.Contains("LogLevel", exception.Message);
     }
 
+    [Fact]
+    public void ConnectionString_PreferredFloatingPointDataType()
+    {
+        const string dataSourceValue = @"c:\database.csv";
+        const string connectionStringValue = $"Data Source={dataSourceValue};FloatingPoint=float";
+
+        FileConnectionString connectionString = connectionStringValue;
+
+        Assert.Equal($"DataSource={dataSourceValue};PreferredFloatingPointDataType=Float;", connectionString.ConnectionString);
+        Assert.Equal(FloatingPointDataType.Float, connectionString.PreferredFloatingPointDataType);
+    }
+
+    [Fact]
+    public void ConnectionString_PreferredFloatingPointDataType_InvalidValue()
+    {
+        const string dataSourceValue = @"c:\database.csv";
+        const string connectionStringValue = $"Data Source={dataSourceValue};PreferredFloatingPointDataType=byte";
+
+        FileConnectionString connectionString = new();
+
+        var exception = Assert.Throws<ArgumentException>("connectionString", () => connectionString = connectionStringValue);
+        Assert.Contains("PreferredFloatingPointDataType", exception.Message);
+    }
 }

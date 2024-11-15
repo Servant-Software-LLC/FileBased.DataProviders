@@ -1,4 +1,6 @@
-﻿using System.Data.Common;
+﻿using Data.Common.Extension;
+using Data.Tests.Common.Extensions;
+using System.Data.Common;
 using System.Data.FileClient;
 using Xunit;
 
@@ -56,7 +58,7 @@ public static class DataReaderTests
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("Joe@gmail.com", reader["email"]);
             Assert.IsType<string>(reader["email"]);
-            Assert.Equal(connection.DataTypeAlwaysString ? "56000" : 56000M, reader["salary"]);
+            Assert.Equal(connection.GetProperlyTypedValue(56000), reader["salary"]);
             Assert.Equal(connection.DataTypeAlwaysString ? "True" : true, reader["married"]);
             if (!connection.DataTypeAlwaysString)
             {
@@ -68,15 +70,13 @@ public static class DataReaderTests
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("bob32@gmail.com", reader["email"]);
             Assert.IsType<string>(reader["email"]);
-            Assert.Equal(connection.DataTypeAlwaysString ? "95000" : 95000M, reader["salary"]);
+            Assert.Equal(connection.GetProperlyTypedValue(95000), reader["salary"]);
             //this will be dbnull not bool?
             if (!connection.DataTypeAlwaysString)
             {
                 Assert.IsType<DBNull>(reader["married"]);
-                Assert.IsType<decimal>(reader["salary"]);
-                Assert.IsType<decimal>(reader["salary"]);
                 Assert.Equal(DBNull.Value, reader["married"]);
-                Assert.IsType<DBNull>(reader["married"]);
+                Assert.IsType(connection.PreferredFloatingPointDataType.ToType(), reader["salary"]);
             }
         }
 
@@ -104,7 +104,7 @@ public static class DataReaderTests
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("Joe@gmail.com", reader["email"]);
             Assert.IsType<string>(reader["email"]);
-            Assert.Equal(connection.DataTypeAlwaysString ? "56000" : 56000M, reader["salary"]);
+            Assert.Equal(connection.GetProperlyTypedValue(56000), reader["salary"]);
             Assert.Equal(connection.DataTypeAlwaysString ? "True" : true, reader["married"]);
             if (!connection.DataTypeAlwaysString)
             {
@@ -139,15 +139,13 @@ public static class DataReaderTests
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("bob32@gmail.com", reader["email"]);
             Assert.IsType<string>(reader["email"]);
-            Assert.Equal(connection.DataTypeAlwaysString ? "95000" : 95000M, reader["salary"]);
+            Assert.Equal(connection.GetProperlyTypedValue(95000), reader["salary"]);
             //this will be dbnull not bool?
             if (!connection.DataTypeAlwaysString)
             {
                 Assert.IsType<DBNull>(reader["married"]);
-                Assert.IsType<decimal>(reader["salary"]);
-                Assert.IsType<decimal>(reader["salary"]);
                 Assert.Equal(DBNull.Value, reader["married"]);
-                Assert.IsType<DBNull>(reader["married"]);
+                Assert.IsType(connection.PreferredFloatingPointDataType.ToType(), reader["salary"]);
             }
 
             //No more rows
@@ -240,7 +238,7 @@ public static class DataReaderTests
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("salary", reader["COLUMN_NAME"].ToString(), true) == 0);
-            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
             //Fifth Row
             Assert.True(reader.Read());
@@ -254,7 +252,7 @@ public static class DataReaderTests
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("id", reader["COLUMN_NAME"].ToString(), true) == 0);
-            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
             //Seventh Row
             Assert.True(reader.Read());
@@ -268,7 +266,7 @@ public static class DataReaderTests
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("zip", reader["COLUMN_NAME"].ToString(), true) == 0);
-            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(decimal)).FullName, reader["DATA_TYPE"]);
+            Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
             //There is no ninth row.
             Assert.False(reader.Read());

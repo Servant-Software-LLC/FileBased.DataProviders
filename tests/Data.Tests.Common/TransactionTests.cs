@@ -1,4 +1,5 @@
 ﻿using Data.Common.Extension;
+using Data.Tests.Common.Extensions;
 using System.Data;
 using System.Data.FileClient;
 using Xunit;
@@ -134,7 +135,7 @@ public static class TransactionTests
         adapter.Fill(dataSet);
         var salaryOrdinal = dataSet.Tables[0].Columns.IndexOf("salary");
         Assert.Equal(1, dataSet.Tables[0].Rows.Count);
-        Assert.Equal(20M, dataSet.Tables[0].Rows[0][salaryOrdinal].GetValueAsType<decimal>());
+        Assert.Equal(20, dataSet.Tables[0].Rows[0][salaryOrdinal].GetValueAsType<double>());
 
         // Close the connection
         connection.Close();
@@ -209,7 +210,7 @@ public static class TransactionTests
 
                     //first Row
                     Assert.True(reader.Read());
-                    Assert.Equal(connection.DataTypeAlwaysString ? "1" : 1m, reader["BlogId"]);
+                    Assert.Equal(connection.GetProperlyTypedValue(1), reader["BlogId"]);
 
                     //There should be no second row.
                     Assert.False(reader.Read());
@@ -225,7 +226,7 @@ public static class TransactionTests
 
                     //first Row
                     Assert.True(reader.Read());
-                    Assert.Equal(connection.DataTypeAlwaysString ? "2" : 2m, reader["BlogId"]);
+                    Assert.Equal(connection.GetProperlyTypedValue(2), reader["BlogId"]);
 
                     //There should be no second row.
                     Assert.False(reader.Read());
@@ -242,11 +243,11 @@ public static class TransactionTests
             Assert.Equal(2, dataSet.Tables[0].Rows.Count);
 
             var firstRow = dataSet.Tables[0].Rows[0];
-            Assert.Equal(connection.DataTypeAlwaysString ? "1" : 1m, firstRow["BlogId"]);
+            Assert.Equal(connection.GetProperlyTypedValue(1), firstRow["BlogId"]);
             Assert.Equal("http://blogs.msdn.com/adonet", firstRow["Url"]);
 
             var secondRow = dataSet.Tables[0].Rows[1];
-            Assert.Equal(connection.DataTypeAlwaysString ? "2" : 2m, secondRow["BlogId"]);
+            Assert.Equal(connection.GetProperlyTypedValue(2), secondRow["BlogId"]);
             Assert.Equal("https://www.billboard.com/", secondRow["Url"]);
 
         }

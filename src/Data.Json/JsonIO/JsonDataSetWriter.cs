@@ -63,6 +63,12 @@ public class JsonDataSetWriter : IDataSetWriter
                     case "Int32":
                         jsonWriter.WriteNumber(column.ColumnName, (int)row[column]);
                         break;
+                    case "Float":
+                        jsonWriter.WriteNumber(column.ColumnName, (float)row[column]);
+                        break;
+                    case "Double":
+                        jsonWriter.WriteNumber(column.ColumnName, (double)row[column]);
+                        break;
                     case "Decimal":
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;

@@ -27,6 +27,9 @@ public class FileConnectionString : IConnectionStringProperties
             if (LogLevel != null)
                 stringBuilder.Append($"{nameof(FileConnectionStringKeyword.LogLevel)}={LogLevel};");
 
+            if (PreferredFloatingPointDataType != null)
+                stringBuilder.Append($"{nameof(FileConnectionStringKeyword.PreferredFloatingPointDataType)}={PreferredFloatingPointDataType};");
+
             if (CreateIfNotExist != null)
                 stringBuilder.Append($"{nameof(FileConnectionStringKeyword.CreateIfNotExist)}={CreateIfNotExist};");
 
@@ -39,6 +42,7 @@ public class FileConnectionString : IConnectionStringProperties
     public string DataSource { get; set; }
     public bool? Formatted { get; set; }
     public LogLevel? LogLevel { get; set; }
+    public FloatingPointDataType? PreferredFloatingPointDataType { get; set; }
     public bool? CreateIfNotExist { get; set; }
 
     public FileConnectionString Clone() =>
@@ -47,6 +51,7 @@ public class FileConnectionString : IConnectionStringProperties
             DataSource = DataSource,
             Formatted = Formatted,
             LogLevel = LogLevel,
+            PreferredFloatingPointDataType = PreferredFloatingPointDataType,
             CreateIfNotExist = CreateIfNotExist
         };
 
@@ -114,10 +119,21 @@ public class FileConnectionString : IConnectionStringProperties
                 if (keyValuePair.Value == null)
                     throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.LogLevel)} was null.", nameof(connectionString));
 
-                if (!System.Enum.TryParse<LogLevel>(keyValuePair.Value.ToString(), true, out LogLevel logLevel))
+                if (!Enum.TryParse(keyValuePair.Value.ToString(), true, out LogLevel logLevel))
                     throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.LogLevel)} was not a {typeof(LogLevel)} enum value.", nameof(connectionString));
 
                 LogLevel = logLevel;
+                continue;
+            }
+
+            //PreferredFloatingPointDataType
+            if (IsKeyword(keyValuePair.Key, FileConnectionStringKeyword.PreferredFloatingPointDataType))
+            {
+                if (keyValuePair.Value == null)
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.PreferredFloatingPointDataType)} was null.", nameof(connectionString));
+                if (!Enum.TryParse(keyValuePair.Value.ToString(), true, out FloatingPointDataType floatingPointDataType))
+                    throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.PreferredFloatingPointDataType)} was not a {typeof(FloatingPointDataType)} enum value.", nameof(connectionString));
+                PreferredFloatingPointDataType = floatingPointDataType;
                 continue;
             }
 
