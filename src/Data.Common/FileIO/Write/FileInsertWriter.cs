@@ -103,12 +103,16 @@ public abstract class FileInsertWriter : FileWriter
         return false;
     }
 
-    protected virtual bool DecimalHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
+    protected virtual bool FloatingPointHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
     {
-        if (dataColumn.DataType == typeof(decimal))
+        if (dataColumn.DataType == typeof(float) || dataColumn.DataType == typeof(double) || dataColumn.DataType == typeof(decimal))
         {
             var lastRowColumnValue = lastRow[dataColumn.ColumnName];
-            if (lastRowColumnValue is decimal decValue)
+            if (lastRowColumnValue is float floatValue)
+                newRow[dataColumn.ColumnName] = floatValue + 1f;
+            else if (lastRowColumnValue is double doubleValue)
+                newRow[dataColumn.ColumnName] = doubleValue + 1d;
+            else if (lastRowColumnValue is decimal decValue)
                 newRow[dataColumn.ColumnName] = decValue + 1m;
 
             return true;
@@ -154,7 +158,7 @@ public abstract class FileInsertWriter : FileWriter
 
 
                     //Does the value of this column in the last row look like an decimal or is one?
-                    if (DecimalHandled(dataColumn, lastRow, newRow))
+                    if (FloatingPointHandled(dataColumn, lastRow, newRow))
                     {
                         handled = true;
                         continue;
