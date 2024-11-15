@@ -58,7 +58,7 @@ internal class XmlReader : FileReader
         using (var textReader = fileConnection.DataSourceProvider.GetTextReader(string.Empty))
         {
             DataSet!.Clear();
-            DataSet.ReadXml(fileConnection.Database);
+            DataSet.ReadXml(textReader);
         }
     }
 }
