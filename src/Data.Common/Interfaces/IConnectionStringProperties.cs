@@ -4,6 +4,6 @@ public interface IConnectionStringProperties
 {
     string ConnectionString { get; }
 
-    public string DataSource { get; }
-    public bool? Formatted { get; }
+    string DataSource { get; }
+    bool? Formatted { get; }
 }
