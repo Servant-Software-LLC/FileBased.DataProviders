@@ -1,6 +1,9 @@
+using Data.Common.DataSource;
 using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
 using Data.Json.Tests.FileAsDatabase;
 using Data.Tests.Common.Utils;
+using System.Data;
 using System.Data.CsvClient;
 using System.Reflection;
 using Xunit;
@@ -24,6 +27,30 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_ShouldReadData(() =>
             CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
+    }
+
+    [Fact]
+    public void Reader_ShouldReadData_If_ColumnNames_Preceded_With_Space()
+    {
+        const string filePath = "Sources/sample.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(5, dataTable.Rows.Count);
     }
 
     [Fact]
