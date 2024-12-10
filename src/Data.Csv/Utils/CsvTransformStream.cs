@@ -104,10 +104,6 @@ public class CsvTransformStream : Stream
         logicalPosition += bytesRead; // Update logical position
         bufferStream.Position = bytesRead;
 
-        Debug.WriteLine($"bytesRead = {bytesRead}");
-        var bufferValue = Encoding.UTF8.GetString(buffer);
-        Debug.WriteLine($"{bufferValue}({bufferValue.Length})");
-
         return bytesRead;
     }
 
@@ -127,7 +123,6 @@ public class CsvTransformStream : Stream
         if (origin != SeekOrigin.Begin && offset != 0)
             throw new NotSupportedException();
 
-        Debug.WriteLine("SEEK to 0");
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         HeaderLine = null;
 
