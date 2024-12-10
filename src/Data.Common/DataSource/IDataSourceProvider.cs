@@ -29,7 +29,7 @@ public interface IDataSourceProvider
     /// </summary>
     /// <param name="tableName">The name of the table.</param>
     /// <returns>A <see cref="TextReader"/> for reading the table data.</returns>
-    TextReader GetTextReader(string tableName);
+    StreamReader GetTextReader(string tableName);
 
     /// <summary>
     /// Gets a <see cref="TextWriter"/> to write data to the specified table.

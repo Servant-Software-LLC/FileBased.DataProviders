@@ -1,10 +1,6 @@
-﻿using Data.Common.Extension;
-using CsvHelper.Configuration;
-using Data.Common.Utils.ConnectionString;
-using Data.Csv.Utils;
+﻿using Data.Csv.Utils;
 using Microsoft.Data.Analysis;
 using System.Data.CsvClient;
-using System.Globalization;
 
 namespace Data.Csv.CsvIO.Read;
 
@@ -25,7 +21,7 @@ internal class CsvReader : FileReader
             //Check if the contents of the file contains any non-whitespace characters
             if (HasNonWhitespaceCharacter(textReader))
             {
-                dataTable = FillDataTable(textReader, tableName);
+                dataTable = FillDataTable(tableName);
             }
 
             DataSet!.Tables.Add(dataTable ?? new DataTable(tableName));
@@ -34,21 +30,16 @@ internal class CsvReader : FileReader
 
     protected override void UpdateFromFolder(string tableName)
     {
-        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        // Determine if the table exists in the DataSet, if not create it.
+        var dataTable = DataSet!.Tables[tableName];
+        if (dataTable == null)
         {
-            // Determine if the table exists in the DataSet, if not create it.
-            var dataTable = DataSet!.Tables[tableName];
-            if (dataTable == null)
-            {
-                var newDataTable = FillDataTable(textReader, tableName);
-                DataSet!.Tables.Add(newDataTable);
-                return;
-            }
-
             // Fill the existing DataTable with the new data
-            dataTable.Rows.Clear();
-            FillDataTable(textReader, dataTable);
+            DataSet!.Tables.Remove(tableName);
         }
+
+        var newDataTable = FillDataTable(tableName);
+        DataSet!.Tables.Add(newDataTable);
     }
     #endregion
 
@@ -63,88 +54,53 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private DataTable FillDataTable(TextReader textReader, string tableName)
+    private DataTable FillDataTable(string tableName, long numberOfRowsToReadForInference = 10)
     {
-        //Determine the schema of the DataTable
-        DataTable results = new DataTable(tableName);
-        CreateDataTableSchema(results);
+        // Load CSV into DataFrame to infer data types
+        DataFrame dataFrame = CsvDataFrameLoader.LoadDataFrame(fileConnection.DataSourceProvider, tableName, numberOfRowsToReadForInference);
 
-        FillDataTable(textReader, results);
+        DataTable results = new DataTable(tableName);
+        FillDataTable(dataFrame, results);
         return results;
     }
 
-    // Fill the DataTable with the data from the CSV file
-    private void FillDataTable(TextReader textReader, DataTable dataTable)
+    private DataTable FillDataTable(DataFrame dataFrame, DataTable dataTable)
     {
-        bool hasHeader = dataTable.Columns.Count > 0;
-
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        // Add columns to DataTable
+        foreach (var column in dataFrame.Columns)
         {
-            MissingFieldFound = null,
-            HasHeaderRecord = hasHeader
-        };
-
-        // Read the raw data into a temporary DataTable
-        var tempDataTable = new DataTable();
-        using (var reader = fileConnection.DataSourceProvider.GetTextReader(dataTable.TableName))
-        using (var csv = new CsvHelper.CsvReader(reader, config))
-        {
-            // Initialize CsvDataReader with the CsvReader and DataTable schema
-            using (var dataReader = new CsvHelper.CsvDataReader(csv))
-            {
-                // Load data into DataTable
-                tempDataTable.Load(dataReader);
-            }
+            // Use column.Name for the DataColumn name and column.DataType for its type
+            var dataType = fileConnection.PreferredFloatingPointDataType.GetClrType(column.DataType);
+            dataTable.Columns.Add(column.Name, dataType);
         }
 
-        // Copy the data from the temporary DataTable to the results DataTable
-        foreach (DataRow row in tempDataTable.Rows)
+        // Add rows to DataTable
+        foreach (var row in dataFrame.Rows)
         {
-            var newRow = dataTable.NewRow();
-            foreach (DataColumn column in dataTable.Columns)
+            DataRow newRow = dataTable.NewRow();
+
+            for (int i = 0; i < dataFrame.Columns.Count; i++)
             {
                 // Check for empty strings and set them to DBNull
-                if (row[column.ColumnName] is string value && string.IsNullOrEmpty(value) || row[column.ColumnName] == null)
+                if (row[i] is string value && string.IsNullOrEmpty(value) || row[i] == null)
                 {
-                    //Temporarily toggle the ReadOnly property to false, so we can change its value.
-                    bool wasReadOnly = column.ReadOnly;
-                    column.ReadOnly = false;
-                    newRow[column.ColumnName] = DBNull.Value;
-                    column.ReadOnly = wasReadOnly;
+                    newRow[i] = DBNull.Value;
                 }
                 else
                 {
-                    var rawValue = row[column.ColumnName];
-                    var expectedType = dataTable.Columns[column.ColumnName].DataType;
+                    var rawValue = row[i];
+                    var expectedType = dataTable.Columns[i].DataType;
 
                     // Convert value to the correct type
                     var convertedValue = rawValue == DBNull.Value ? DBNull.Value : Convert.ChangeType(rawValue, expectedType);
-                    newRow[column.ColumnName] = convertedValue;
+                    newRow[i] = convertedValue;
                 }
             }
 
             dataTable.Rows.Add(newRow);
         }
-    }
 
-
-    private void CreateDataTableSchema(DataTable dataTable, long numberOfRowsToReadForInference = 10)
-    {
-        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(dataTable.TableName))
-        {
-            // Load CSV into DataFrame to infer data types
-            DataFrame df = CsvDataFrameLoader.LoadDataFrameWithQuotedFields(textReader, numberOfRowsToReadForInference);
-
-            foreach (DataFrameColumn column in df.Columns)
-            {
-                DataColumn dataColumn = new DataColumn
-                {
-                    ColumnName = column.Name,
-                    DataType = fileConnection.PreferredFloatingPointDataType.GetClrType(column.DataType)
-                };
-                dataTable.Columns.Add(dataColumn);
-            }
-        }
+        return dataTable;
     }
 
     private static bool HasNonWhitespaceCharacter(TextReader textReader)

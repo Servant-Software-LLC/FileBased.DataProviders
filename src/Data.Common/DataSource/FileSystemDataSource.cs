@@ -1,6 +1,4 @@
-﻿using SqlBuildingBlocks;
-
-namespace Data.Common.DataSource;
+﻿namespace Data.Common.DataSource;
 
 /// <summary>
 /// Provides a data source implementation for file system-based storage.
@@ -69,7 +67,7 @@ public class FileSystemDataSource : IDataSourceProvider
     /// <param name="tableName">The name of the table.</param>
     /// <returns>A <see cref="TextReader"/> for reading the table data.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the data source type is not supported.</exception>
-    public TextReader GetTextReader(string tableName) => DataSourceType switch
+    public StreamReader GetTextReader(string tableName) => DataSourceType switch
     {
         DataSourceType.Directory => GetTextReader_FolderAsDB(tableName),
         DataSourceType.File => GetTextReader_FileAsDB(),
@@ -152,7 +150,7 @@ public class FileSystemDataSource : IDataSourceProvider
     /// </summary>
     public event DataSourceEventHandler Changed;
 
-    private TextReader GetTextReader_FolderAsDB(string tableName)
+    private StreamReader GetTextReader_FolderAsDB(string tableName)
     {
         var pathToTableFile = GetTablePath(tableName);
         return GetTextReaderFromFilePath(pathToTableFile);
@@ -161,9 +159,9 @@ public class FileSystemDataSource : IDataSourceProvider
     private void FileWatcher_Changed(object sender, FileSystemEventArgs e) =>
         Changed?.Invoke(sender, new DataSourceEventArgs(Path.GetFileNameWithoutExtension(e.FullPath)));
 
-    private TextReader GetTextReader_FileAsDB() => GetTextReaderFromFilePath(path);
+    private StreamReader GetTextReader_FileAsDB() => GetTextReaderFromFilePath(path);
 
-    private TextReader GetTextReaderFromFilePath(string path)
+    private StreamReader GetTextReaderFromFilePath(string path)
     {
         // Open the file stream
         FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);

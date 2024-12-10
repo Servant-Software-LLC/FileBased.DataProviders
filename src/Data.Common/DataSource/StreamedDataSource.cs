@@ -67,14 +67,13 @@ public class StreamedDataSource : IDataSourceProvider
     /// <param name="tableName">The name of the table to read.</param>
     /// <returns>A <see cref="TextReader"/> for reading the table data.</returns>
     /// <exception cref="FileNotFoundException">Thrown if the specified table does not exist in the data source.</exception>
-    public TextReader GetTextReader(string tableName)
+    public StreamReader GetTextReader(string tableName)
     {
         if (tables.TryGetValue(tableName, out Stream tableData) && tableData is not null)
         {
             tableData.Position = 0;
             return new StreamReader(tableData, Encoding.UTF8, true, 1024, true);
         }
-            
 
         throw new FileNotFoundException($"No table stream for {tableName}.");
     }

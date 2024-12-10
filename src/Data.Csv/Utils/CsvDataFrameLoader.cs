@@ -1,130 +1,45 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
-using Microsoft.Data.Analysis;
-using System.Globalization;
-using System.Text;
+﻿using Microsoft.Data.Analysis;
+using Data.Common.DataSource;
 
 namespace Data.Csv.Utils;
 
 internal static class CsvDataFrameLoader
 {
-    public static DataFrame LoadDataFrameWithQuotedFields(TextReader textReader, long numberOfLines)
+    public static DataFrame LoadDataFrame(IDataSourceProvider dataSourceProvider, string tableName, long numberOfLines)
     {
-        // Step 1: Read the first N lines
-        var records = ReadFirstNLines(textReader, numberOfLines);
+        using var streamReader = dataSourceProvider.GetTextReader(tableName);
+        var stream = streamReader.BaseStream;
 
-        if (records.Count == 1)
-        {
-            if (records[0] is string[] columnNames)
-            {
-                return UnableToDetermineColumnTypes(columnNames);
-            }
-        }
+        IEnumerable<Type> types = DetermineDataTypes(numberOfLines, streamReader);
 
-        // Step 2: Write records to CSV string with quoted fields
-        var csvContent = WriteRecordsWithQuotedFields(records);
+        //Reset the stream to the beginning because the DataFrame only uses X number of lines to determine column types.
+        stream.Seek(0, SeekOrigin.Begin);
 
-        // Step 3: Load DataFrame from CSV string
-        var df = LoadDataFrameFromCsvString(csvContent);
-
-        return df;
+        // Need to ensure that each line of CSV text has the proper number of commas (like its header)
+        using CsvTransformStream transformStream = new CsvTransformStream(streamReader);
+        return DataFrame.LoadCsv(transformStream, dataTypes: types.ToArray());
     }
 
-    private static DataFrame UnableToDetermineColumnTypes(string[] columnNames)
+    private static IEnumerable<Type> DetermineDataTypes(long numberOfLines, StreamReader streamReader)
     {
-        DataFrame df = new DataFrame();
-
-        // Loop through the column names and add StringDataFrameColumns to the DataFrame
-        foreach (string columnName in columnNames)
+        // Need to ensure that each line of CSV text has the proper number of commas (like its header)
+        using (CsvTransformStream transformStream = new CsvTransformStream(streamReader))
         {
-            // Create a new column with string data type
-            var column = new StringDataFrameColumn(columnName);
-            df.Columns.Add(column);
-        }
+            //Let DataFrame determine the column data types.
+            var originalDataFrame = DataFrame.LoadCsv(transformStream, numberOfRowsToRead: numberOfLines);
 
-        return df;
-    }
-
-    private static List<dynamic> ReadFirstNLines(TextReader textReader, long numberOfLines)
-    {
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = true,
-            MissingFieldFound = null,
-            BadDataFound = null,
-            IgnoreBlankLines = true,
-            TrimOptions = TrimOptions.Trim,
-        };
-
-        using (var csv = new CsvHelper.CsvReader(textReader, config))
-        {
-            var records = new List<dynamic>();
-
-            // Read the header
-            if (!csv.Read() || !csv.ReadHeader())
-                throw new InvalidOperationException("CSV file does not contain a valid header.");
-
-            records.Add(csv.HeaderRecord); // Add header as the first record
-
-            // Read the next N-1 lines
-            int linesRead = 0;
-            while (csv.Read())
+            //If the CSV doesn't have data (but it has column names), the DataFrame shows no columns.  
+            if (originalDataFrame.Columns.Count == 0)
             {
-                var record = csv.Parser.Record; // Read the current record as an array
-                records.Add((string[])record.Clone());
-                linesRead++;
-                if (linesRead >= numberOfLines - 1) // Subtract 1 because we've already read the header
-                    break;
+                if (!string.IsNullOrEmpty(transformStream.HeaderLine))
+                {
+                    var columnNames = transformStream.HeaderLine.Split(',');
+                    return columnNames.Select(name => typeof(string));
+                }
             }
 
-            return records;
+
+            return originalDataFrame.Columns.Select(column => column.DataType);
         }
-    }
-
-    private static string WriteRecordsWithQuotedFields(List<dynamic> records)
-    {
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = true,
-            ShouldQuote = args => (args.Row.Row > 1), // Quote all data fields, skipping the header
-        };
-
-        var stringBuilder = new StringBuilder();
-
-        int recordsInHeader = ((string[])records[0]).Length;
-        using (var writer = new StringWriter(stringBuilder))
-        using (var csv = new CsvWriter(writer, config))
-        {
-            // Enumerate the records
-            foreach (var record in records)
-            {
-                if (record is not string[])
-                {
-                    throw new Exception("Invalid record type.");
-                }
-
-                foreach (var field in (string[])record)
-                {
-                    csv.WriteField(field);
-                }
-
-                // Write empty fields for missing fields
-                int missingFields = recordsInHeader - ((string[])record).Length;
-                for (int i = 0; i < missingFields; i++)
-                {
-                    csv.WriteField(string.Empty);
-                }
-
-                csv.NextRecord();
-            }
-        }
-
-        return stringBuilder.ToString();
-    }
-
-    private static DataFrame LoadDataFrameFromCsvString(string csvContent)
-    {
-        var df = DataFrame.LoadCsvFromString(csvContent);
-        return df;
     }
 }
