@@ -54,6 +54,31 @@ public class CsvDataReaderTests
     }
 
     [Fact]
+    public void Reader_ShouldReadData_Different_DataTypes()
+    {
+        const string filePath = "Sources/dataTypes.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(42, dataTable.Rows.Count);
+    }
+
+
+    [Fact]
     public void Reader_ShouldReturnData()
     {
         DataReaderTests.Reader_ShouldReturnData(() =>

@@ -54,7 +54,7 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private DataTable FillDataTable(string tableName, long numberOfRowsToReadForInference = 10)
+    private DataTable FillDataTable(string tableName, int numberOfRowsToReadForInference = 10)
     {
         // Load CSV into DataFrame to infer data types
         DataFrame dataFrame = CsvDataFrameLoader.LoadDataFrame(fileConnection.DataSourceProvider, tableName, numberOfRowsToReadForInference);
