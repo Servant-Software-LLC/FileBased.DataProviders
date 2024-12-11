@@ -61,14 +61,21 @@ public class CsvTransformStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        // Refill the buffer with transformed lines
-        bufferStream.SetLength(0);
-        bufferStream.Position = 0;
+        //TODO: Deal with an offset, only if we find it is required.
+        if (offset > 0)
+            throw new NotSupportedException($"Didn't expect a buffer with an offset greater than zero.  Offset: {offset}");
 
         if (string.IsNullOrEmpty(HeaderLine))
         {
             //Read the header line JIT
             InitializeHeader();
+        }
+
+        //Check if the header is larger than 1024 or if a line is greater than twice 1024. 
+        int bytesRead = StreamFillsCompleteBuffer(buffer, count);
+        if (bytesRead > 0)
+        {
+            return bytesRead;
         }
 
         if (bufferStream.Length < count)
@@ -98,13 +105,57 @@ public class CsvTransformStream : Stream
             return 0;
         }
 
-        // Read from the buffer
-        bufferStream.Position = 0;
-        int bytesRead = bufferStream.Read(buffer, offset, count);
-        logicalPosition += bytesRead; // Update logical position
-        bufferStream.Position = bytesRead;
+        bytesRead = StreamFillsCompleteBuffer(buffer, count);
+        if (bytesRead > 0)
+        {
+            Debug.WriteLine($"{Encoding.UTF8.GetString(buffer)}");
+            Debug.WriteLine("BUFFER READ");
+            return bytesRead;
+        }
 
+        // Read from the buffer.  This is the last of the stream.
+        bufferStream.Position = 0;
+        bytesRead = bufferStream.Read(buffer, 0, (int)bufferStream.Length);
+        logicalPosition += bytesRead; // Update logical position
+        bufferStream = new MemoryStream();
+
+        Debug.WriteLine($"{Encoding.UTF8.GetString(buffer.Take(bytesRead).ToArray())}");
+        Debug.WriteLine($"END READ {bytesRead}");
         return bytesRead;
+    }
+
+    /// <summary>
+    /// Checks to see if a line pushed on to the streamBuffer is larger than the buffer.
+    /// For instance, DataFrame uses a count of 1024. But what if the header line was bigger than 1024, in that 
+    /// case we need to deliver only part of it.
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <param name="count"></param>
+    /// <returns>Bytes read or 0 if stream buffer is smaller than count</returns>
+    private int StreamFillsCompleteBuffer(byte[] buffer, int count)
+    {
+        if (bufferStream.Length >= count)
+        {
+            //The stream is bigger than the buffer, so we can't hand back complete lines. Hand back
+            //what we can.
+            bufferStream.Position = 0;
+            int bytesRead = bufferStream.Read(buffer, 0, count);
+
+            ReduceStreamBuffer(count);
+            return bytesRead;
+        }
+
+        return 0;
+    }
+
+    private void ReduceStreamBuffer(int count)
+    {
+        var remainingNumberBytes = (int)bufferStream.Length - count;
+        var fullBufferStream = bufferStream.ToArray();
+        var remainingBytes = fullBufferStream.Skip(count).ToArray();
+        var remainingBuffer = Encoding.UTF8.GetString(remainingBytes);
+        bufferStream = new MemoryStream();
+        WriteToBuffer(remainingBuffer);
     }
 
     // Required overrides for a Stream
@@ -123,8 +174,10 @@ public class CsvTransformStream : Stream
         if (origin != SeekOrigin.Begin && offset != 0)
             throw new NotSupportedException();
 
+        Debug.WriteLine("SEEK 0");
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         HeaderLine = null;
+        bufferStream = new MemoryStream();
 
         return 0;
     }
