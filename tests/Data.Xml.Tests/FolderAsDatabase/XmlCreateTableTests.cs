@@ -17,4 +17,12 @@ public class XmlCreateTableTests
 
     }
 
+    [Fact]
+    public void CreateTable_FollowedByInsert_ShouldWork()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CreateTableTests.CreateTable_FollowedByInsert_ShouldWork(
+                       () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+
+    }
 }

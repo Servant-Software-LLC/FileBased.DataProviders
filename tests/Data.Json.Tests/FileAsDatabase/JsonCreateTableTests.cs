@@ -21,4 +21,13 @@ public class JsonCreateTableTests
                        () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
 
     }
+
+    [Fact]
+    public void CreateTable_FollowedByInsert_ShouldWork()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CreateTableTests.CreateTable_FollowedByInsert_ShouldWork(
+                       () => new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
+
+    }
 }
