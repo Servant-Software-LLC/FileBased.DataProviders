@@ -17,4 +17,12 @@ public class CsvCreateTableTests
 
     }
 
+    [Fact]
+    public void CreateTable_FollowedByInsert_ShouldWork()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CreateTableTests.CreateTable_FollowedByInsert_ShouldWork(
+                       () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+
+    }
 }

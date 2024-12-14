@@ -14,6 +14,10 @@ internal class JsonInsert : FileInsertWriter
 
     protected override void RealizeSchema(DataTable dataTable)
     {
+        //Check to see if the schema has already been defined (this happens in the case that a CREATE TABLE was executed for a JsonCommand)
+        if (dataTable.Columns.Count > 0)
+            return;
+
         //Add missing columns, since we can now determine the schema
 
         foreach (var val in fileStatement.GetValues())
