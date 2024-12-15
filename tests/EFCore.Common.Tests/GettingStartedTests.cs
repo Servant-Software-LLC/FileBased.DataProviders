@@ -24,6 +24,21 @@ public static class GettingStartedTests<TBloggingContext> where TBloggingContext
         if (dataSourceProvider != null)
             db.DataSourceProvider = dataSourceProvider;
 
+        var blog = db.Blogs
+            .OrderBy(b => b.BlogId)
+            .First();
+
+        Assert.Equal(1, blog.BlogId);
+        Assert.Equal("http://blogs.msdn.com/adonet", blog.Url);
+    }
+
+    public static void Read_FirstBlog_AfterAddingData(string connectionString, IDataSourceProvider dataSourceProvider = null)
+    {
+        using var db = new TBloggingContext();
+        db.ConnectionString = connectionString;
+        if (dataSourceProvider != null)
+            db.DataSourceProvider = dataSourceProvider;
+
         db.Database.EnsureCreated();
 
         var firstBlog = new Blog { Url = "http://blogs.msdn.com/adonet" };

@@ -32,15 +32,30 @@ public class JsonGettingStartedTests
     public void Read_FirstBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.gettingStartedWithDataFolderDB.Sandbox("Sandbox", sandboxId));
+    }
+
+    [Fact]
+    public void Read_FirstBlog_AfterAddingData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        GettingStarted.Read_FirstBlog_AfterAddingData(ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
     public void Read_FirstBlog_StreamedDataSource()
     {
         string connectionString = FileConnectionString.CustomDataSource;
-        var dataSourceProvider = CustomDataSourceFactory.VirtualGettingStartedFolderAsDB(ConnectionStrings.Instance.Extension);
+        var dataSourceProvider = CustomDataSourceFactory.VirtualGettingStartedWithDataFolderAsDB(ConnectionStrings.Instance.Extension);
         GettingStarted.Read_FirstBlog(connectionString, dataSourceProvider);
+    }
+
+    [Fact]
+    public void Read_FirstBlog_AfterAddingData_StreamedDataSource()
+    {
+        string connectionString = FileConnectionString.CustomDataSource;
+        var dataSourceProvider = CustomDataSourceFactory.VirtualGettingStartedFolderAsDB(ConnectionStrings.Instance.Extension);
+        GettingStarted.Read_FirstBlog_AfterAddingData(connectionString, dataSourceProvider);
     }
 
     [Fact]

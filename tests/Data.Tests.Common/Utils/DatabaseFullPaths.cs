@@ -19,6 +19,8 @@ public class DatabaseFullPaths
     public string FileEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyDatabase.{extension}");
     public string gettingStartedFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted.{extension}");
     public string gettingStartedFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStarted");
+    public string gettingStartedWithDataFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStartedWithData.{extension}");
+    public string gettingStartedWithDataFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"GettingStartedWithData");
     public string bogusFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Folder_BOGUS.{Guid.NewGuid()}.{extension}");
     public string bogusFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"Database_BOGUS.{Guid.NewGuid()}");
     public string withTrailingCommaFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithTrailingComma");

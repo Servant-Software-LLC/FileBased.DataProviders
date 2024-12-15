@@ -1,0 +1,8 @@
+[
+    {
+        "PostId": 1,
+        "Title": "Hello World",
+        "Content": "I wrote an app using EF Core!",
+        "BlogId": 1
+    }
+]

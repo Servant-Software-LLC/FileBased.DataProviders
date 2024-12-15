@@ -23,7 +23,14 @@ public class JsonGettingStartedTests
     public void Read_FirstBlog()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
-        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId));
+        GettingStarted.Read_FirstBlog(ConnectionStrings.Instance.gettingStartedWithDataFileDB.Sandbox("Sandbox", sandboxId));
+    }
+
+    [Fact]
+    public void Read_FirstBlog_AfterAddingData()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        GettingStarted.Read_FirstBlog_AfterAddingData(ConnectionStrings.Instance.gettingStartedFileDB.Sandbox("Sandbox", sandboxId));
     }
 
     [Fact]
