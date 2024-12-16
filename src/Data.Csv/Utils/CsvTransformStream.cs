@@ -49,7 +49,7 @@ public class CsvTransformStream : Stream
             throw new InvalidOperationException("CSV stream is empty or header is missing.");
         }
 
-        expectedCommaCount = HeaderLine.Split(',').Length;
+        expectedCommaCount = HeaderLine.Split(',').Length - 1;
         WriteToBuffer(HeaderLine + "\n");
     }
 
@@ -83,7 +83,7 @@ public class CsvTransformStream : Stream
             string line;
             while ((line = streamReader.ReadLine()) != null)
             {
-                int commaCount = line.Split(',').Length;
+                int commaCount = CountCommasOutsideQuotes(line);
                 if (commaCount < expectedCommaCount)
                 {
                     line += new string(',', expectedCommaCount - commaCount);
@@ -122,6 +122,20 @@ public class CsvTransformStream : Stream
         Debug.WriteLine($"{Encoding.UTF8.GetString(buffer.Take(bytesRead).ToArray())}");
         Debug.WriteLine($"END READ {bytesRead}");
         return bytesRead;
+    }
+
+    private int CountCommasOutsideQuotes(string line)
+    {
+        bool inQuotes = false;
+        int commaCount = 0;
+
+        foreach (char c in line)
+        {
+            if (c == '"') inQuotes = !inQuotes;
+            else if (c == ',' && !inQuotes) commaCount++;
+        }
+
+        return commaCount;
     }
 
     /// <summary>
