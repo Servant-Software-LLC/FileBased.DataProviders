@@ -17,6 +17,26 @@ public static class ScaffoldingTests
     /// <param name="designTimeServices">The design-time services for the EF Core provider being tested.</param>
     public static void ValidateScaffolding(string connectionString, IDesignTimeServices designTimeServices)
     {
+        ValidateScaffolding(connectionString, designTimeServices, "TestNamespace", "TestDbContext", scaffoldedModel =>
+        {
+            // Check the results of the scaffolding process.
+            Assert.NotNull(scaffoldedModel);
+            Assert.NotEmpty(scaffoldedModel.AdditionalFiles);
+            Assert.NotNull(scaffoldedModel.ContextFile);
+        });
+    }
+
+    public static void ValidateScaffolding(string connectionString, IDesignTimeServices designTimeServices, string modelNamespace, string contextName, Action<ScaffoldedModel> asserts)
+    {
+        // Invoke the scaffolding process using the provided connection string and options.
+        var scaffoldedModel = GetScaffoldedModel(connectionString, designTimeServices, modelNamespace, contextName);
+
+        // Assert
+        asserts(scaffoldedModel);
+    }
+
+    private static ScaffoldedModel GetScaffoldedModel(string connectionString, IDesignTimeServices designTimeServices, string modelNamespace, string? contextName = null)
+    {
         // Arrange
         var serviceCollection = new ServiceCollection()
             .AddEntityFrameworkDesignTimeServices(); // Add EF Core design-time services.
@@ -35,8 +55,8 @@ public static class ScaffoldingTests
         var modelReverseEngineerOptions = new ModelReverseEngineerOptions();
         var modelCodeGenerationOptions = new ModelCodeGenerationOptions
         {
-            ModelNamespace = "TestNamespace",
-            ContextName = "TestDbContext",
+            ModelNamespace = modelNamespace,
+            ContextName = contextName,
             // Additional options can be specified here...
         };
 
@@ -48,14 +68,7 @@ public static class ScaffoldingTests
             databaseModelFactoryOptions,
             modelReverseEngineerOptions,
             modelCodeGenerationOptions);
-
-        // Assert
-
-        // Check the results of the scaffolding process.
-        Assert.NotNull(scaffoldedModel);
-        Assert.NotEmpty(scaffoldedModel.AdditionalFiles);
-        Assert.NotNull(scaffoldedModel.ContextFile);
-
+        return scaffoldedModel;
     }
 }
 

@@ -16,6 +16,9 @@ public class FileTypeMappingSource : RelationalTypeMappingSource
         { typeof(int).FullName, new IntTypeMapping("System.Int32", System.Data.DbType.Int32) },
         { typeof(bool).FullName, new BoolTypeMapping("System.Boolean", System.Data.DbType.Boolean) },
         { typeof(decimal).FullName, new DecimalTypeMapping("System.Decimal", System.Data.DbType.Decimal) },
+        { typeof(float).FullName, new FloatTypeMapping("System.Single", System.Data.DbType.Single) },
+        { typeof(double).FullName, new DoubleTypeMapping("System.Double", System.Data.DbType.Double) },
+
 
         // Add other mappings as needed.
     };

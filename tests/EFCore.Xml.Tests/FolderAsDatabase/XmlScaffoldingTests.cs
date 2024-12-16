@@ -22,4 +22,32 @@ public class XmlScaffoldingTests
         var connectionString = ConnectionStrings.Instance.gettingStartedFolderDB.Sandbox("Sandbox", sandboxId);
         ScaffoldingTests.ValidateScaffolding(connectionString, new XmlDesignTimeServices());
     }
+
+    [Fact]
+    public void Scaffolding_AllColumnsPresent()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        var connectionString = ConnectionStrings.Instance.gettingStartedWithDataFolderDB.Sandbox("Sandbox", sandboxId);
+        connectionString.PreferredFloatingPointDataType = Data.Common.Utils.ConnectionString.FloatingPointDataType.Decimal;
+
+        ScaffoldingTests.ValidateScaffolding(connectionString, new XmlDesignTimeServices(), "MockDB.RemoteTable.Xml.GettingStartedWithData", null,
+            scaffoldedModel =>
+            {
+                Assert.NotNull(scaffoldedModel);
+                Assert.NotEmpty(scaffoldedModel.AdditionalFiles);
+                Assert.NotNull(scaffoldedModel.ContextFile);
+
+                var firstAdditionalFile = scaffoldedModel.AdditionalFiles[0];
+                Assert.Contains("BlogId { get; set; }", firstAdditionalFile.Code);
+                Assert.Contains("Url { get; set; }", firstAdditionalFile.Code);
+
+                var secondAdditionalFile = scaffoldedModel.AdditionalFiles[1];
+                Assert.Contains("BlogId { get; set; }", secondAdditionalFile.Code);
+                Assert.Contains("Content { get; set; }", secondAdditionalFile.Code);
+                Assert.Contains("PostId { get; set; }", secondAdditionalFile.Code);
+                Assert.Contains("Title { get; set; }", secondAdditionalFile.Code);
+            }
+        );
+    }
+
 }
