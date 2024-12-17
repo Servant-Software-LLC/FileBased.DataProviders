@@ -8,7 +8,6 @@ internal static class CsvDataFrameLoader
     public static DataFrame LoadDataFrame(IDataSourceProvider dataSourceProvider, string tableName, int numberOfLines)
     {
         using var streamReader = dataSourceProvider.GetTextReader(tableName);
-        var stream = streamReader.BaseStream;
 
         // Need to ensure that each line of CSV text has the proper number of commas (like its header)
         using CsvTransformStream transformStream = new CsvTransformStream(streamReader);

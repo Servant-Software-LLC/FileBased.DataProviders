@@ -109,7 +109,7 @@ public class CsvTransformStream : Stream
         if (bytesRead > 0)
         {
             Debug.WriteLine($"{Encoding.UTF8.GetString(buffer)}");
-            Debug.WriteLine("BUFFER READ");
+            Debug.WriteLine($"BUFFER READ({bytesRead})");
             return bytesRead;
         }
 
@@ -120,7 +120,7 @@ public class CsvTransformStream : Stream
         bufferStream = new MemoryStream();
 
         Debug.WriteLine($"{Encoding.UTF8.GetString(buffer.Take(bytesRead).ToArray())}");
-        Debug.WriteLine($"END READ {bytesRead}");
+        Debug.WriteLine($"END READ({bytesRead})");
         return bytesRead;
     }
 
@@ -190,6 +190,7 @@ public class CsvTransformStream : Stream
 
         Debug.WriteLine("SEEK 0");
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
+        streamReader.DiscardBufferedData();
         HeaderLine = null;
         bufferStream = new MemoryStream();
 
