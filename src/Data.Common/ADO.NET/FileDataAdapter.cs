@@ -109,6 +109,32 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         return AutoOpenCloseConnection(dataSet, Fill_Inner);
     }
 
+    public new int Fill(DataTable dataTable)
+    {
+        //NOTE:  Performance could be improved here especially with large sets of data.
+        //       The SqlBuildingBlocks.QueryEngine returns a DataTable for its results, but if instead (or how another overload)
+        //       which took a DataTable instance, then we could avoid all the copying of data seen in this method.
+        var resultingTable = AutoOpenCloseConnection(ExecuteSelectCommand);
+
+        //Copy the resultingTable into the provided dataTable
+        dataTable.Clear();
+        dataTable.Columns.Clear();
+
+        // Copy the schema from the source table
+        foreach (DataColumn column in resultingTable.Columns)
+        {
+            dataTable.Columns.Add(column.ColumnName, column.DataType);
+        }
+
+        // Import rows from the source table
+        foreach (DataRow row in resultingTable.Rows)
+        {
+            dataTable.ImportRow(row);
+        }
+
+        return dataTable.Rows.Count;
+    }
+
     /// <summary>
     /// Fills the schema.
     /// </summary>
@@ -286,6 +312,16 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     {
         log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
+        DataTable dataTable = ExecuteSelectCommand();
+
+        dataTable.TableName = "Table";
+        dataSet.Tables.Clear();
+        dataSet.Tables.Add(dataTable);
+        return dataTable.Rows.Count;
+    }
+
+    private DataTable ExecuteSelectCommand()
+    {
         if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
             throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
 
@@ -302,14 +338,10 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
             .Select(column => column.ColumnName)
             .ToList()
             .ForEach(dataTable.Columns.Remove);
-
-        dataTable.TableName = "Table";
-        dataSet.Tables.Clear();
-        dataSet.Tables.Add(dataTable);
-        return dataTable.Rows.Count;
+        return dataTable;
     }
 
-    private TReturn AutoOpenCloseConnection<TReturn>(DataSet dateSet, Func<DataSet, TReturn> action)
+    private void AutoOpenCloseConnection(Action action)
     {
         var connection = Connection;
 
@@ -328,7 +360,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
 
         try
         {
-            return action(dateSet);
+            action();
         }
         finally
         {
@@ -342,6 +374,22 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
                 connection.Close();
             }
         }
+    }
+
+    private TReturn AutoOpenCloseConnection<TReturn>(Func<TReturn> func)
+    {
+        TReturn returnValue = default;
+        Action innerAction = () => returnValue = func();
+        AutoOpenCloseConnection(innerAction);
+        return returnValue;
+    }
+
+    private TReturn AutoOpenCloseConnection<TReturn>(DataSet dataSet, Func<DataSet, TReturn> func)
+    {
+        TReturn returnValue = default;
+        Action innerAction = () => returnValue = func(dataSet);
+        AutoOpenCloseConnection(innerAction);
+        return returnValue;
     }
 
     private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)

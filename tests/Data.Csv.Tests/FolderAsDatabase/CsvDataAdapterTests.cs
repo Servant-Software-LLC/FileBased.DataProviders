@@ -123,7 +123,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         }
 
         [Fact]
-        public void Fill_DuplicateColumnNamesOfDifferingCase_AreRespected()
+        public void Fill_DataSet_DuplicateColumnNamesOfDifferingCase_AreRespected()
         {
             const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
             const string tableName = "Table";
@@ -152,6 +152,44 @@ namespace Data.Csv.Tests.FolderAsDatabase
                 "nAMe" == dataTable.Columns[2].ColumnName,
                 $"Expected: nAMe\nActual: {dataTable.Columns[2].ColumnName}\nCharacter details: {GetCharacterDetails(dataTable.Columns[2].ColumnName)}"
             );
+
+            Assert.Equal(1, dataTable.Rows.Count);
+            var firstRow = dataTable.Rows[0];
+
+            Assert.Equal(1.0, firstRow[0]);
+            Assert.Equal("Bogart", firstRow[1]);
+            Assert.Equal("Bob", firstRow[2]);
+
+        }
+
+        [Fact]
+        public void Fill_Table_DuplicateColumnNamesOfDifferingCase_AreRespected()
+        {
+            const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+            const string tableName = "Table";
+
+            byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
+            MemoryStream fileStream = new MemoryStream(fileBytes);
+            var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+            StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+
+            connection.DataSourceProvider = dataSourceProvider;
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT * FROM {tableName}";
+
+            var adapter = command.CreateAdapter();
+
+            DataTable dataTable = new DataTable(tableName);
+            adapter.Fill(dataTable);
+
+            Assert.Equal(tableName, dataTable.TableName);
+
+            Assert.Equal(3, dataTable.Columns.Count);
+            Assert.Equal("Id", dataTable.Columns[0].ColumnName);
+            Assert.Equal("Name", dataTable.Columns[1].ColumnName);
+            Assert.Equal("nAMe", dataTable.Columns[2].ColumnName);
 
             Assert.Equal(1, dataTable.Rows.Count);
             var firstRow = dataTable.Rows[0];
