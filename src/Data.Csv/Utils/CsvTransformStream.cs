@@ -51,7 +51,7 @@ public class CsvTransformStream : Stream
         }
 
         // Replace all whitespace (including non-breaking) with a single space
-        HeaderLine = Regex.Replace(rawHeaderLine, @"\s+", " ");
+        HeaderLine = Regex.Replace(rawHeaderLine, @"\s+", " ").Replace("\uFFFD", "");
 
         expectedCommaCount = HeaderLine.Split(',').Length - 1;
         WriteToBuffer(HeaderLine + "\n");
