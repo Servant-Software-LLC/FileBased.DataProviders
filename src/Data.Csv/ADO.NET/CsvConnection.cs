@@ -92,7 +92,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     protected override Common.DbTransaction BeginDbTransaction(IsolationLevel il) => BeginTransaction(il);
 
     /// <inheritdoc/>
-    public override FileDataAdapter<CsvParameter> CreateDataAdapter(string query) => new CsvDataAdapter(query, this);
+    public override IFileDataAdapter CreateDataAdapter(string query) => new CsvDataAdapter(query, this);
 
     /// <inheritdoc/>
     public override FileCommand<CsvParameter> CreateCommand() => new CsvCommand(this);

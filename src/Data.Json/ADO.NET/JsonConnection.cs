@@ -103,7 +103,7 @@ public class JsonConnection : FileConnection<JsonParameter>
     /// </summary>
     /// <param name="query">The query string used by the data adapter.</param>
     /// <returns>A new <see cref="JsonDataAdapter"/> instance.</returns>
-    public override FileDataAdapter<JsonParameter> CreateDataAdapter(string query) => new JsonDataAdapter(query, this);
+    public override IFileDataAdapter CreateDataAdapter(string query) => new JsonDataAdapter(query, this);
 
     /// <summary>
     /// Creates a new <see cref="JsonCommand"/> associated with the connection.

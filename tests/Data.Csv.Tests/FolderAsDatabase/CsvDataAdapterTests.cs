@@ -1,5 +1,6 @@
 using Data.Common.DataSource;
 using Data.Common.Extension;
+using Data.Common.Interfaces;
 using Data.Common.Utils.ConnectionString;
 using Data.Json.Tests.FileAsDatabase;
 using System.Data;
@@ -170,16 +171,13 @@ namespace Data.Csv.Tests.FolderAsDatabase
 
             byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
             MemoryStream fileStream = new MemoryStream(fileBytes);
-            var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+            IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
             StreamedDataSource dataSourceProvider = new(tableName, fileStream);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
 
-            using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT * FROM {tableName}";
-
-            var adapter = command.CreateAdapter();
+            using var adapter = connection.CreateDataAdapter($"SELECT * FROM {tableName}");
 
             DataTable dataTable = new DataTable(tableName);
             adapter.Fill(dataTable);

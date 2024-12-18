@@ -17,4 +17,6 @@ public interface IFileConnection : IDbConnection
     bool CaseInsensitive { get; }
     bool DataTypeAlwaysString { get; }
     FloatingPointDataType PreferredFloatingPointDataType { get; }
+
+    IFileDataAdapter CreateDataAdapter(string query);
 }

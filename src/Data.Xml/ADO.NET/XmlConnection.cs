@@ -100,7 +100,7 @@ public class XmlConnection : FileConnection<XmlParameter>
     /// </summary>
     /// <param name="query">The query to use for the data adapter.</param>
     /// <returns>A new <see cref="XmlDataAdapter"/> object.</returns>
-    public override FileDataAdapter<XmlParameter> CreateDataAdapter(string query) => new XmlDataAdapter(query, this);
+    public override IFileDataAdapter CreateDataAdapter(string query) => new XmlDataAdapter(query, this);
 
     /// <summary>
     /// Creates a new command object.

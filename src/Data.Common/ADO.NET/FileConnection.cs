@@ -174,7 +174,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <returns>The new transaction.</returns>
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
-    public abstract FileDataAdapter<TFileParameter> CreateDataAdapter(string query);
+    public abstract IFileDataAdapter CreateDataAdapter(string query);
     
     /// <summary>
     /// Changes the database to the specified database name.

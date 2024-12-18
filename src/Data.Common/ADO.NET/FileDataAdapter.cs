@@ -9,7 +9,7 @@ namespace System.Data.FileClient;
 /// Represents a base class for file-based data adapters.
 /// </summary>
 /// <typeparam name="TFileParameter">The type of the file parameter.</typeparam>
-public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposable
+public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileDataAdapter, IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
     private ILogger<FileDataAdapter<TFileParameter>> log => Connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
