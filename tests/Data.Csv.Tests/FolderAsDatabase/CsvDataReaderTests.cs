@@ -6,6 +6,7 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.CsvClient;
 using System.Reflection;
+using System.Text;
 using Xunit;
 
 namespace Data.Csv.Tests.FolderAsDatabase;
@@ -102,6 +103,41 @@ public class CsvDataReaderTests
         Assert.Equal(42, dataTable.Rows.Count);
     }
 
+    [Fact]
+    public void Reader_ShouldReadData_DataFrame_OddBehavior()
+    {
+        const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(3, dataTable.Columns.Count);
+        Assert.Equal("Id", dataTable.Columns[0].ColumnName);
+        Assert.Equal("Name", dataTable.Columns[1].ColumnName);
+        
+        //NOTE: This is behavior (of appending an ordinal to the column name) of DataTable.Load that is out of our control.
+        Assert.Equal("nAMe1", dataTable.Columns[2].ColumnName);
+
+        Assert.Equal(1, dataTable.Rows.Count);
+        var firstRow = dataTable.Rows[0];
+
+        Assert.Equal(1.0, firstRow[0]);
+        Assert.Equal("Bogart", firstRow[1]);
+        Assert.Equal("Bob", firstRow[2]);
+    }
 
     [Fact]
     public void Reader_ShouldReturnData()
