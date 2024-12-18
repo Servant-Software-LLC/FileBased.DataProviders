@@ -12,9 +12,7 @@ namespace System.Data.FileClient;
 public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposable
     where TFileParameter : FileParameter<TFileParameter>, new()
 {
-    private ILogger<FileDataAdapter<TFileParameter>> log => connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
-
-    private FileConnection<TFileParameter>? connection;
+    private ILogger<FileDataAdapter<TFileParameter>> log => Connection.LoggerServices.CreateLogger<FileDataAdapter<TFileParameter>>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileDataAdapter{TFileParameter}"/> class.
@@ -39,9 +37,9 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         {
             throw new ArgumentException($"'{nameof(query)}' cannot be null or empty.", nameof(query));
         }
-        this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
+
         SelectCommand = connection.CreateCommand();
-        SelectCommand.Connection = connection;
+        SelectCommand.Connection = connection ?? throw new ArgumentNullException(nameof(connection));
         SelectCommand.CommandText = query;
     }
 
@@ -64,15 +62,13 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         SelectCommand = selectCommand ?? throw new ArgumentNullException(nameof(selectCommand));
 
         if (SelectCommand.Connection == null)
-            throw new ArgumentNullException(nameof(connection));
+            throw new ArgumentNullException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)}");
 
         if (SelectCommand.Connection is not FileConnection<TFileParameter> selectConnection)
             throw new ArgumentException($"{nameof(SelectCommand)}.{nameof(SelectCommand.Connection)} is not a {nameof(FileConnection<TFileParameter>)}");
 
         if (selectConnection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
-
-        connection = selectConnection;
 
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
         {
@@ -98,17 +94,14 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     /// </exception>
     public override int Fill(DataSet dataSet)
     {
-        if (connection == null)
-            throw new InvalidOperationException($"A connection cannot be inferred when calling the {nameof(Fill)} method");
-
-        if (connection.AdminMode)
-            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
-
         if (SelectCommand == null)
             throw new InvalidOperationException($"{nameof(SelectCommand)} is not set.");
 
         if (SelectCommand.Connection == null)
             throw new InvalidOperationException($"{nameof(SelectCommand.Connection)} property on {nameof(SelectCommand)} is not set.");
+
+        if (Connection.AdminMode)
+            throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
@@ -140,9 +133,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        connection = (FileConnection<TFileParameter>)SelectCommand.Connection;
-
-        if (connection.AdminMode)
+        if (Connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         return AutoOpenCloseConnection(dataSet, FillSchema_Inner);
@@ -201,9 +192,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         if (string.IsNullOrEmpty(UpdateCommand.CommandText))
             throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
 
-        connection = (FileConnection<TFileParameter>)UpdateCommand!.Connection!;
-
-        if (connection.AdminMode)
+        if (Connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
         log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
@@ -248,6 +237,22 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
     /// <returns></returns>
     protected abstract FileWriter CreateWriter(FileStatement fileQuery);
 
+    private FileConnection<TFileParameter> Connection
+    {
+        get
+        {
+            if (SelectCommand == null || SelectCommand.Connection == null)
+                return null;
+
+            if (SelectCommand.Connection is not FileConnection<TFileParameter> fileConnection)
+            {
+                throw new InvalidOperationException($"The SelectCommand.Connection is not a {typeof(FileConnection<TFileParameter>)}.  Type={SelectCommand.Connection.GetType()}");
+            }
+
+            return fileConnection;
+        }
+    }
+
     private DataTable[] FillSchema_Inner(DataSet dataSet)
     {
         if (SelectCommand is not FileCommand<TFileParameter> fileCommand)
@@ -256,7 +261,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
         log.LogInformation($"{GetType()}.{nameof(FillSchema)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
 
         var selectQuery = FileStatementCreator.CreateSelect((FileCommand<TFileParameter>)SelectCommand, log);
-        var fileReader = connection.FileReader;
+        var fileReader = Connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
         var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
@@ -285,7 +290,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
             throw new InvalidOperationException($"{SelectCommand.GetType()} is not a FileCommand<> type.");
 
         var selectQuery = FileStatementCreator.CreateSelect(fileCommand, log);
-        var fileReader = connection.FileReader;
+        var fileReader = Connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
         var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
@@ -306,6 +311,8 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IDisposab
 
     private TReturn AutoOpenCloseConnection<TReturn>(DataSet dateSet, Func<DataSet, TReturn> action)
     {
+        var connection = Connection;
+
         //Determine if the connection has been opened.  Typical behavior is that the connection will be automatically opened if it is closed and if so, then will be closed at the end of the Fill operation.
         bool connectionOpened = connection.State == ConnectionState.Open;
         bool overrideCreateIfNotExists = !connection.CreateIfNotExist;
