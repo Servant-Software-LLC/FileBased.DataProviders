@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// A custom stream wrapper that preprocesses a CSV data stream to ensure consistent column counts
@@ -43,11 +44,14 @@ public class CsvTransformStream : Stream
     private void InitializeHeader()
     {
         // Read the first line (header) to determine the number of commas
-        HeaderLine = streamReader.ReadLine();
-        if (string.IsNullOrEmpty(HeaderLine))
+        var rawHeaderLine = streamReader.ReadLine();
+        if (string.IsNullOrEmpty(rawHeaderLine))
         {
             throw new InvalidOperationException("CSV stream is empty or header is missing.");
         }
+
+        // Replace all whitespace (including non-breaking) with a single space
+        HeaderLine = Regex.Replace(rawHeaderLine, @"\s+", " ");
 
         expectedCommaCount = HeaderLine.Split(',').Length - 1;
         WriteToBuffer(HeaderLine + "\n");
