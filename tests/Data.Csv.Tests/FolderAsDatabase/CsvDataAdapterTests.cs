@@ -148,7 +148,10 @@ namespace Data.Csv.Tests.FolderAsDatabase
             Assert.Equal(3, dataTable.Columns.Count);
             Assert.Equal("Id", dataTable.Columns[0].ColumnName);
             Assert.Equal("Name", dataTable.Columns[1].ColumnName);
-            Assert.Equal("nAMe", dataTable.Columns[2].ColumnName);
+            Assert.True(
+                "nAMe" == dataTable.Columns[2].ColumnName,
+                $"Expected: nAMe\nActual: {dataTable.Columns[2].ColumnName}\nCharacter details: {GetCharacterDetails(dataTable.Columns[2].ColumnName)}"
+            );
 
             Assert.Equal(1, dataTable.Rows.Count);
             var firstRow = dataTable.Rows[0];
@@ -159,5 +162,10 @@ namespace Data.Csv.Tests.FolderAsDatabase
 
         }
 
+        string GetCharacterDetails(string input)
+        {
+            return string.Join(", ", input.Select(c => $"'{c}' (U+{(int)c:X4})"));
+        }
     }
+
 }
