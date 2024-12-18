@@ -57,7 +57,8 @@ internal class CsvReader : FileReader
     private DataTable FillDataTable(string tableName, int numberOfRowsToReadForInference = 10)
     {
         // Load CSV into DataFrame to infer data types
-        DataFrame dataFrame = CsvDataFrameLoader.LoadDataFrame(fileConnection.DataSourceProvider, tableName, numberOfRowsToReadForInference);
+        DataFrame dataFrame = CsvDataFrameLoader.LoadDataFrame(fileConnection.DataSourceProvider, tableName, numberOfRowsToReadForInference,
+                                                               fileConnection.PreferredFloatingPointDataType);
 
         DataTable results = new DataTable(tableName);
         FillDataTable(dataFrame, results);
@@ -70,7 +71,7 @@ internal class CsvReader : FileReader
         foreach (var column in dataFrame.Columns)
         {
             // Use column.Name for the DataColumn name and column.DataType for its type
-            var dataType = fileConnection.PreferredFloatingPointDataType.GetClrType(column.DataType);
+            var dataType = column.DataType;
             dataTable.Columns.Add(column.Name, dataType);
         }
 
@@ -88,11 +89,8 @@ internal class CsvReader : FileReader
                 }
                 else
                 {
-                    var rawValue = row[i];
-                    var expectedType = dataTable.Columns[i].DataType;
-
                     // Convert value to the correct type
-                    var convertedValue = rawValue == DBNull.Value ? DBNull.Value : Convert.ChangeType(rawValue, expectedType);
+                    var convertedValue = row[i] == DBNull.Value ? DBNull.Value : row[i];
                     newRow[i] = convertedValue;
                 }
             }

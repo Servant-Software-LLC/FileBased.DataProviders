@@ -198,6 +198,38 @@ namespace Data.Csv.Tests.FolderAsDatabase
 
         }
 
+        [Fact]
+        public void Fill_Table_DoubleValues_SameAsData()
+        {
+            const string csvString = "Id,ProductName,Category,Amount,IsActive,Point,Initials,Today,NullFiled\n0.6864690584930528,Handmade Plastic Car,rich,67,True,0.16745076678158033,C,06/30/1955 00:00:00,";
+            const string tableName = "Table";
+
+            byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
+            MemoryStream fileStream = new MemoryStream(fileBytes);
+            IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
+            StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+
+            connection.DataSourceProvider = dataSourceProvider;
+            connection.Open();
+
+            using var adapter = connection.CreateDataAdapter($"SELECT * FROM {tableName}");
+
+            DataTable dataTable = new DataTable(tableName);
+            adapter.Fill(dataTable);
+
+            Assert.Equal(tableName, dataTable.TableName);
+
+            Assert.Equal(9, dataTable.Columns.Count);
+            Assert.Equal(typeof(double), dataTable.Columns[0].DataType);
+            Assert.Equal(typeof(double), dataTable.Columns[5].DataType);
+
+            Assert.Equal(1, dataTable.Rows.Count);
+            var firstRow = dataTable.Rows[0];
+
+            Assert.Equal(0.6864690584930528, firstRow[0]);
+            Assert.Equal(0.16745076678158033, firstRow[5]);
+        }
+
         string GetCharacterDetails(string input)
         {
             return string.Join(", ", input.Select(c => $"'{c}' (U+{(int)c:X4})"));
