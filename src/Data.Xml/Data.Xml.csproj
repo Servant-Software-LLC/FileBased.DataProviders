@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <LangVersion>11.0</LangVersion>      
     <PackageId>ServantSoftware.Data.Xml</PackageId>
     <Title>ServantSoftware.Data.Xml</Title>

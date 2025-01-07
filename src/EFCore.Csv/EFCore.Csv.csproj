@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-      <TargetFramework>net7.0</TargetFramework>
+      <TargetFramework>net8.0</TargetFramework>
       <PackageId>ServantSoftware.EFCore.Csv</PackageId>
       <Title>ServantSoftware.EFCore.Csv</Title>
       <Product>EFCore Csv Data Provider</Product>
