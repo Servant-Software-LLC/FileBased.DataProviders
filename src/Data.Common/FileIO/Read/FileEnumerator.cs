@@ -2,7 +2,7 @@
 
 namespace Data.Common.FileIO.Read;
 
-internal class FileEnumerator : IEnumerator<object?[]>
+internal class FileEnumerator : IEnumerator<object[]>
 {
     private readonly ILogger log;
     private readonly DataTable resultset;

@@ -7,12 +7,10 @@ namespace Data.Common.FileIO.SchemaAltering;
 public abstract class FileCreateTableWriter : FileWriter
 {
     private ILogger<FileCreateTableWriter> log => fileConnection.LoggerServices.CreateLogger<FileCreateTableWriter>();
-    private readonly FileCreateTable fileStatement;
 
     public FileCreateTableWriter(FileCreateTable fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
         : base(fileConnection, fileCommand, fileStatement)
     {
-        this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     public override int Execute()
@@ -21,13 +19,15 @@ public abstract class FileCreateTableWriter : FileWriter
 
         //TODO: CREATE TABLE is not supported within transactions at the moment.
 
-
         var tableName = fileStatement.FromTable.TableName;
 
         //Create the new table (lock isn't required until we want to add the new table to the DataSet.
         DataTable newTable = new(tableName);
 
-        foreach (SqlColumnDefinition columnDefinition in fileStatement.Columns)
+        if (fileStatement is not FileCreateTable fileCreateTableStatement)
+            throw new Exception($"Expected {nameof(fileStatement)} to be a {nameof(FileCreateTable)}");
+
+        foreach (SqlColumnDefinition columnDefinition in fileCreateTableStatement.Columns)
         {
             var dataType = fileConnection.DataTypeAlwaysString ? typeof(string) : DataType.ToSystemType(columnDefinition.DataType.Name) ?? typeof(string);
             DataColumn newColumn = new(columnDefinition.ColumnName)

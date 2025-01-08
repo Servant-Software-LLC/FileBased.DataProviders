@@ -37,7 +37,7 @@ public class XmlCodeGenerator : ProviderCodeGenerator
     /// <returns>The method call code fragment for configuring the XML provider.</returns>
     public override MethodCallCodeFragment GenerateUseProvider(
         string connectionString,
-        MethodCallCodeFragment? providerOptions)
+        MethodCallCodeFragment providerOptions)
         => new(
             _useXmlMethodInfo,
             providerOptions == null

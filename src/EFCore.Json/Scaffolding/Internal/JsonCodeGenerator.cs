@@ -37,7 +37,7 @@ public class JsonCodeGenerator : ProviderCodeGenerator
     /// <returns>A method call code fragment that represents the configuration.</returns>
     public override MethodCallCodeFragment GenerateUseProvider(
         string connectionString,
-        MethodCallCodeFragment? providerOptions)
+        MethodCallCodeFragment providerOptions)
         => new(
             _useJsonMethodInfo,
             providerOptions == null

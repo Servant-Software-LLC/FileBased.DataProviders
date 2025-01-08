@@ -8,7 +8,7 @@
 public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParameter, ICloneable
     where TFileParameter : FileParameter<TFileParameter>
 {
-    object? m_value;
+    object m_value;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileParameter{TFileParameter}"/> class with default values.

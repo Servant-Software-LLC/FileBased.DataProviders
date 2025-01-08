@@ -11,9 +11,6 @@ using EFCore.Json.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Json.Query.Internal;
 using EFCore.Json.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.Scaffolding;
-using EFCore.Json.Scaffolding.Internal;
-using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

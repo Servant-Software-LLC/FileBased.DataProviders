@@ -2,7 +2,7 @@
 
 public class InvalidJsonFileException : InvalidFileException
 {
-    public InvalidJsonFileException(string? message)
+    public InvalidJsonFileException(string message)
       : base(message)
     {
     }

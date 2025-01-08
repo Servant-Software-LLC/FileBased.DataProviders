@@ -15,8 +15,8 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
-    public DataSet? DataSet { get; protected set; }
-    public DataSet? SchemaDataSet { get; protected set; }
+    public DataSet DataSet { get; protected set; }
+    public DataSet SchemaDataSet { get; protected set; }
 
     /// <summary>
     /// Read in file (representing a table) from a folder and creates DataTable instance for the matching <see cref="tableName"/>
@@ -221,7 +221,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             {
                 for (int i = 0; i < tablesToUpdate.Count; i++)
                 {
-                    string? tableName = tablesToUpdate.ElementAt(i);
+                    string tableName = tablesToUpdate.ElementAt(i);
                     UpdateFromFolder(tableName);
                 }
             }

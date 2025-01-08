@@ -1,6 +1,4 @@
-﻿using SqlBuildingBlocks.LogicalEntities;
-
-namespace Data.Common.Interfaces;
+﻿namespace Data.Common.Interfaces;
 
 internal interface IContainsReturning
 {

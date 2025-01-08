@@ -13,7 +13,7 @@ internal class Result
     public DataTable WorkingResultSet { get; }
     public FileEnumerator FileEnumerator { get; }
 
-    public object?[]? CurrentDataRow { get; private set; }
+    public object[] CurrentDataRow { get; private set; }
     public string Statement { get; }
 
     public Result(FileStatement fileStatement, FileReader fileReader, Func<FileStatement, FileWriter> createWriter, 
@@ -87,7 +87,7 @@ internal class Result
     public bool HasRows => FileEnumerator != null && FileEnumerator.HasRows;
 
     public int RecordsAffected { get; private set; }
-    public object? LastInsertIdentity { get; private set; }
+    public object LastInsertIdentity { get; private set; }
     public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
     public bool Read()
     {

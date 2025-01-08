@@ -15,7 +15,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     private ILogger<FileCommand<TFileParameter>> log => FileConnection.LoggerServices.CreateLogger<FileCommand<TFileParameter>>();
 
     /// <inheritdoc/>
-    public override string? CommandText { get; set; } = string.Empty;
+    public override string CommandText { get; set; } = string.Empty;
     /// <inheritdoc/>
     public override int CommandTimeout { get; set; }
     /// <inheritdoc/>
@@ -134,7 +134,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     /// Creates a new instance of a file parameter.
     /// </summary>
     /// <returns>A file parameter.</returns>
-    public abstract TFileParameter CreateParameter();
+    public new abstract TFileParameter CreateParameter();
 
     /// <summary>
     /// Creates a new instance of a file parameter with the specified name and value.
@@ -155,12 +155,14 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IDisposable.Dispose()
     {
         log.LogInformation($"{GetType()}.{nameof(Dispose)}() called.  CommandText = {CommandText}");
 
         CommandText = string.Empty;
         Parameters.Clear();
+
+        base.Dispose();
     }
 
     /// <inheritdoc/>
@@ -238,7 +240,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
 
     /// <inheritdoc/>
-    public override object? ExecuteScalar()
+    public override object ExecuteScalar()
     {
         log.LogInformation($"{GetType()}.{nameof(ExecuteScalar)}() called.  CommandText = {CommandText}");
 
@@ -261,7 +263,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         var transactionScopedRows = FileTransaction == null ? null : FileTransaction.TransactionScopedRows;
         var dataTable = reader.ReadFile(fileStatement, transactionScopedRows, true);
 
-        object? result = null;
+        object result = null;
 
         //SELECT query - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
         //       "Executes the query, and returns the first column of the first row in the resultset returned

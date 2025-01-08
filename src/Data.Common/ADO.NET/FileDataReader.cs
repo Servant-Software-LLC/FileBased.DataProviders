@@ -339,7 +339,7 @@ public abstract class FileDataReader : DbDataReader
     /// <param name="bufferIndex">The index for buffer to start the read operation.</param>
     /// <param name="length">The number of bytes to read.</param>
     /// <returns>The actual number of bytes read.</returns>
-    public override long GetBytes(int ordinal, long dataIndex, byte[]? buffer, int bufferIndex, int length)
+    public override long GetBytes(int ordinal, long dataIndex, byte[] buffer, int bufferIndex, int length)
     {
         log.LogDebug($"{GetType()}.{nameof(GetBytes)}() called.");
 
@@ -401,7 +401,7 @@ public abstract class FileDataReader : DbDataReader
     /// <param name="bufferIndex">The index for buffer to start the read operation.</param>
     /// <param name="length">The number of characters to read.</param>
     /// <returns>The actual number of characters read.</returns>
-    public override long GetChars(int ordinal, long dataIndex, char[]? buffer, int bufferIndex, int length)
+    public override long GetChars(int ordinal, long dataIndex, char[] buffer, int bufferIndex, int length)
     {
         log.LogDebug($"{GetType()}.{nameof(GetChars)}() called.");
 

@@ -104,12 +104,16 @@ public static class InsertTests
             //Table: locations
             var locationsTable = dataset.Tables[0];
             var idColumn = locationsTable.Columns["id"];
+            Assert.NotNull(idColumn);
             Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), idColumn.DataType);
             var cityColumn = locationsTable.Columns["city"];
+            Assert.NotNull(cityColumn);
             Assert.Equal(typeof(string), cityColumn.DataType);
             var stateColumn = locationsTable.Columns["state"];
+            Assert.NotNull(stateColumn);
             Assert.Equal(typeof(string), stateColumn.DataType);
             var zipColumn = locationsTable.Columns["zip"];
+            Assert.NotNull(zipColumn);
             Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), zipColumn.DataType);
 
             adapter = connection.CreateDataAdapter("SELECT * FROM employees");
@@ -118,12 +122,16 @@ public static class InsertTests
             //Table: employees
             var employeesTable = dataset.Tables[0];
             var nameColumn = employeesTable.Columns["name"];
+            Assert.NotNull(nameColumn);
             Assert.Equal(typeof(string), nameColumn.DataType);
             var emailColumn = employeesTable.Columns["email"];
+            Assert.NotNull(emailColumn);
             Assert.Equal(typeof(string), emailColumn.DataType);
             var salaryColumn = employeesTable.Columns["salary"];
+            Assert.NotNull(salaryColumn);
             Assert.Equal(connection.PreferredFloatingPointDataType.ToType(), salaryColumn.DataType);
             var marriedColumn = employeesTable.Columns["married"];
+            Assert.NotNull(marriedColumn);
 
             //NOTE:  When https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/22 is solved, then 
             //       this assert will fail, because it needs to have an expectation of:

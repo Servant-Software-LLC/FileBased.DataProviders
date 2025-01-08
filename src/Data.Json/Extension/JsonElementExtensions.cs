@@ -2,7 +2,7 @@
 
 internal static class JsonElementExtensions
 {
-    internal static object? GetValue(this JsonElement jsonElement)
+    internal static object GetValue(this JsonElement jsonElement)
     {
         var kind = jsonElement.ValueKind;
         return kind switch

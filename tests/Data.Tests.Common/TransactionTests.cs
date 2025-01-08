@@ -169,7 +169,7 @@ public static class TransactionTests
             int y = 1 / x;
 
             // If an exception is not thrown, the test will fail
-            Assert.True(false, "Exception was not thrown");
+            Assert.Fail("Exception was not thrown");
 
             // Commit the transaction
             transaction.Commit();

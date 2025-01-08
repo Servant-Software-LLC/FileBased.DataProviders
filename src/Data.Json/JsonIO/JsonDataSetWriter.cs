@@ -132,7 +132,7 @@ public class JsonDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string? tableName, DataSet dataSet)
+    private void SaveFolderAsDB(string tableName, DataSet dataSet)
     {
         try
         {

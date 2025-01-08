@@ -1,6 +1,4 @@
-﻿using SqlBuildingBlocks;
-using System.Data;
-using System.Data.XmlClient;
+﻿using System.Data.XmlClient;
 
 namespace Data.Xml.XmlIO.Read;
 

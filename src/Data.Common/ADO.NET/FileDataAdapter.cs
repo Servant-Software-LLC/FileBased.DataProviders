@@ -171,7 +171,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
     /// <returns></returns>
     public override IDataParameter[] GetFillParameters()
     {
-        IDataParameter[]? value = null;
+        IDataParameter[] value = null;
         if (SelectCommand != null)
         {
             IDataParameterCollection parameters = SelectCommand.Parameters;

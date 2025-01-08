@@ -5,12 +5,10 @@ namespace Data.Common.FileIO.Write;
 public abstract class FileInsertWriter : FileWriter
 {
     private ILogger<FileInsertWriter> log => fileConnection.LoggerServices.CreateLogger<FileInsertWriter>();
-    protected readonly FileInsert fileStatement;
 
     public FileInsertWriter(FileInsert fileStatement, IFileConnection fileConnection, IFileCommand fileCommand)
         : base(fileConnection, fileCommand, fileStatement)
     {
-        this.fileStatement = fileStatement ?? throw new ArgumentNullException(nameof(fileStatement));
     }
 
     /// <summary>
@@ -21,7 +19,7 @@ public abstract class FileInsertWriter : FileWriter
     /// <summary>
     /// Identity value generated during the execution of this INSERT statement.
     /// </summary>
-    public object? LastInsertIdentity { get; private set; }
+    public object LastInsertIdentity { get; private set; }
 
     public (string TableName, DataRow Row)? TransactionScopedRow { get; private set; }
 
@@ -29,12 +27,15 @@ public abstract class FileInsertWriter : FileWriter
     {
         log.LogDebug($"{nameof(FileInsertWriter)}.{nameof(Execute)}() called.  IsTransactedLater = {IsTransactedLater}");
 
+        if (fileStatement is not FileInsert fileInsertStatement)
+            throw new Exception($"Expected {nameof(fileStatement)} to be a {nameof(FileInsert)}");
+
         if (IsTransactedLater)
         {
             fileTransaction!.Writers.Add(this);
 
             //Call PrepareRow() in order to determine the identity value
-            var results = PrepareRow(fileStatement);
+            var results = PrepareRow(fileInsertStatement);
             TransactionScopedRow = (results.Table.TableName, results.Row);
             return 1;
         }
@@ -46,7 +47,7 @@ public abstract class FileInsertWriter : FileWriter
                 //as we have modified the json file so we don't need to update the tables
                 fileReader.StopWatching();
 
-                var results = PrepareRow(fileStatement);
+                var results = PrepareRow(fileInsertStatement);
                 results.Table.Rows.Add(results.Row);
             }
             else

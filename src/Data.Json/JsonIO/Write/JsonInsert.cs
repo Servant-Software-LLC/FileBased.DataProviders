@@ -18,15 +18,18 @@ internal class JsonInsert : FileInsertWriter
         if (dataTable.Columns.Count > 0)
             return;
 
+        if (fileStatement is not FileInsert fileInsertStatement)
+            throw new Exception($"Expected {nameof(fileStatement)} to be a {nameof(FileInsert)}");
+
         //Add missing columns, since we can now determine the schema
 
-        foreach (var val in fileStatement.GetValues())
+        foreach (var val in fileInsertStatement.GetValues())
         {
             var dataColumnType = GetDataColumnType(val.Value);
             dataTable.Columns.Add(val.Key, dataColumnType);
         }
 
-        foreach (var columnNameHint in fileStatement.ColumnNameHints)
+        foreach (var columnNameHint in fileInsertStatement.ColumnNameHints)
         {
             if (dataTable.Columns.Contains(columnNameHint))
                 continue;

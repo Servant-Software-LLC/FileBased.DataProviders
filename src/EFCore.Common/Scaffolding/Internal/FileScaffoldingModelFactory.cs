@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EFCore.Common.Scaffolding.Internal;
 
+#pragma warning disable EF1001 // Suppress possible null reference warnings
 
 /// <summary>
 /// Factory for creating a model based on a file.
@@ -34,4 +35,5 @@ public class FileScaffoldingModelFactory : RelationalScaffoldingModelFactory
     {
     }
 
+#pragma warning restore EF1001
 }

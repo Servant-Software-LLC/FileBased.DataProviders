@@ -24,8 +24,8 @@ public static class DataAdapterTests
         insertLocationCommand.ExecuteNonQuery();
 
         // DEBUG message to show the number of rows in the locations table
-        var locationsTable = connection.FileReader.DataSet.Tables["locations"];
-        Debug.WriteLine($"After inserts.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
+        //var locationsTable = connection.FileReader.DataSet.Tables["locations"];
+        //Debug.WriteLine($"After inserts.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
 
         // Fill a dataset with the row from the locations table that we want to update
         var selectLocationTargetRowCommand = connection.CreateCommand("SELECT city, zip FROM locations WHERE city = 'Boston'");
@@ -64,8 +64,8 @@ public static class DataAdapterTests
         Assert.Equal(1, rowsUpdated);
 
         // DEBUG message to show the number of rows in the in-memory dataset of the connection
-        locationsTable = connection.FileReader.DataSet.Tables["locations"];
-        Debug.WriteLine($"After updates.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
+        //locationsTable = connection.FileReader.DataSet.Tables["locations"];
+        //Debug.WriteLine($"After updates.  locations.Rows = {locationsTable.Rows.Count}(expected 3)");
 
         // Retrieve the updated data using a DataReader
         dataSet = new DataSet();
@@ -214,7 +214,9 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
                     Assert.Equal(40, table.Rows.Count);
                     Assert.Equal(4, table.Columns.Count);
                     Assert.Equal("John Doe", table.Rows[0]["CustomerName"].ToString());
-                    Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(table.Rows[0]!["OrderDate"].ToString()));
+                    var orderDate = table.Rows[0]["OrderDate"];
+                    Assert.NotNull(orderDate);
+                    Assert.Equal(new DateTime(2022, 3, 20), DateTime.Parse(orderDate.ToString()!));
                     Assert.Equal(2, Convert.ToInt32(table.Rows[0]["Quantity"]));
                     Assert.Equal("Macbook Pro 13", table.Rows[0]["Name"].ToString());
 
@@ -397,6 +399,8 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var connection = createFileConnection();
         var selectCommand = connection.CreateCommand("SELECT * FROM employees");
         var adapter = selectCommand.CreateAdapter();
+        Assert.NotNull(adapter);
+        Assert.NotNull(adapter.SelectCommand);
 
         adapter.SelectCommand.Connection = null;
 

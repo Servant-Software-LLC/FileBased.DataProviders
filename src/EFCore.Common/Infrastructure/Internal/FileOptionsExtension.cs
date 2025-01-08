@@ -42,7 +42,7 @@ public abstract class FileOptionsExtension : RelationalOptionsExtension
     /// </summary>
     /// <param name="options">The context options to look in.</param>
     /// <returns>The extension.</returns>
-    public static FileOptionsExtension Extract(IDbContextOptions options)
+    public static FileOptionsExtension ExtractFileOptions(IDbContextOptions options)
     {
         if (options == null)
             throw new ArgumentNullException(nameof(options));

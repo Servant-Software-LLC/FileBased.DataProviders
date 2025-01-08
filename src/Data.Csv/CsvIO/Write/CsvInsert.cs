@@ -15,8 +15,11 @@ internal class CsvInsert : Common.FileIO.Write.FileInsertWriter
     {
         // Update the data type of the columns in the data table, now that they can be determined.
 
+        if (fileStatement is not FileInsert fileInsertStatement)
+            throw new Exception($"Expected {nameof(fileStatement)} to be a {nameof(FileInsert)}");
+
         // Determine if column data types can now be inferred from the data.
-        foreach (var val in fileStatement.GetValues())
+        foreach (var val in fileInsertStatement.GetValues())
         {
             var dataColumnType = GetDataColumnType(val.Value);
 
@@ -27,7 +30,7 @@ internal class CsvInsert : Common.FileIO.Write.FileInsertWriter
                 dataTable.Columns[val.Key].DataType = dataColumnType;
             }
 
-            foreach (var columnNameHint in fileStatement.ColumnNameHints)
+            foreach (var columnNameHint in fileInsertStatement.ColumnNameHints)
             {
                 //Check to see if we need to change the data type of the column
                 if (ColumnNameIndicatesIdentity(columnNameHint))

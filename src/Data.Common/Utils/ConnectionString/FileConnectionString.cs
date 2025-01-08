@@ -67,7 +67,7 @@ public class FileConnectionString : IConnectionStringProperties
         connectionStringBuilder.ConnectionString = connectionString;
 
         //DataSource
-        if (TryGetValue(connectionStringBuilder, FileConnectionStringKeyword.DataSource, out object? dataSource))
+        if (TryGetValue(connectionStringBuilder, FileConnectionStringKeyword.DataSource, out object dataSource))
         {
             if (dataSource is not string sDataSource)
                 throw new ArgumentException($"Invalid connection string: {nameof(FileConnectionStringKeyword.DataSource)} was not a string.", nameof(connectionString));
@@ -144,7 +144,7 @@ public class FileConnectionString : IConnectionStringProperties
     private static bool? ConvertToBoolean(object value)
     {
         Debug.Assert(null != value, "ConvertToBoolean(null)");
-        string? svalue = value as string;
+        string svalue = value as string;
         if (null != svalue)
         {
             if (StringComparer.OrdinalIgnoreCase.Equals(svalue, "true") || StringComparer.OrdinalIgnoreCase.Equals(svalue, "yes"))
@@ -171,7 +171,7 @@ public class FileConnectionString : IConnectionStringProperties
         }
     }
 
-    private bool TryGetValue(DbConnectionStringBuilder connectionStringBuilder, FileConnectionStringKeyword connectionStringKeyword, out object? value)
+    private bool TryGetValue(DbConnectionStringBuilder connectionStringBuilder, FileConnectionStringKeyword connectionStringKeyword, out object value)
     {
         if (connectionStringBuilder.TryGetValue(connectionStringKeyword.ToString(), out value))
             return true;

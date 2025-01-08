@@ -11,9 +11,6 @@ using EFCore.Csv.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Csv.Query.Internal;
 using EFCore.Csv.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.Scaffolding;
-using EFCore.Csv.Scaffolding.Internal;
-using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

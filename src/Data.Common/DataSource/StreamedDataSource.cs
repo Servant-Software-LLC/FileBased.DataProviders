@@ -45,6 +45,7 @@ public class StreamedDataSource : IDataSourceProvider
             throw new ArgumentNullException(nameof(utf8TableData));
 
         tables[tableName] = utf8TableData;
+        Changed?.Invoke(this, new DataSourceEventArgs(tableName));
     }
 
     /// <summary>

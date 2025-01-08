@@ -122,7 +122,7 @@ public static class ConnectionTests
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         //Arrange
-        DataTable schemaTable = null;
+        DataTable? schemaTable = null;
         using (var connection = createConnection())
         {
             var connectionStringWithCreate = new FileConnectionString(connection.ConnectionString).AddCreateIfNotExist(true);

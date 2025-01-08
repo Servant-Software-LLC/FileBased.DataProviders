@@ -101,7 +101,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
         => Add(item);
 
     /// <inheritdoc />
-    public override int Add(object? value)
+    public override int Add(object value)
     {
         if (value is TFileParameter fileParameter)
             return Add(fileParameter);
@@ -272,7 +272,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
     private int CultureAwareCompare(string strA, string strB)
         => CultureInfo.CurrentCulture.CompareInfo.Compare(strA, strB, CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase);
 
-    private static TFileParameter Cast(object? value)
+    private static TFileParameter Cast(object value)
     {
         var castedValue = value as TFileParameter;
         if (castedValue is null)

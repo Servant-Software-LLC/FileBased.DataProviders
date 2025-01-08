@@ -11,9 +11,6 @@ using EFCore.Xml.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Xml.Query.Internal;
 using EFCore.Xml.Diagnostics.Internal;
-using Microsoft.EntityFrameworkCore.Scaffolding;
-using EFCore.Xml.Scaffolding.Internal;
-using EFCore.Common.Scaffolding.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

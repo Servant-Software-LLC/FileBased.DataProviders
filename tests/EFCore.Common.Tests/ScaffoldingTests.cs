@@ -35,7 +35,7 @@ public static class ScaffoldingTests
         asserts(scaffoldedModel);
     }
 
-    private static ScaffoldedModel GetScaffoldedModel(string connectionString, IDesignTimeServices designTimeServices, string modelNamespace, string? contextName = null)
+    private static ScaffoldedModel GetScaffoldedModel(string connectionString, IDesignTimeServices designTimeServices, string modelNamespace, string contextName = null)
     {
         // Arrange
         var serviceCollection = new ServiceCollection()

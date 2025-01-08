@@ -6,7 +6,7 @@ public abstract class FileWriter
     protected readonly FileStatement fileStatement;
     protected readonly IFileConnection fileConnection;
     protected readonly FileReader fileReader;
-    protected readonly IFileTransaction? fileTransaction;
+    protected readonly IFileTransaction fileTransaction;
     private readonly Lazy<IDataSetWriter> dataSetWriter;
 
     public FileWriter(IFileConnection fileConnection,
