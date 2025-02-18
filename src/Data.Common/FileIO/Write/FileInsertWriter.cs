@@ -54,7 +54,10 @@ public abstract class FileInsertWriter : FileWriter
             {
                 var transactionScopedRow = TransactionScopedRow.Value;
                 var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
-                table.Rows.Add(transactionScopedRow.Row.ItemArray);
+                var tempRows = new List<DataRow>(table.Rows);
+                tempRows.Add(transactionScopedRow.Row);
+
+                table.Rows = tempRows;
             }
 
         }
@@ -73,7 +76,10 @@ public abstract class FileInsertWriter : FileWriter
 
     private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
     {
-        var dataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
+        var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
+
+        //Remember here, that the whole data table is going to reside in-memory at this point.
+        var dataTable = virtualDataTable.ToDataTable();
 
         //Check if we need to add columns on the first INSERT of data into this table.
         if (SchemaUnknownWithoutData && dataTable.Rows.Count == 0)

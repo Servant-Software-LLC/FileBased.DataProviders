@@ -1,7 +1,9 @@
 using Data.Common.DataSource;
 using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
+using Data.Csv.Tests.Utils;
 using Data.Json.Tests.FileAsDatabase;
+using Data.Tests.Common.POCOs;
 using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.CsvClient;
@@ -231,5 +233,43 @@ public class CsvDataReaderTests
     {
         DataReaderTests.Reader_TableAlias(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_Supports_Large_Data_Files()
+    {
+        int counter = 0;
+        const string tableName = nameof(TestRecord);
+
+        var unendingStream = new UnendingCsvStream<TestRecord>(() =>
+        {
+            var record = new TestRecord
+            {
+                Id = counter,
+                Value = $"Value {counter}"
+            };
+            counter++;
+            return record;
+        });
+
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
+        connection.DataSourceProvider = dataSourceProvider;
+
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+        var reader = command.ExecuteReader();
+
+        //This should not go into an infinite loop, reading in all of the stream.
+        Assert.True(reader.Read());
+
+
+        Assert.Equal(2, reader.FieldCount);
+        
+        //Validate the first record
+        Assert.Equal(1, reader.GetInt32(nameof(TestRecord.Id)));
+        Assert.Equal("Value 1", reader.GetString(nameof(TestRecord.Value)));
     }
 }

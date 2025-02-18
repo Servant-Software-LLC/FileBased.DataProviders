@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 
 namespace System.Data.FileClient;
 
@@ -290,7 +291,10 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         var fileReader = Connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
-        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+        var virtualDataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+
+        var dataTable = virtualDataTable.CreateEmptyDataTable();
+
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()
@@ -304,7 +308,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
             dataSet.Tables.Remove("Table");
         }
 
-        dataTable.Rows.Clear();
         return new DataTable[] { dataTable };
     }
 
@@ -329,7 +332,10 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         var fileReader = Connection.FileReader;
 
         var transactionScopedRows = fileCommand.FileTransaction == null ? null : fileCommand.FileTransaction.TransactionScopedRows;
-        var dataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+        var virtualDataTable = fileReader.ReadFile(selectQuery, transactionScopedRows, true);
+
+        //Remember here, that the whole data table is going to reside in-memory at this point.
+        var dataTable = virtualDataTable.ToDataTable();
 
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
@@ -392,7 +398,13 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         return returnValue;
     }
 
-    private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery)
+    private IEnumerable<string> GetColumns(VirtualDataTable dataTable, FileSelect selectQuery) =>
+        GetColumns(dataTable.Columns, selectQuery);
+
+    private IEnumerable<string> GetColumns(DataTable dataTable, FileSelect selectQuery) =>
+        GetColumns(dataTable.Columns, selectQuery);
+
+    private IEnumerable<string> GetColumns(DataColumnCollection collumns, FileSelect selectQuery)
     {
         List<string> columnNames = new();
         foreach (ISqlColumn iSqlColumn in selectQuery.Columns)
@@ -401,7 +413,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
             {
                 case SqlAllColumns sqlAllColumns:
                     columnNames.Clear();
-                    foreach (DataColumn dataColumn in dataTable.Columns)
+                    foreach (DataColumn dataColumn in collumns)
                     {
                         columnNames.Add(dataColumn.ColumnName);
                     }

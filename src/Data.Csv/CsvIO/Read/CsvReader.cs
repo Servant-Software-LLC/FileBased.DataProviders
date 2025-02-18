@@ -1,11 +1,11 @@
 ﻿using Data.Csv.Utils;
-using Microsoft.Data.Analysis;
+using SqlBuildingBlocks.POCOs;
 using System.Data.CsvClient;
 
 namespace Data.Csv.CsvIO.Read;
 
 internal class CsvReader : FileReader
-{    
+{
     public CsvReader(CsvConnection connection) 
         : base(connection)
     {
@@ -16,15 +16,15 @@ internal class CsvReader : FileReader
     {
         using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
         {
-            DataTable dataTable = null;
+            VirtualDataTable dataTable = null;
 
             //Check if the contents of the file contains any non-whitespace characters
             if (HasNonWhitespaceCharacter(textReader))
             {
-                dataTable = FillDataTable(tableName);
+                dataTable = PrepareDataTable(tableName);
             }
 
-            DataSet!.Tables.Add(dataTable ?? new DataTable(tableName));
+            DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(tableName));
         }
     }
 
@@ -38,7 +38,7 @@ internal class CsvReader : FileReader
             DataSet!.Tables.Remove(tableName);
         }
 
-        var newDataTable = FillDataTable(tableName);
+        var newDataTable = PrepareDataTable(tableName);
         DataSet!.Tables.Add(newDataTable);
     }
     #endregion
@@ -54,51 +54,12 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private DataTable FillDataTable(string tableName, int numberOfRowsToReadForInference = 10)
+    private VirtualDataTable PrepareDataTable(string tableName, int pageSize = 1000, int numberOfRowsToReadForInference = 10)
     {
-        // Load CSV into DataFrame to infer data types
-        DataFrame dataFrame = CsvDataFrameLoader.LoadDataFrame(fileConnection.DataSourceProvider, tableName, numberOfRowsToReadForInference,
-                                                               fileConnection.PreferredFloatingPointDataType);
+        CsvVirtualDataTable virtualDataTable = new(fileConnection.DataSourceProvider, tableName, pageSize, numberOfRowsToReadForInference, 
+                                                   fileConnection.PreferredFloatingPointDataType);
 
-        DataTable results = new DataTable(tableName);
-        FillDataTable(dataFrame, results);
-        return results;
-    }
-
-    private DataTable FillDataTable(DataFrame dataFrame, DataTable dataTable)
-    {
-        // Add columns to DataTable
-        foreach (var column in dataFrame.Columns)
-        {
-            // Use column.Name for the DataColumn name and column.DataType for its type
-            var dataType = column.DataType;
-            dataTable.Columns.Add(column.Name, dataType);
-        }
-
-        // Add rows to DataTable
-        foreach (var row in dataFrame.Rows)
-        {
-            DataRow newRow = dataTable.NewRow();
-
-            for (int i = 0; i < dataFrame.Columns.Count; i++)
-            {
-                // Check for empty strings and set them to DBNull
-                if (row[i] is string value && string.IsNullOrEmpty(value) || row[i] == null)
-                {
-                    newRow[i] = DBNull.Value;
-                }
-                else
-                {
-                    // Convert value to the correct type
-                    var convertedValue = row[i] == DBNull.Value ? DBNull.Value : row[i];
-                    newRow[i] = convertedValue;
-                }
-            }
-
-            dataTable.Rows.Add(newRow);
-        }
-
-        return dataTable;
+        return virtualDataTable;
     }
 
     private static bool HasNonWhitespaceCharacter(TextReader textReader)

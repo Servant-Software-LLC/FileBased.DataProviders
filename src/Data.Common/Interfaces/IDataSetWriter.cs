@@ -1,6 +1,8 @@
-﻿namespace Data.Common.Interfaces;
+﻿using SqlBuildingBlocks.POCOs;
+
+namespace Data.Common.Interfaces;
 
 public interface IDataSetWriter
 {
-    void WriteDataSet(DataSet dataSet);
+    void WriteDataSet(VirtualDataSet dataSet);
 }

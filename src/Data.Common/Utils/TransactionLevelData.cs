@@ -1,4 +1,5 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.Utils;
 
@@ -7,11 +8,11 @@ namespace Data.Common.Utils;
 /// </summary>
 internal class TransactionLevelData
 {
-    private readonly DataSet storedData;
+    private readonly VirtualDataSet storedData;
     private readonly string databaseName;
     private readonly TransactionScopedRows transactionScopedRows;
 
-    public TransactionLevelData(DataSet storedData, string databaseName, TransactionScopedRows transactionScopedRows)
+    public TransactionLevelData(VirtualDataSet storedData, string databaseName, TransactionScopedRows transactionScopedRows)
     {
         this.storedData = storedData ?? throw new ArgumentNullException(nameof(storedData));
         this.databaseName = !string.IsNullOrWhiteSpace(databaseName) ? databaseName : throw new ArgumentNullException(nameof(databaseName));
@@ -37,7 +38,7 @@ internal class TransactionLevelData
 
             //Copy the DataTable schema and data.
             //TODO:  This is probably an expensive operation.  Consider more performant approaches.
-            DataTable copiedTable = storedDataTable.Copy();
+            DataTable copiedTable = storedDataTable.ToDataTable();
 
             AddInsertedRowsOfTransaction(table, copiedTable);
 

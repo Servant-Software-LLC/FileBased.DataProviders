@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.Grammars.SQLServer;
 using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.FileIO.SchemaAltering;
 
@@ -62,7 +63,7 @@ public abstract class FileCreateTableWriter : FileWriter
                 fileReader.DataSet.Tables.Remove(tableName);
             }
 
-            fileReader.DataSet.Tables.Add(newTable);
+            fileReader.DataSet.Tables.Add(new VirtualDataTable(newTable));
         }
         finally
         {

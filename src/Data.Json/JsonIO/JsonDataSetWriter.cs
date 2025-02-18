@@ -1,5 +1,6 @@
 ﻿using Data.Common.DataSource;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.POCOs;
 using System.Text;
 
 namespace Data.Json.JsonIO;
@@ -16,15 +17,15 @@ public class JsonDataSetWriter : IDataSetWriter
         this.fileStatement = fileStatement;
     }
 
-    public void WriteDataSet(DataSet dataSet)
+    public void WriteDataSet(VirtualDataSet virtualDataSet)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileStatement.FromTable.TableName, dataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, virtualDataSet);
         }
         else
         {
-            SaveFileAsDB(dataSet);
+            SaveFileAsDB(virtualDataSet);
         }
     }
 
@@ -34,7 +35,7 @@ public class JsonDataSetWriter : IDataSetWriter
     /// <param name="jsonWriter"></param>
     protected virtual void WriteCommentValue(Utf8JsonWriter jsonWriter, DataColumn column) { }
 
-    private void WriteTable(Utf8JsonWriter jsonWriter, DataTable table, bool writeTableName)
+    private void WriteTable(Utf8JsonWriter jsonWriter, VirtualDataTable table, bool writeTableName)
     {
         log.LogDebug($"Writing array start.");
         if (writeTableName)
@@ -96,7 +97,7 @@ public class JsonDataSetWriter : IDataSetWriter
         jsonWriter.WriteEndArray();
     }
 
-    private void SaveFileAsDB(DataSet dataSet)
+    private void SaveFileAsDB(VirtualDataSet virtualDataSet)
     {
         try
         {
@@ -108,7 +109,7 @@ public class JsonDataSetWriter : IDataSetWriter
                 using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
                 {
                     jsonWriter.WriteStartObject();
-                    foreach (DataTable table in dataSet!.Tables)
+                    foreach (var table in virtualDataSet!.Tables)
                     {
                         log.LogDebug($"Processing DataTable {table.TableName}");
                         WriteTable(jsonWriter, table, true);
@@ -132,15 +133,15 @@ public class JsonDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string tableName, DataSet dataSet)
+    private void SaveFolderAsDB(string tableName, VirtualDataSet dataSet)
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
-            foreach (DataTable table in tablesToWrite)
+            foreach (VirtualDataTable table in tablesToWrite)
             {
                 log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
 

@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using Data.Common.DataSource;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Csv.CsvIO;
 
@@ -16,7 +17,7 @@ internal class CsvDataSetWriter : IDataSetWriter
         this.fileQuery = fileQuery;
     }
 
-    public void WriteDataSet(DataSet dataSet)
+    public void WriteDataSet(VirtualDataSet dataSet)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
@@ -28,15 +29,15 @@ internal class CsvDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string tableName, DataSet dataSet)
+    private void SaveFolderAsDB(string tableName, VirtualDataSet dataSet)
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
-            foreach (DataTable table in tablesToWrite)
+            foreach (var table in tablesToWrite)
             {
                 log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
                 using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))

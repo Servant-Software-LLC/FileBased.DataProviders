@@ -2,7 +2,9 @@
 using Data.Common.Utils;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 using SqlBuildingBlocks.QueryProcessing;
+using SqlBuildingBlocks.Utils;
 
 namespace Data.Common.FileIO.Read;
 
@@ -15,7 +17,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     protected readonly IFileConnection fileConnection;
     private readonly HashSet<string> tablesToUpdate = new();
 
-    public DataSet DataSet { get; protected set; }
+    public VirtualDataSet DataSet { get; protected set; }
     public DataSet SchemaDataSet { get; protected set; }
 
     /// <summary>
@@ -43,9 +45,9 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     public void StopWatching() => fileConnection.DataSourceProvider.StopWatching();
 
-    public DataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
+    public VirtualDataTable ReadFile(FileStatement fileStatement, TransactionScopedRows transactionScopedRows, bool shouldLock = false)
     {
-        DataTable returnValue;
+        VirtualDataTable returnValue;
 
         if (shouldLock)
             FileWriter.readerWriterLock.EnterReadLock();
@@ -59,7 +61,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
             if (fileConnection.FolderAsDatabase)
             {
-                DataSet ??= new DataSet();
+                DataSet ??= new VirtualDataSet();
 
                 //Get table names that aren't schema tables.
                 HashSet<string> newTables;
@@ -104,7 +106,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                 FileWriter.readerWriterLock.ExitReadLock();
         }
 
-        returnValue.AcceptChanges(); // Sets RowState of all rows to Unchanged
         return returnValue;
     }
 
@@ -118,7 +119,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
             if (fileConnection.FolderAsDatabase)
             {
-                DataSet ??= new DataSet();
+                DataSet ??= new VirtualDataSet();
 
                 //Optimization: Only need to check if the file exists in the folder.  We don't need to load the table into memory.
                 return fileConnection.DataSourceProvider.StorageExists(tableName);
@@ -147,7 +148,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
             if (fileConnection.FolderAsDatabase)
             {
-                DataSet ??= new DataSet();
+                DataSet ??= new VirtualDataSet();
 
                 // Check if the file exists in the folder.  If it doesn't, then the table doesn't exist.
                 if (!fileConnection.DataSourceProvider.StorageExists(tableName))
@@ -204,9 +205,17 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     IEnumerable<DataColumn> ITableSchemaProvider.GetColumns(SqlTable table)
     {
         var isSchemaTable = string.Compare(table.DatabaseName, SchemaDatabase, true) == 0;
-        var dataSet = isSchemaTable ? SchemaDataSet : DataSet;
-        var dataTable = dataSet.Tables[table.TableName];
-        return dataTable.Columns.Cast<DataColumn>();
+
+        // Special DataSet for schema tables.
+        if (isSchemaTable)
+        {
+            var dataTable = SchemaDataSet.Tables[table.TableName];
+            return dataTable.Columns.Cast<DataColumn>();
+        }
+
+        // DataSet table
+        var virtualDataTable = DataSet.Tables[table.TableName];
+        return virtualDataTable.Columns.Cast<DataColumn>();
     }
 
     private void CheckForTableReload()
@@ -230,7 +239,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     }
 
-    private DataTable GetResultset(FileStatement fileStatement, TransactionScopedRows transactionScopedRows)
+    private VirtualDataTable GetResultset(FileStatement fileStatement, TransactionScopedRows transactionScopedRows)
     {
         if (fileStatement is FileSelect fileSelect)
         {
@@ -247,29 +256,36 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             if (fileSelect.SqlSelect.InvalidReferences)
                 throw new InvalidOperationException($"Unable to resolve the references with the SELECT statement.  Reason: {fileSelect.SqlSelect.InvalidReferenceReason}");
 
-            List<DataSet> dataSets = new();
+            List<ITableDataProvider> tableDataProviders = new();
 
             //Get a DataSet of all the tables in this query (minus the INFORMATION_SCHEMA tables requested)
             TransactionLevelData transactionLevelData = new(DataSet, databaseConnectionProvider.DefaultDatabase, transactionScopedRows);
             var databaseData = transactionLevelData.Compose(fileStatement.Tables);
-            dataSets.Add(databaseData);
+            var tableDataProviderAdaptor = new TableDataProviderAdaptor();
+            tableDataProviderAdaptor.AddDataSet(databaseData);
+            tableDataProviders.Add(tableDataProviderAdaptor);
 
             if (SchemaDataSet != null)
-                dataSets.Add(SchemaDataSet);
+            {
+                var adaptor = new TableDataProviderAdaptor(new DataSet[] { SchemaDataSet });
+                tableDataProviders.Add(adaptor);
+            }
 
-            QueryEngine queryEngine = new(dataSets, fileSelect.SqlSelect);
-            DataTable dataTable = queryEngine.QueryAsDataTable();
-            return dataTable;
+            AllTableDataProvider allTableDataProvider = new AllTableDataProvider(tableDataProviders);
+            QueryEngine queryEngine = new(allTableDataProvider, fileSelect.SqlSelect);
+            var virtualDataTable = queryEngine.Query();
+            return virtualDataTable;
         }
 
         //Parser is not a FileSelect
         //In this case, the FileWriter that made this call, needs the actual DataTable so that it can use a DataView to
         //preform the write type of operations (DELETE, UPDATE, INSERT)
-        return GetDataTable(fileStatement!.FromTable.TableName, transactionScopedRows)!;
+        var dataTable = GetDataTable(fileStatement!.FromTable.TableName, transactionScopedRows)!;
+        return dataTable;
     }
 
 
-    private DataTable GetDataTable(string tableName, TransactionScopedRows transactionScopedRows)
+    private VirtualDataTable GetDataTable(string tableName, TransactionScopedRows transactionScopedRows)
     {
         var table = DataSet!.Tables[tableName]!;
         if (table == null)
@@ -279,20 +295,26 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         //      SqlBuildingBlocks and the QueryEngine were introduced.
         if (transactionScopedRows != null && transactionScopedRows.TryGetValue(tableName, out List<DataRow> additionalRows))
         {
-            table = table.Copy();
+            DataTable clonedTable = new DataTable(tableName);
+
+            //Copy the columns
+            foreach (DataColumn column in table.Columns)
+            {
+                clonedTable.Columns.Add(new DataColumn(column.ColumnName, column.DataType));
+            }
+
+            //Copy the data rows
+            foreach (DataRow row in table.Rows)
+            {
+                clonedTable.Rows.Add(row.ItemArray);
+            }
 
             foreach (DataRow additionalRow in additionalRows)
             {
-                var newRow = table.NewRow();
-
-                // Copy the data.
-                for (int i = 0; i < additionalRow.Table.Columns.Count; i++)
-                {
-                    newRow[i] = additionalRow[i];
-                }
-
-                table.Rows.Add(newRow);
+                clonedTable.Rows.Add(additionalRow.ItemArray);
             }
+
+            table = new VirtualDataTable(clonedTable);
         }
 
         return table;
@@ -311,7 +333,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         if (includeColumnSchema || !fileConnection.FolderAsDatabase)
         {
             // If the COLUMNS table is requested or FileAsDatabase, then we've already loaded all the tables into the DataSet
-            allTableNames = DataSet.Tables.Cast<DataTable>().Select(table => table.TableName);
+            allTableNames = DataSet.Tables.Cast<VirtualDataTable>().Select(table => table.TableName);
         }
         else
         {
@@ -349,12 +371,12 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         informationSchemaColumn.Columns.Add("DATA_TYPE", typeof(string));
 
         //Get all table colums sorted in order of the primary key (database, table, column)
-        var allTableColumns = DataSet.Tables.Cast<DataTable>()
+        var allTableColumns = DataSet.Tables.Cast<VirtualDataTable>()
             .SelectMany(table => table.Columns.Cast<DataColumn>().Select(column => (Table: table, Column: column)))
             .OrderBy(tuple => tuple.Table.TableName).ThenBy(tuple => tuple.Column.ColumnName).AsEnumerable();
 
         //TODO: When we upgrade to C# 12, use an alias for tuple type with the using directive.  REF:  https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples
-        foreach ((DataTable Table, DataColumn Column) columnTuple in allTableColumns)
+        foreach ((VirtualDataTable Table, DataColumn Column) columnTuple in allTableColumns)
         {
             AddRowToSchemaColumn(informationSchemaColumn, columnTuple.Table, columnTuple.Column);
         }
@@ -362,7 +384,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         return informationSchemaColumn;
     }
 
-    private void AddRowToSchemaColumn(DataTable schemaTable, DataTable table, DataColumn column)
+    private void AddRowToSchemaColumn(DataTable schemaTable, VirtualDataTable table, DataColumn column)
     {
         var row = schemaTable.NewRow();
         row["TABLE_CATALOG"] = Path.GetFileNameWithoutExtension(fileConnection.Database);

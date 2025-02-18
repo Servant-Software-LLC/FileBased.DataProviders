@@ -1,76 +1,119 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.FileIO.Read;
 
+/// <summary>
+/// Enumerates through the rows of a <see cref="VirtualDataTable"/>, returning each row as an object array.
+/// </summary>
+/// <remarks>
+/// This enumerator is designed to work with a lazy-loaded or virtual data source, where rows are only pulled on-demand.
+/// It uses a one-row lookahead mechanism to support the <see cref="MoreRowsAvailable"/> and <see cref="HasRows"/> properties,
+/// allowing consumers to check if additional rows are available before attempting to move forward.
+/// <para>
+/// Note that this enumerator is forward-only and does not support resetting. The <see cref="Reset"/> method will throw a
+/// <see cref="NotSupportedException"/> if called.
+/// </para>
+/// </remarks>
 internal class FileEnumerator : IEnumerator<object[]>
 {
     private readonly ILogger log;
-    private readonly DataTable resultset;
+    private readonly VirtualDataTable virtualDataTable;
+    private readonly IEnumerator<DataRow> enumerator;
+    private DataRow nextRow;
     private object[] currentRow = Array.Empty<object>();
-    private bool endOfResultset;
 
-    public FileEnumerator(DataTable workingResultset, ILogger log)
+    public FileEnumerator(VirtualDataTable virtualDataTable, ILogger log)
     {
-        if (workingResultset == null) 
-            throw new ArgumentNullException(nameof(workingResultset));
+        this.log = log ?? throw new ArgumentNullException(nameof(log));
+        this.virtualDataTable = virtualDataTable ?? throw new ArgumentNullException(nameof(virtualDataTable));
 
-        this.log = log;
+        // Obtain an enumerator from the IEnumerable<DataRow> in VirtualDataTable.
+        enumerator = (virtualDataTable.Rows ?? Enumerable.Empty<DataRow>())
+                       .GetEnumerator();
 
-        resultset = workingResultset;
-    }
-
-    public object[] Current => currentRow;
-    object IEnumerator.Current => Current;
-    public int CurrentIndex { get; private set; } = -1;
-    public DataColumnCollection Columns => resultset.Columns;
-    public int FieldCount => resultset.Columns.Count;
-
-    public bool MoreRowsAvailable => resultset.Rows.Count > CurrentIndex;
-
-    public bool HasRows => resultset.Rows.Count > 0;
-
-
-    public bool MoveNext()
-    {
-        log.LogDebug($"FileEnumerator.MoveNext() called.  endofResultset = {endOfResultset}");
-
-        if (endOfResultset)
-            return false;
-
-        CurrentIndex++;
-
-        if (MoreRowsAvailable)
+        // Pre-fetch the first row if available.
+        if (enumerator.MoveNext())
         {
-            currentRow = resultset.Rows[CurrentIndex].ItemArray;
-            return true;
+            nextRow = enumerator.Current;
+        }
+        else
+        {
+            nextRow = null;
         }
 
-        log.LogDebug($"End of resultset reached.");
-        endOfResultset = true;
-        return false;
+        HasRows = nextRow != null;
     }
 
-    public bool MoveNextInitial()
+    /// <summary>
+    /// Returns the current row’s data as an object array.
+    /// </summary>
+    public object[] Current => currentRow;
+    object IEnumerator.Current => Current;
+
+    /// <summary>
+    /// Returns the schema of the virtual table. If no columns are defined, returns an empty DataColumnCollection.
+    /// </summary>
+    public DataColumnCollection Columns => virtualDataTable.Columns ?? new DataTable().Columns;
+
+    /// <summary>
+    /// Returns the number of fields (columns) in the table.
+    /// </summary>
+    public int FieldCount => Columns.Count;
+
+    /// <summary>
+    /// Returns the current index of the row that was last fetched.
+    /// </summary>
+    public int CurrentIndex {  get; private set; }
+
+    /// <summary>
+    /// Returns true if there is a next row available (prefetched).
+    /// </summary>
+    public bool MoreRowsAvailable => nextRow != null;
+
+    /// <summary>
+    /// Returns true if there is at least one row available.
+    /// </summary>
+    public bool HasRows { get; }
+
+    /// <summary>
+    /// Advances the enumerator to the next row.
+    /// </summary>
+    public bool MoveNext()
     {
-        var res = MoveNext();
-        Reset();
-        return res;
+        log.LogDebug($"FileEnumerator.MoveNext() called. Next row available: {nextRow != null}");
+
+        if (nextRow == null)
+        {
+            return false;
+        }
+
+        // Use the prefetched row as the current row.
+        currentRow = nextRow.ItemArray;
+        CurrentIndex++;
+
+        // Prefetch the next row.
+        if (enumerator.MoveNext())
+        {
+            nextRow = enumerator.Current;
+        }
+        else
+        {
+            nextRow = null;
+        }
+
+        return true;
     }
 
-    public void Reset()
-    {
-        CurrentIndex = -1;
-        //TableEnumerator.Reset();
-    }
+    /// <summary>
+    /// Reset is not supported for lazy enumerables.
+    /// </summary>
+    public void Reset() => throw new NotSupportedException("Reset is not supported for VirtualDataTable-based enumerators.");
 
-    public void Dispose()
-    {
-        //TableEnumerator?.Reset();
-    }
+    public void Dispose() =>  enumerator.Dispose();
 
-    public string GetName(int i) => resultset.Columns[i].ColumnName;
-    public int GetOrdinal(string name) => resultset.Columns.IndexOf(name);
-
-    public Type GetType(int i) => resultset.Columns[i].DataType;
-
+    // Helper methods to mimic DataTable behavior:
+    public string GetName(int i) => Columns[i].ColumnName;
+    public int GetOrdinal(string name) => Columns.IndexOf(name);
+    public Type GetFieldType(int i) => Columns[i].DataType;
 }

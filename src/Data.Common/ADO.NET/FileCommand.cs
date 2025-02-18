@@ -268,9 +268,10 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         //SELECT query - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
         //       "Executes the query, and returns the first column of the first row in the resultset returned
         //       by the query. Extra columns or rows are ignored."
-        if (dataTable.Rows.Count > 0)
+        var firstRow = dataTable.Rows.FirstOrDefault();
+        if (firstRow != null)
         {
-            var rowValues = dataTable.Rows[0].ItemArray;
+            var rowValues = firstRow.ItemArray;
             if (rowValues.Length > 0)
             {
                 result = rowValues[0];

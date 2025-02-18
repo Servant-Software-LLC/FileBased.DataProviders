@@ -1,4 +1,5 @@
-﻿using System.Data.JsonClient;
+﻿using SqlBuildingBlocks.POCOs;
+using System.Data.JsonClient;
 
 namespace Data.Json.JsonIO.Read;
 
@@ -18,7 +19,10 @@ internal class JsonReader : FileReader
         var dataTable = CreateNewDataTable(element);
         dataTable.TableName = tableName;
         Fill(dataTable, element);
-        DataSet!.Tables.Add(dataTable);
+
+        //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+        VirtualDataTable virtualDataTable = new(dataTable);
+        DataSet!.Tables.Add(virtualDataTable);
     }
 
     protected override void UpdateFromFolder(string tableName)
@@ -29,17 +33,23 @@ internal class JsonReader : FileReader
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
 
         // Determine if the table exists in the DataSet, if not create it.
-        var dataTable = DataSet!.Tables[tableName];
-        if (dataTable == null)
+        var virtualDataTable = DataSet!.Tables[tableName];
+        if (virtualDataTable == null)
         {
-            dataTable = CreateNewDataTable(element);
+            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+            var dataTable = CreateNewDataTable(element);
             dataTable.TableName = tableName;
-            DataSet!.Tables.Add(dataTable);
+            
+            virtualDataTable = new(dataTable);
+            DataSet!.Tables.Add(virtualDataTable);
         }
 
-        // Clear the table and fill it with the new data
-        dataTable!.Clear();
-        Fill(dataTable, element);
+        // Clear the virtual table's rows and fill it with the new data
+        var replacementDataTable = virtualDataTable.CreateEmptyDataTable();
+
+        //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+        Fill(replacementDataTable, element);
+        virtualDataTable.Rows = replacementDataTable.Rows.Cast<DataRow>();
     }
 
     protected override void ReadFromFile()
@@ -48,27 +58,31 @@ internal class JsonReader : FileReader
         var element = doc.RootElement;
         JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
         var dataBaseEnumerator = element.EnumerateObject();
-        DataSet = new DataSet();
+        DataSet = new VirtualDataSet();
         foreach (var item in dataBaseEnumerator)
         {
             var dataTable = CreateNewDataTable(item.Value);
             dataTable.TableName = item.Name;
             Fill(dataTable, item.Value);
-            DataSet.Tables.Add(dataTable);
+
+            VirtualDataTable virtualDataTable = new(dataTable);
+            DataSet.Tables.Add(virtualDataTable);
         }
     }
 
     protected override void UpdateFromFile()
     {
-        DataSet!.Clear();
-
         using JsonDocument doc = Read(string.Empty);
         var element = doc.RootElement;
-        Json.JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
-        foreach (DataTable item in DataSet.Tables)
+        JsonException.ThrowHelper.ThrowIfInvalidJson(element, fileConnection);
+        foreach (VirtualDataTable virtualDataTable in DataSet.Tables)
         {
-            var jsonElement = element.GetProperty(item.TableName);
-            Fill(item, jsonElement);
+            var jsonElement = element.GetProperty(virtualDataTable.TableName);
+
+            var dataTable = virtualDataTable.CreateEmptyDataTable();
+            Fill(dataTable, jsonElement);
+
+            virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
         }
         doc.Dispose();
 

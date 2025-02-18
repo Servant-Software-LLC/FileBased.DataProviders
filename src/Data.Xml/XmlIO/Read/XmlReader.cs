@@ -1,4 +1,5 @@
-﻿using System.Data.XmlClient;
+﻿using SqlBuildingBlocks.POCOs;
+using System.Data.XmlClient;
 
 namespace Data.Xml.XmlIO.Read;
 
@@ -16,7 +17,10 @@ internal class XmlReader : FileReader
         {            
             tempDataSet.ReadXml(textReader);
             tempDataSet.Tables[0].TableName = tableName;
-            DataSet!.Tables.Add(tempDataSet.Tables[0].Copy());
+
+            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+            VirtualDataTable virtualDataTable = new(tempDataSet.Tables[0]);
+            DataSet!.Tables.Add(virtualDataTable);
         }
     }
 
@@ -26,37 +30,56 @@ internal class XmlReader : FileReader
         using (var tempDataSet = new DataSet())
         {
             tempDataSet.ReadXml(textReader);
+            var newDataTable = tempDataSet.Tables[0];
 
-            var oldDataTable = DataSet!.Tables[tableName];
-            var newDataTable = tempDataSet.Tables[0].Copy();
-            if (oldDataTable != null)
-            {
-                oldDataTable = newDataTable.Copy();
-            }
-            else
-            {
-                DataSet!.Tables.Add(newDataTable);
-                oldDataTable = newDataTable;
-            }
-            oldDataTable.TableName = tableName;
+            //If the table is already in the VirtualDataSet, then remove it.
+            if (DataSet!.Tables.Contains(tableName))
+                DataSet!.Tables.Remove(tableName);
+
+            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+            VirtualDataTable virtualDataTable = new(newDataTable);
+            DataSet!.Tables.Add(virtualDataTable);
         }
     }
 
     protected override void ReadFromFile()
     {
         using (var textReader = fileConnection.DataSourceProvider.GetTextReader(string.Empty))
+        using (var tempDataSet = new DataSet())
         {
-            DataSet = new DataSet();
-            DataSet.ReadXml(textReader);
+            tempDataSet.ReadXml(textReader);
+
+            DataSet = new VirtualDataSet();
+            foreach (DataTable dataTable in tempDataSet.Tables)
+            {
+                //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+                VirtualDataTable virtualDataTable = new(dataTable);
+                DataSet.Tables.Add(virtualDataTable);
+            }
         }
     }
 
     protected override void UpdateFromFile()
     {
         using (var textReader = fileConnection.DataSourceProvider.GetTextReader(string.Empty))
+        using (var tempDataSet = new DataSet())
         {
-            DataSet!.Clear();
-            DataSet.ReadXml(textReader);
+            //Create empty DataTables in our tempDataSet that have its schema.
+            foreach (VirtualDataTable virtualDataTable in DataSet!.Tables)
+            {
+                var dataTable = virtualDataTable.CreateEmptyDataTable();
+                tempDataSet.Tables.Add(dataTable);
+            }
+
+            tempDataSet.ReadXml(textReader);
+
+            DataSet = new VirtualDataSet();
+            foreach (DataTable dataTable in tempDataSet.Tables)
+            {
+                //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+                VirtualDataTable virtualDataTable = new(dataTable);
+                DataSet.Tables.Add(virtualDataTable);
+            }
         }
     }
 }

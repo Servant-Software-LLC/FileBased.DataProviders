@@ -1,4 +1,5 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.FileIO.Write;
 public abstract class FileUpdateWriter : FileWriter
@@ -22,7 +23,10 @@ public abstract class FileUpdateWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var dataTable = fileReader.ReadFile(fileUpdate, fileTransaction?.TransactionScopedRows);
+            var virtualDataTable = fileReader.ReadFile(fileUpdate, fileTransaction?.TransactionScopedRows);
+
+            //Remember here, that the whole data table is going to reside in-memory at this point.
+            var dataTable = virtualDataTable.ToDataTable();
 
             //Create a DataView to work with just for this operation
             var dataView = new DataView(dataTable);
@@ -55,6 +59,10 @@ public abstract class FileUpdateWriter : FileWriter
                     }
                 }
             }
+
+            //Save the results of the deletion back onto the virtual table, which will get saved in the Save() call below.
+            virtualDataTable.Columns = dataTable.Columns;
+            virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
 
             Save();
             return rowsAffected;

@@ -198,13 +198,14 @@ public abstract class FileDataReader : DbDataReader
 
         ColumnSize.DefaultValue = -1;
 
-        if (workingResultSet.DataSet != null)
-        {
-            BaseCatalogName.DefaultValue = workingResultSet.DataSet.DataSetName;
-        }
+        //TODO: Probably can live without these
+        //if (workingResultSet.DataSet != null)
+        //{
+        //    BaseCatalogName.DefaultValue = workingResultSet.DataSet.DataSetName;
+        //}
+        //BaseTableNamespace.DefaultValue = workingResultSet.Namespace;
 
         BaseTableName.DefaultValue = workingResultSet.TableName;
-        BaseTableNamespace.DefaultValue = workingResultSet.Namespace;
         IsRowVersion.DefaultValue = false;
         IsLong.DefaultValue = false;
         IsReadOnly.DefaultValue = false;
@@ -276,10 +277,11 @@ public abstract class FileDataReader : DbDataReader
             tempSchemaTable.Rows.Add(dataRow);
         }
 
-        foreach (DataColumn key in workingResultSet.PrimaryKey)
-        {
-            tempSchemaTable.Rows[key.Ordinal][IsKeyColumn] = true;
-        }
+        //TODO:  Primary keys aren't considered for now.
+        //foreach (DataColumn key in workingResultSet.PrimaryKey)
+        //{
+        //    tempSchemaTable.Rows[key.Ordinal][IsKeyColumn] = true;
+        //}
 
         tempSchemaTable.AcceptChanges();
 
@@ -501,7 +503,7 @@ public abstract class FileDataReader : DbDataReader
         if (result.WorkingResultSet == null)
             throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
 
-        return result.FileEnumerator.GetType(i);
+        return result.FileEnumerator.GetFieldType(i);
     }
 
     /// <summary>

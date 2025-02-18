@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.Interfaces;
 using SqlBuildingBlocks.LogicalEntities;
+using SqlBuildingBlocks.POCOs;
 using SqlBuildingBlocks.QueryProcessing;
 
 namespace Data.Common.Utils;
@@ -10,7 +11,7 @@ internal class Result
 {
     private readonly ILogger log;
 
-    public DataTable WorkingResultSet { get; }
+    public VirtualDataTable WorkingResultSet { get; }
     public FileEnumerator FileEnumerator { get; }
 
     public object[] CurrentDataRow { get; private set; }
@@ -64,10 +65,11 @@ internal class Result
             {
                 if (containsReturning.Returning.HasValue)
                 {
-                    WorkingResultSet = new DataTable();
-                    WorkingResultSet.Columns.Add(new DataColumn("RETURNING", typeof(int)));
-                    WorkingResultSet.Rows.Add(containsReturning.Returning.Value);
+                    var tempTable = new DataTable();
+                    tempTable.Columns.Add(new DataColumn("RETURNING", typeof(int)));
+                    tempTable.Rows.Add(containsReturning.Returning.Value);
 
+                    WorkingResultSet = new VirtualDataTable(tempTable);
                     FileEnumerator = new FileEnumerator(WorkingResultSet, log);
                 }
             }
@@ -109,9 +111,9 @@ internal class Result
     /// <param name="fileSelect"></param>
     /// <param name="previousWriteResult"></param>
     /// <returns></returns>
-    private DataTable GetSingleRowTable(FileSelect fileSelect, Result previousWriteResult)
+    private VirtualDataTable GetSingleRowTable(FileSelect fileSelect, Result previousWriteResult)
     {
-        var dataTable = new DataTable();
+        var dataTable = new DataTable("ResultSet");
 
         //Must iterate twice through the columns, so that in-between, we can call DataTable.NewRow() (i.e. the columns must already be defined in the DataTable before NewRow() is called)
         int unnamedColumnIndex = 1;
@@ -169,6 +171,6 @@ internal class Result
         }
         dataTable.Rows.Add(newRow);
 
-        return dataTable;
+        return new VirtualDataTable(dataTable);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Data.Common.DataSource;
 using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Xml.XmlIO;
 
@@ -15,7 +16,7 @@ internal class XmlDataSetWriter : IDataSetWriter
         this.fileQuery = fileQuery;
     }
 
-    public void WriteDataSet(DataSet dataSet)
+    public void WriteDataSet(VirtualDataSet dataSet)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
@@ -27,14 +28,14 @@ internal class XmlDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveToFile(DataSet dataSet)
+    private void SaveToFile(VirtualDataSet virtualDataSet)
     {
         try
         {
             log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
             using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(string.Empty))
             {
-                dataSet.WriteXml(textWriter, XmlWriteMode.WriteSchema);
+                WriteXml(virtualDataSet, textWriter, XmlWriteMode.WriteSchema);
             }
         }
         catch (Exception ex)
@@ -44,20 +45,22 @@ internal class XmlDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string tableName, DataSet dataSet)
+    private void SaveFolderAsDB(string tableName, VirtualDataSet dataSet)
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<DataTable>();
+            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
-            foreach (DataTable table in tablesToWrite)
+            foreach (var virtualDataTable in tablesToWrite)
             {
-                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
-                using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
+                log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(virtualDataTable.TableName)}");
+                using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(virtualDataTable.TableName))
                 {
-                    table.WriteXml(textWriter, XmlWriteMode.WriteSchema);
+                    DataTable dataTable = virtualDataTable.ToDataTable();
+
+                    dataTable.WriteXml(textWriter, XmlWriteMode.WriteSchema);
                 }
             }
         }
@@ -67,4 +70,22 @@ internal class XmlDataSetWriter : IDataSetWriter
             throw;
         }
     }
+
+    private void WriteXml(VirtualDataSet virtualDataSet, TextWriter writer, XmlWriteMode mode)
+    {
+        // Create a temporary DataSet
+        DataSet dataSet = new();
+        foreach (var table in virtualDataSet.Tables)
+        {
+            //Virtual tables are copied into real DataTable.  Can cause issues for very large table data.
+            var dataTable = table.ToDataTable();
+            dataTable.TableName = table.TableName;
+
+            dataSet.Tables.Add(dataTable);
+        }
+
+        // Write the DataSet to the file, including the schema.
+        dataSet.WriteXml(writer, XmlWriteMode.WriteSchema);
+    }
+
 }
