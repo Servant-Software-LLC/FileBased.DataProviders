@@ -9,6 +9,7 @@ namespace Data.Common.DataSource;
 /// </summary>
 public class StreamedDataSource : IDataSourceProvider
 {
+    private const int streamResetsAllowed = 4;
     private readonly Dictionary<string, BufferedResetStream> tables = new();
 
     /// <summary>
@@ -45,7 +46,7 @@ public class StreamedDataSource : IDataSourceProvider
         if (utf8TableData is null)
             throw new ArgumentNullException(nameof(utf8TableData));
 
-        tables[tableName] = new BufferedResetStream(utf8TableData, 2);
+        tables[tableName] = new BufferedResetStream(utf8TableData, streamResetsAllowed);
         Changed?.Invoke(this, new DataSourceEventArgs(tableName));
     }
 
@@ -97,7 +98,7 @@ public class StreamedDataSource : IDataSourceProvider
         }
 
         MemoryStream memoryStream = new();
-        tables[tableName] = new BufferedResetStream(memoryStream, 2);
+        tables[tableName] = new BufferedResetStream(memoryStream, streamResetsAllowed);
 
         return new StreamWriter(memoryStream, Encoding.UTF8, 1024, true);
     }

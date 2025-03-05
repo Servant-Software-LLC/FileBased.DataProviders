@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Analysis;
 using Data.Common.Utils.ConnectionString;
 using SqlBuildingBlocks.POCOs;
-using Data.Common.DataSource;
 using Data.Common.Utils;
 
 namespace Data.Csv.Utils;
@@ -75,8 +74,23 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     /// </summary>
     private IEnumerable<DataRow> InitializeSchemaAndColumnTypes()
     {
-        // Load the first page of data (which also reads the header).  Note:  Using the _transformStream on this LoadCsv, because we do want a Seek to origin on the stream.
-        DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _pageSize, guessRows: _guessRows, 
+        DetermineColumns();
+
+        // DataFrame would only use float for the precision of its floating point numbers.  After a first pass using the DataFrame to guess at the types,
+        // we need a second pass indicating our higher precision floating points if a precision of double or decimal is needed.
+        var columns = Columns.Cast<DataColumn>().ToList();
+        string[] columnNames = columns.Select(col => col.ColumnName).ToArray();
+        Type[] columnTypes = columns.Select(col => col.DataType).ToArray();
+        DataFrame firstDataPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _pageSize, guessRows: _guessRows, columnNames: columnNames, dataTypes: columnTypes);
+
+        return ToDataRows(firstDataPage);
+    }
+
+    private void DetermineColumns()
+    {
+        // Load the first page of data (which also reads the header).  Note:  Using the _transformStream on this LoadCsv, because we do want a Seek to
+        // origin on the stream.  Since we're not using the data, limit numberOfRowsToRead to _guessRows.
+        DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _guessRows, guessRows: _guessRows,
                                                 guessTypeFunction: _guessTypeFunction);
 
         DataTable schemaTable = new DataTable(TableName);
@@ -93,8 +107,8 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         else if (!string.IsNullOrEmpty(_transformStream.HeaderLine))
         {
             // Fallback: if DataFrame didn't yield columns, use the header line with string type.
-            var columnNames = _transformStream.HeaderLine.Split(',');
-            foreach (var name in columnNames)
+            var columnNamesFromStream = _transformStream.HeaderLine.Split(',');
+            foreach (var name in columnNamesFromStream)
             {
                 schemaTable.Columns.Add(new DataColumn(name.Trim(), typeof(string)));
             }
@@ -102,8 +116,6 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
 
         // Set the Columns property (inherited from VirtualDataTable) with the determined schema.
         Columns = schemaTable.Columns;
-
-        return ToDataRows(firstPage);
     }
 
     /// <summary>
