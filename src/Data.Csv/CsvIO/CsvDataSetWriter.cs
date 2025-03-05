@@ -33,24 +33,51 @@ internal class CsvDataSetWriter : IDataSetWriter
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
+            if (dataSet == null)
+            {
+                throw new Exception("Didn't expect that dataSet would be null in CsvDataSetWriter.");
+            }
+
+            var tablesToWrite = dataSet.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
+            
+            //Need a hard array, because we're about to start deleting from dataSet.Tables.
+            tablesToWrite = tablesToWrite.ToArray();
 
             foreach (var table in tablesToWrite)
             {
+                //For large data files, this is an expensive operation.
+                var dataTable = table.ToDataTable();
+
+                //TODO: This disposal has been added to VirtualDataTableCollection.Remove (in SqlBuildingBlocks repo) but on a
+                //      plane, so can't push & build a new version for consumption.  i.e. remove all but the Tables.Remove line.
+                if (dataSet.Tables.Contains(table.TableName))
+                {
+                    var existingTable = dataSet.Tables[table.TableName];
+                    if (existingTable is IDisposable tableDisposable)
+                    {
+                        tableDisposable.Dispose();
+                    }
+                    dataSet.Tables.Remove(table.TableName);
+                }
+
+                //Free the virtual table, so that the file/Stream is freed.
+                table.Rows = null;
+                                
+
                 log.LogDebug($"{GetType()}.{nameof(SaveFolderAsDB)}(). Saving file {fileConnection.Database}{fileConnection.DataSourceProvider.StorageIdentifier(table.TableName)}");
                 using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
                 {
                     using (CsvWriter csv = new CsvWriter(textWriter, System.Globalization.CultureInfo.CurrentCulture))
                     {
                         // Write columns
-                        foreach (DataColumn column in table.Columns)
+                        foreach (DataColumn column in dataTable.Columns)
                             csv.WriteField(column.ColumnName);
                         csv.NextRecord();
 
                         // Write row values
-                        foreach (DataRow row in table.Rows)
+                        foreach (DataRow row in dataTable.Rows)
                         {
                             for (var i = 0; i < table.Columns.Count; i++)
                                 csv.WriteField(row[i]);
@@ -58,6 +85,10 @@ internal class CsvDataSetWriter : IDataSetWriter
                         }
                     }
                 }
+
+                //Since the rows are already in memory, use them in a virtual table.
+                table.Rows = dataTable.Rows.Cast<DataRow>().ToArray();
+                dataSet.Tables.Add(table);
             }
         }
         catch (Exception ex)

@@ -65,7 +65,6 @@ public class CsvTransformStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        //TODO: Deal with an offset, only if we find it is required.
         if (offset > 0)
             throw new NotSupportedException($"Didn't expect a buffer with an offset greater than zero.  Offset: {offset}");
 
@@ -112,8 +111,6 @@ public class CsvTransformStream : Stream
         bytesRead = StreamFillsCompleteBuffer(buffer, count);
         if (bytesRead > 0)
         {
-            Debug.WriteLine($"{Encoding.UTF8.GetString(buffer)}");
-            Debug.WriteLine($"BUFFER READ({bytesRead})");
             return bytesRead;
         }
 
@@ -123,8 +120,6 @@ public class CsvTransformStream : Stream
         logicalPosition += bytesRead; // Update logical position
         bufferStream = new MemoryStream();
 
-        Debug.WriteLine($"{Encoding.UTF8.GetString(buffer.Take(bytesRead).ToArray())}");
-        Debug.WriteLine($"END READ({bytesRead})");
         return bytesRead;
     }
 
@@ -192,7 +187,6 @@ public class CsvTransformStream : Stream
         if (origin != SeekOrigin.Begin && offset != 0)
             throw new NotSupportedException();
 
-        Debug.WriteLine("SEEK 0");
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         streamReader.DiscardBufferedData();
         HeaderLine = null;

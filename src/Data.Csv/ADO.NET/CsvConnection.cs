@@ -32,7 +32,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc />
     public override string FileExtension => "csv";
 
-    //public override bool DataTypeAlwaysString => true;
+    public Func<IEnumerable<string>, Type> GuessTypeFunction { get; set; }
 
     protected override FileReader CreateFileReader => new CsvReader(this);
 

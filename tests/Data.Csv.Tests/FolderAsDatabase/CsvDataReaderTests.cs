@@ -269,7 +269,7 @@ public class CsvDataReaderTests
         Assert.Equal(2, reader.FieldCount);
         
         //Validate the first record
-        Assert.Equal(1, reader.GetInt32(nameof(TestRecord.Id)));
-        Assert.Equal("Value 1", reader.GetString(nameof(TestRecord.Value)));
+        Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
+        Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
     }
 }

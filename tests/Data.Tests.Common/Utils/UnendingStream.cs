@@ -3,6 +3,7 @@
 public abstract class UnendingStream : Stream
 {
     private readonly Queue<byte> _buffer = new Queue<byte>();
+    private bool _headOfStream = true;
 
     protected abstract byte[] GetMoreBytes();
 
@@ -16,6 +17,8 @@ public abstract class UnendingStream : Stream
             throw new ArgumentNullException(nameof(buffer));
         if (offset < 0 || count < 0 || (offset + count) > buffer.Length)
             throw new ArgumentOutOfRangeException();
+
+        _headOfStream = false;
 
         // Fill the internal buffer until we have at least "count" bytes.
         while (_buffer.Count < count)
@@ -53,7 +56,15 @@ public abstract class UnendingStream : Stream
     }
 
     public override void Flush() { /* No-op */ }
-    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        if (_headOfStream && origin != SeekOrigin.Begin && offset != 0)
+            throw new NotSupportedException();
+
+        return 0;
+    }
+
     public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 

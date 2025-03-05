@@ -76,7 +76,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
                     newTables = fileStatement.Tables.Where(table => !IsSchemaTable(table)).Select(table => table.TableName).ToHashSet();
                 }
 
-                foreach (var table in newTables.Where(x => DataSet.Tables[x] == null))
+                foreach (var table in newTables.Where(x => !DataSet.Tables.Contains(x)))
                 {
                     try
                     {
@@ -168,7 +168,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             if (!DataSet.Tables.Contains(tableName))
                 return null;
 
-            return DataSet.Tables[tableName].Columns.Count;
+            var columns = DataSet.Tables[tableName].Columns;
+            if (columns == null)
+                return 0;
+
+            return columns.Count;
         }
         finally
         {
@@ -259,10 +263,11 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
             List<ITableDataProvider> tableDataProviders = new();
 
             //Get a DataSet of all the tables in this query (minus the INFORMATION_SCHEMA tables requested)
-            TransactionLevelData transactionLevelData = new(DataSet, databaseConnectionProvider.DefaultDatabase, transactionScopedRows);
+            var databaseName = databaseConnectionProvider.DefaultDatabase;
+            TransactionLevelData transactionLevelData = new(DataSet, databaseName, transactionScopedRows);
             var databaseData = transactionLevelData.Compose(fileStatement.Tables);
             var tableDataProviderAdaptor = new TableDataProviderAdaptor();
-            tableDataProviderAdaptor.AddDataSet(databaseData);
+            tableDataProviderAdaptor.AddDataSet(databaseName, databaseData);
             tableDataProviders.Add(tableDataProviderAdaptor);
 
             if (SchemaDataSet != null)

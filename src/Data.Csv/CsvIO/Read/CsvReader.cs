@@ -14,18 +14,23 @@ internal class CsvReader : FileReader
     #region Folder Read Update
     protected override void ReadFromFolder(string tableName)
     {
-        using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
+        var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName);
+
+        VirtualDataTable dataTable = null;
+
+        //Check if the contents of the file contains any non-whitespace characters
+        if (HasNonWhitespaceCharacter(textReader))
         {
-            VirtualDataTable dataTable = null;
-
-            //Check if the contents of the file contains any non-whitespace characters
-            if (HasNonWhitespaceCharacter(textReader))
-            {
-                dataTable = PrepareDataTable(tableName);
-            }
-
-            DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(tableName));
+            //The CsvVirtualDataTable will assume ownership of disposing the textReader, because the
+            //IEnumerable<DataRow> Rows within it could still be fetching from this reader.
+            dataTable = PrepareDataTable(textReader, tableName);
         }
+        else
+        {
+            textReader.Dispose();
+        }
+
+        DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(tableName));
     }
 
     protected override void UpdateFromFolder(string tableName)
@@ -38,7 +43,11 @@ internal class CsvReader : FileReader
             DataSet!.Tables.Remove(tableName);
         }
 
-        var newDataTable = PrepareDataTable(tableName);
+        var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName);
+
+        //The CsvVirtualDataTable will assume ownership of disposing the textReader, because the
+        //IEnumerable<DataRow> Rows within it could still be fetching from this reader.
+        var newDataTable = PrepareDataTable(textReader, tableName);
         DataSet!.Tables.Add(newDataTable);
     }
     #endregion
@@ -54,10 +63,10 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private VirtualDataTable PrepareDataTable(string tableName, int pageSize = 1000, int numberOfRowsToReadForInference = 10)
+    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName, int pageSize = 1000, int numberOfRowsToReadForInference = 10)
     {
-        CsvVirtualDataTable virtualDataTable = new(fileConnection.DataSourceProvider, tableName, pageSize, numberOfRowsToReadForInference, 
-                                                   fileConnection.PreferredFloatingPointDataType);
+        CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, numberOfRowsToReadForInference, 
+                                                   fileConnection.PreferredFloatingPointDataType, ((CsvConnection)fileConnection).GuessTypeFunction);
 
         return virtualDataTable;
     }

@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <EFCoreVersion>6.0.36</EFCoreVersion>
-        <SqlBuildingBlocks>1.0.0.116</SqlBuildingBlocks>
+        <SqlBuildingBlocks>1.0.0.118</SqlBuildingBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,7 +14,7 @@
       
     <!-- Data.Csv -->
     <PackageReference Update="CsvHelper" Version="33.0.1" />
-    <PackageReference Update="Microsoft.Data.Analysis" Version="0.21.1" />
+    <PackageReference Update="Microsoft.Data.Analysis" Version="0.22.2" />
 
     <!-- Data.Json -->
     <PackageReference Update="System.Text.Json" Version="8.0.5" />

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Data.Common.Utils;
+using System.Text;
 
 namespace Data.Common.DataSource;
 
@@ -8,7 +9,7 @@ namespace Data.Common.DataSource;
 /// </summary>
 public class StreamedDataSource : IDataSourceProvider
 {
-    private readonly Dictionary<string, Stream> tables = new();
+    private readonly Dictionary<string, BufferedResetStream> tables = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamedDataSource"/> class.
@@ -44,7 +45,7 @@ public class StreamedDataSource : IDataSourceProvider
         if (utf8TableData is null)
             throw new ArgumentNullException(nameof(utf8TableData));
 
-        tables[tableName] = utf8TableData;
+        tables[tableName] = new BufferedResetStream(utf8TableData, 2);
         Changed?.Invoke(this, new DataSourceEventArgs(tableName));
     }
 
@@ -70,9 +71,11 @@ public class StreamedDataSource : IDataSourceProvider
     /// <exception cref="FileNotFoundException">Thrown if the specified table does not exist in the data source.</exception>
     public StreamReader GetTextReader(string tableName)
     {
-        if (tables.TryGetValue(tableName, out Stream tableData) && tableData is not null)
+        if (tables.TryGetValue(tableName, out BufferedResetStream tableData) && tableData is not null)
         {
-            tableData.Position = 0;
+            //Move to the beginning of the stream.
+            tableData.Seek(0, SeekOrigin.Begin);
+
             return new StreamReader(tableData, Encoding.UTF8, true, 1024, true);
         }
 
@@ -86,8 +89,15 @@ public class StreamedDataSource : IDataSourceProvider
     /// <returns>A <see cref="TextWriter"/> for writing the table data.</returns>
     public TextWriter GetTextWriter(string tableName)
     {
+        //If there is already an existing stream, dispose of it.
+        if (tables.TryGetValue(tableName, out BufferedResetStream existingStream))
+        {
+            existingStream.Close();
+            existingStream.Dispose();
+        }
+
         MemoryStream memoryStream = new();
-        tables[tableName] = memoryStream;
+        tables[tableName] = new BufferedResetStream(memoryStream, 2);
 
         return new StreamWriter(memoryStream, Encoding.UTF8, 1024, true);
     }

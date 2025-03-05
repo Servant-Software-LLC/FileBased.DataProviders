@@ -19,9 +19,9 @@ internal class TransactionLevelData
         this.transactionScopedRows = transactionScopedRows;
     }
 
-    public DataSet Compose(IEnumerable<SqlTable> tablesInvolvedInSqlStatement)
+    public VirtualDataSet Compose(IEnumerable<SqlTable> tablesInvolvedInSqlStatement)
     {
-        DataSet database = new(databaseName);
+        VirtualDataSet database = new();
         foreach (SqlTable table in tablesInvolvedInSqlStatement)
         {
             //See if it is in this database (i.e. stored DataSet)?
@@ -35,38 +35,26 @@ internal class TransactionLevelData
             if (storedDataTable == null)
                 throw new InvalidOperationException($"The table {table} does not exist in the database.");
 
-
-            //Copy the DataTable schema and data.
-            //TODO:  This is probably an expensive operation.  Consider more performant approaches.
-            DataTable copiedTable = storedDataTable.ToDataTable();
-
-            AddInsertedRowsOfTransaction(table, copiedTable);
-
-            database.Tables.Add(copiedTable);
+            VirtualDataTable tableWithPotentialTransactionRows = new(table.TableName);
+            tableWithPotentialTransactionRows.Columns = storedDataTable.Columns;
+            tableWithPotentialTransactionRows.Rows = AddInsertedRowsOfTransaction(table, storedDataTable.Rows);
+           
+            database.Tables.Add(tableWithPotentialTransactionRows);
         }
 
         return database;
     }
 
-    private void AddInsertedRowsOfTransaction(SqlTable table, DataTable copiedTable)
+    private IEnumerable<DataRow> AddInsertedRowsOfTransaction(SqlTable table, IEnumerable<DataRow> sourceRows)
     {
         //Check to see if there is a pending transaction that is INSERTing new rows.
         if (transactionScopedRows != null && transactionScopedRows.TryGetValue(table.TableName, out List<DataRow> transactionInsertedRows))
         {
-            //In this case, we want to add the rows from the transaction into this copied DataTable
-            foreach (DataRow additionalRow in transactionInsertedRows)
-            {
-                var newRow = copiedTable.NewRow();
-
-                // Copy the data.
-                for (int i = 0; i < additionalRow.Table.Columns.Count; i++)
-                {
-                    newRow[i] = additionalRow[i];
-                }
-
-                copiedTable.Rows.Add(newRow);
-            }
+            //In this case, we want to add the rows from the transaction into this data table.
+            return sourceRows.Concat(transactionInsertedRows);
         }
+
+        return sourceRows;
     }
 
 }
