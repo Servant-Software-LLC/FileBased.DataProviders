@@ -1,5 +1,4 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
-using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.FileIO.Write;
 public abstract class FileUpdateWriter : FileWriter
@@ -60,7 +59,7 @@ public abstract class FileUpdateWriter : FileWriter
                 }
             }
 
-            //Save the results of the deletion back onto the virtual table, which will get saved in the Save() call below.
+            //Save the results of the update back onto the virtual table, which will get saved in the Save() call below.
             virtualDataTable.Columns = dataTable.Columns;
             virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
 

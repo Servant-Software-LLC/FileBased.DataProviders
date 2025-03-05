@@ -50,17 +50,7 @@ internal class CsvDataSetWriter : IDataSetWriter
                 //For large data files, this is an expensive operation.
                 var dataTable = table.ToDataTable();
 
-                //TODO: This disposal has been added to VirtualDataTableCollection.Remove (in SqlBuildingBlocks repo) but on a
-                //      plane, so can't push & build a new version for consumption.  i.e. remove all but the Tables.Remove line.
-                if (dataSet.Tables.Contains(table.TableName))
-                {
-                    var existingTable = dataSet.Tables[table.TableName];
-                    if (existingTable is IDisposable tableDisposable)
-                    {
-                        tableDisposable.Dispose();
-                    }
-                    dataSet.Tables.Remove(table.TableName);
-                }
+                dataSet.Tables.Remove(table.TableName);
 
                 //Free the virtual table, so that the file/Stream is freed.
                 table.Rows = null;

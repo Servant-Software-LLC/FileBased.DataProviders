@@ -111,6 +111,7 @@ public static class DataAdapterTests
         var filledRow = dataSet.Tables[0].Rows[0];
         Assert.Equal("Alice", filledRow["name"]);
         Assert.Equal(connection.GetProperlyTypedValue(60), filledRow["salary"]);
+        Assert.Equal(DataRowState.Unchanged, filledRow.RowState);
 
         //
         // Act

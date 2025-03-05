@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlBuildingBlocks.POCOs;
 
 namespace Data.Common.FileIO.Write;
 
@@ -48,16 +49,13 @@ public abstract class FileInsertWriter : FileWriter
                 fileReader.StopWatching();
 
                 var results = PrepareRow(fileInsertStatement);
-                results.Table.Rows.Add(results.Row);
+                results.Table.Rows = results.Table.Rows.Concat(new DataRow[] { results.Row });
             }
             else
             {
                 var transactionScopedRow = TransactionScopedRow.Value;
                 var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
-                var tempRows = new List<DataRow>(table.Rows);
-                tempRows.Add(transactionScopedRow.Row);
-
-                table.Rows = tempRows;
+                table.Rows = table.Rows.Concat(new DataRow[] { transactionScopedRow.Row });
             }
 
         }
@@ -74,7 +72,7 @@ public abstract class FileInsertWriter : FileWriter
         return 1;
     }
 
-    private (DataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
+    private (VirtualDataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
     {
         var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
 
@@ -94,7 +92,12 @@ public abstract class FileInsertWriter : FileWriter
         }
 
         AddMissingIdentityValues(dataTable, row);
-        return (dataTable, row);
+
+        //The virtualDataTable is used in the Save() later to store these results.  Also, the schema may have changed, which could increase the number of values in a DataRow.
+        virtualDataTable.Columns = dataTable.Columns;
+        virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
+
+        return (virtualDataTable, row);
     }
 
     protected virtual object DefaultIdentityValue() => Convert.ChangeType(1, fileConnection.PreferredFloatingPointDataType.ToType());

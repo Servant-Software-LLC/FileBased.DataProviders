@@ -344,6 +344,8 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
             .Select(column => column.ColumnName)
             .ToList()
             .ForEach(dataTable.Columns.Remove);
+
+        dataTable.AcceptChanges();
         return dataTable;
     }
 
