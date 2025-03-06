@@ -30,7 +30,7 @@ internal class CsvReader : FileReader
             textReader.Dispose();
         }
 
-        DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(tableName));
+        DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(new DataTable(tableName)));
     }
 
     protected override void UpdateFromFolder(string tableName)

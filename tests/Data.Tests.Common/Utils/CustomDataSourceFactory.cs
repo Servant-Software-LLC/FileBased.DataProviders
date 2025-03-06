@@ -38,8 +38,12 @@ public static class CustomDataSourceFactory
 
     public static void AddTableToDataSource(string folderPath, string tableName, string fileExtension, StreamedDataSource dataSourceProvider)
     {
-        var tablePath = Path.Combine(folderPath, $"{tableName}.{fileExtension}");
-        var tableFormFile = FormFileUtils.MockFormFile(tablePath, fileExtension);
-        dataSourceProvider.AddTable(tableName, tableFormFile.OpenReadStream());
-    }
+        dataSourceProvider.AddTable(tableName, () =>
+            {
+                var tablePath = Path.Combine(folderPath, $"{tableName}.{fileExtension}");
+                var tableFormFile = FormFileUtils.MockFormFile(tablePath, fileExtension);
+                return tableFormFile.OpenReadStream();
+            }
+        );
+    }   
 }
