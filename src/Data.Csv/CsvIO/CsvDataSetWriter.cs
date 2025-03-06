@@ -70,7 +70,16 @@ internal class CsvDataSetWriter : IDataSetWriter
                         foreach (DataRow row in dataTable.Rows)
                         {
                             for (var i = 0; i < table.Columns.Count; i++)
-                                csv.WriteField(row[i]);
+                            {
+                                if (table.Columns[i].DataType == typeof(string) && row[i] == DBNull.Value)
+                                {
+                                    csv.WriteField("NULL");
+                                }
+                                else
+                                {
+                                    csv.WriteField(row[i]);
+                                }
+                            }
                             csv.NextRecord();
                         }
                     }
