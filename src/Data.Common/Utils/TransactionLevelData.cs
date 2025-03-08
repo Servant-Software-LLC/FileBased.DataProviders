@@ -37,7 +37,7 @@ internal class TransactionLevelData
 
             VirtualDataTable tableWithPotentialTransactionRows = new(table.TableName);
             tableWithPotentialTransactionRows.Columns = storedDataTable.Columns;
-            tableWithPotentialTransactionRows.Rows = AddInsertedRowsOfTransaction(table, storedDataTable.Rows);
+            tableWithPotentialTransactionRows.Rows = AddInsertedRowsOfTransaction(table, tableWithPotentialTransactionRows, storedDataTable.Rows);
            
             database.Tables.Add(tableWithPotentialTransactionRows);
         }
@@ -45,11 +45,13 @@ internal class TransactionLevelData
         return database;
     }
 
-    private IEnumerable<DataRow> AddInsertedRowsOfTransaction(SqlTable table, IEnumerable<DataRow> sourceRows)
+    private IEnumerable<DataRow> AddInsertedRowsOfTransaction(SqlTable table, VirtualDataTable tableWithPotentialTransactionRows, IEnumerable<DataRow> sourceRows)
     {
         //Check to see if there is a pending transaction that is INSERTing new rows.
         if (transactionScopedRows != null && transactionScopedRows.TryGetValue(table.TableName, out List<DataRow> transactionInsertedRows))
         {
+            transactionInsertedRows = transactionInsertedRows.Select(tableWithPotentialTransactionRows.MatchSchema).ToList();
+
             //In this case, we want to add the rows from the transaction into this data table.
             return sourceRows.Concat(transactionInsertedRows);
         }

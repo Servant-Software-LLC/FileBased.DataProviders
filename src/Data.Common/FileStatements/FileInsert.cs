@@ -25,11 +25,11 @@ public class FileInsert : FileStatement
     public IList<SqlLiteralValue> Values { get; private set; }
     public HashSet<string> ColumnNameHints { get; } = new();
 
-    public IEnumerable<KeyValuePair<string, object>> GetValues()
+    public IDictionary<string,object> GetValues()
     {
-        var result = columns.Zip(Values, (name, literalValue) => new KeyValuePair<string, object>(((SqlColumn)name).ColumnName, literalValue.Value));
+        var result = columns.Zip(Values, (name, literalValue) => new { ((SqlColumn)name).ColumnName, literalValue.Value });
 
-        return result!;
+        return result!.ToDictionary(item => item.ColumnName, item => item.Value);
     }
 
     private void SetValues(IList<SqlExpression> values)

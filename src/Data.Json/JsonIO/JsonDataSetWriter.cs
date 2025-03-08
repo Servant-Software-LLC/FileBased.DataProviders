@@ -1,6 +1,7 @@
 ﻿using Data.Common.DataSource;
 using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.POCOs;
+using System.Diagnostics;
 using System.Text;
 
 namespace Data.Json.JsonIO;
@@ -74,7 +75,14 @@ public class JsonDataSetWriter : IDataSetWriter
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;
                     case "String":
-                        jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
+                        try
+                        {
+                            jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.ToString());
+                        }
                         break;
                     case "Boolean":
                         jsonWriter.WriteBoolean(column.ColumnName, (bool)row[column]);

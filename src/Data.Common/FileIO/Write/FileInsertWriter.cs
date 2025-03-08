@@ -38,6 +38,7 @@ public abstract class FileInsertWriter : FileWriter
             //Call PrepareRow() in order to determine the identity value
             var results = PrepareRow(fileInsertStatement);
             TransactionScopedRow = (results.Table.TableName, results.Row);
+
             return 1;
         }
         try
@@ -49,13 +50,14 @@ public abstract class FileInsertWriter : FileWriter
                 fileReader.StopWatching();
 
                 var results = PrepareRow(fileInsertStatement);
-                results.Table.Rows = results.Table.Rows.Concat(new DataRow[] { results.Row });
+                results.Table.AppendRow(results.Row);
             }
             else
             {
                 var transactionScopedRow = TransactionScopedRow.Value;
                 var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
-                table.Rows = table.Rows.Concat(new DataRow[] { transactionScopedRow.Row });
+
+                table.AppendRow(transactionScopedRow.Row);
             }
 
         }
@@ -76,32 +78,35 @@ public abstract class FileInsertWriter : FileWriter
     {
         var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
 
-        //Remember here, that the whole data table is going to reside in-memory at this point.
-        var dataTable = virtualDataTable.ToDataTable();
-
         //Check if we need to add columns on the first INSERT of data into this table.
-        if (SchemaUnknownWithoutData && dataTable.Rows.Count == 0)
+        if (SchemaUnknownWithoutData && !virtualDataTable.Rows.Any())
         {
+            //Remember here, that the whole data table is going to reside in-memory at this point.
+            var dataTable = virtualDataTable.ToDataTable();
+
             RealizeSchema(dataTable);
+
+            //Schema may have changed the columns and rows.
+            virtualDataTable.Columns = dataTable.Columns;
+            virtualDataTable.Rows = virtualDataTable.Rows;
         }
 
-        var row = dataTable!.NewRow();
-        foreach (var val in fileStatement.GetValues())
+        var rowValues = fileStatement.GetValues();
+
+        //Ensure that the row values use DBNull instead of null.
+        foreach (KeyValuePair<string, object> keyValuePair in rowValues)
         {
-            row[val.Key] = val.Value ?? DBNull.Value;
+            rowValues[keyValuePair.Key] = keyValuePair.Value ?? DBNull.Value;
         }
 
-        AddMissingIdentityValues(dataTable, row);
+        AddMissingValues(rowValues, virtualDataTable);
 
-        //The virtualDataTable is used in the Save() later to store these results.  Also, the schema may have changed, which could increase the number of values in a DataRow.
-        virtualDataTable.Columns = dataTable.Columns;
-        virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
-
+        var row = virtualDataTable.CreateNewRowFromData(rowValues);
         return (virtualDataTable, row);
     }
 
     protected virtual object DefaultIdentityValue() => Convert.ChangeType(1, fileConnection.PreferredFloatingPointDataType.ToType());
-    protected virtual bool GuidHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
+    protected virtual bool GuidHandled(DataColumn dataColumn, DataRow lastRow, IDictionary<string, object> newRow)
     {
         var lastRowColumnValue = lastRow[dataColumn.ColumnName].ToString();
         if (Guid.TryParse(lastRowColumnValue, out Guid columnValueAsGuid))
@@ -113,7 +118,7 @@ public abstract class FileInsertWriter : FileWriter
         return false;
     }
 
-    protected virtual bool FloatingPointHandled(DataColumn dataColumn, DataRow lastRow, DataRow newRow)
+    protected virtual bool FloatingPointHandled(DataColumn dataColumn, DataRow lastRow, IDictionary<string, object> newRow)
     {
         if (dataColumn.DataType == typeof(float) || dataColumn.DataType == typeof(double) || dataColumn.DataType == typeof(decimal))
         {
@@ -131,18 +136,43 @@ public abstract class FileInsertWriter : FileWriter
         return false;
     }
 
-    private void AddMissingIdentityValues(DataTable dataTable, DataRow newRow)
+    private void AddMissingValues(IDictionary<string, object> newRow, VirtualDataTable virtualDataTable)
     {
-        foreach (DataColumn dataColumn in dataTable.Columns)
+        // Creating this DataTable may consume a lot of memory.  Making this Lazy to avoid unless it is necessary
+        //Lazy<DataTable> dataTable = new Lazy<DataTable>(() => virtualDataTable.ToDataTable());
+
+        foreach (DataColumn dataColumn in virtualDataTable.Columns)
         {
+            var columnName = dataColumn.ColumnName;
+            var identityColumn = ColumnNameIndicatesIdentity(columnName);
+            if (!identityColumn)
+            {
+                // If the column value is missing, then add its default value
+                if (!newRow.TryGetValue(columnName, out object rowValue))
+                {
+                    //Add it with the default value.
+                    newRow[columnName] = dataColumn.DefaultValue;
+
+                    continue;
+                }
+
+                // Make sure that the new value is like the DataColumn's DataType
+                if (rowValue != DBNull.Value && rowValue.GetType() != dataColumn.DataType)
+                {
+                    newRow[columnName] = Convert.ChangeType(rowValue, dataColumn.DataType);
+                }
+            }
+
             //Assuming that columns that don't have their default value are columns that have been set
             //and so they don't need to check if they are identity columns
-            if (!object.Equals(newRow[dataColumn], dataColumn.DefaultValue))
+            if (newRow.ContainsKey(columnName) && !object.Equals(newRow[columnName], dataColumn.DefaultValue))
                 continue;
 
-            if (ColumnNameIndicatesIdentity(dataColumn.ColumnName))
+            // Look for missing identity values
+            if (ColumnNameIndicatesIdentity(columnName))
             {
-                var lastRow = dataTable.Rows.Cast<DataRow>().LastOrDefault();
+                // This could be an expensive operation depending on number of rows here.
+                var lastRow = virtualDataTable.Rows.Cast<DataRow>().LastOrDefault();
 
                 //Since we don't have a datatype for values in a CSV, we need to determine if the last
                 //row 'looks' like a datatype that can be an identity (i.e. Guid or integer).
@@ -154,7 +184,7 @@ public abstract class FileInsertWriter : FileWriter
                     //If there isn't a lastRow, then assume the datatype is integer and start from 1.                
                     if (lastRow == null)
                     {
-                        newRow[dataColumn.ColumnName] = DefaultIdentityValue();
+                        newRow[columnName] = DefaultIdentityValue();
                         handled = true;
                         continue;
                     }
@@ -179,7 +209,7 @@ public abstract class FileInsertWriter : FileWriter
                 finally
                 {
                     if (handled)
-                        LastInsertIdentity = newRow[dataColumn.ColumnName];
+                        LastInsertIdentity = newRow[columnName];
                 }
             }
 
