@@ -156,20 +156,14 @@ public abstract class FileInsertWriter : FileWriter
                     continue;
                 }
 
-                // Make sure that the new value is like the DataColumn's DataType
-                if (rowValue != DBNull.Value && rowValue.GetType() != dataColumn.DataType)
-                {
-                    newRow[columnName] = Convert.ChangeType(rowValue, dataColumn.DataType);
-                }
             }
 
             //Assuming that columns that don't have their default value are columns that have been set
             //and so they don't need to check if they are identity columns
-            if (newRow.ContainsKey(columnName) && !object.Equals(newRow[columnName], dataColumn.DefaultValue))
-                continue;
+            var columnValueSet = newRow.ContainsKey(columnName) && !object.Equals(newRow[columnName], dataColumn.DefaultValue);
 
             // Look for missing identity values
-            if (ColumnNameIndicatesIdentity(columnName))
+            if (!columnValueSet && ColumnNameIndicatesIdentity(columnName))
             {
                 // This could be an expensive operation depending on number of rows here.
                 var lastRow = virtualDataTable.Rows.Cast<DataRow>().LastOrDefault();
@@ -213,6 +207,12 @@ public abstract class FileInsertWriter : FileWriter
                 }
             }
 
+            // Make sure that the new value is like the DataColumn's DataType
+            var newRowValue = newRow[columnName];
+            if (newRowValue != DBNull.Value && newRowValue.GetType() != dataColumn.DataType)
+            {
+                newRow[columnName] = Convert.ChangeType(newRowValue, dataColumn.DataType);
+            }
         }
     }
 
