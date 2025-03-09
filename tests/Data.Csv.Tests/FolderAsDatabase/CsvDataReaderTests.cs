@@ -110,26 +110,21 @@ public class CsvDataReaderTests
     {
         const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
         const string tableName = "Table";
-        DataTable dataTable = new DataTable() { TableName = tableName };
 
-        byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
-        MemoryStream fileStream = new MemoryStream(fileBytes);
-        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
-        StreamedDataSource dataSourceProvider = new(tableName, fileStream);
-
-        connection.DataSourceProvider = dataSourceProvider;
+        var connection = CsvConnectionFactory.GetCsvConnection(tableName, csvString);
         connection.Open();
 
         using var command = connection.CreateCommand();
         command.CommandText = $"SELECT * FROM {tableName}";
 
         var reader = command.ExecuteReader();
+        DataTable dataTable = new DataTable() { TableName = tableName };
         dataTable.Load(reader);
 
         Assert.Equal(3, dataTable.Columns.Count);
         Assert.Equal("Id", dataTable.Columns[0].ColumnName);
         Assert.Equal("Name", dataTable.Columns[1].ColumnName);
-        
+
         //NOTE: This is behavior (of appending an ordinal to the column name) of DataTable.Load that is out of our control.
         Assert.Equal("nAMe1", dataTable.Columns[2].ColumnName);
 
@@ -267,9 +262,53 @@ public class CsvDataReaderTests
 
 
         Assert.Equal(2, reader.FieldCount);
-        
+
         //Validate the first record
         Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
         Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
+    }
+
+    [Fact]
+    public void CustomGuessTypeFunction_OverridesDefaultTypeInference()
+    {
+        // Arrange:
+        // CSV content where normally the "Value" column would be inferred as a numeric type.
+        string csvContent = @"Id,Value
+1,3.14
+2,2.71";
+        const string tableName = "Table";
+        CsvConnection connection = CsvConnectionFactory.GetCsvConnection(tableName, csvContent);
+
+        // Set the custom GuessTypeFunction so that it always returns typeof(string)
+        // regardless of the sampled values.
+        connection.GuessTypeFunction = (IEnumerable<string> values) => typeof(string);
+
+        // Act:
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        // The table name can be any string; our TestDataSourceProvider ignores it.
+        command.CommandText = $"SELECT * FROM {tableName}";
+        var reader = command.ExecuteReader();
+
+        DataTable dt = new DataTable();
+        dt.Load(reader);
+
+        // Debug output: Uncomment to inspect column types
+        // foreach (DataColumn col in dt.Columns)
+        // {
+        //     Console.WriteLine($"{col.ColumnName}: {col.DataType}");
+        // }
+
+        // Assert:
+        // Our custom guess function should force the "Value" column to be of type string.
+        Assert.True(dt.Columns.Contains("Value"));
+        Assert.Equal(typeof(string), dt.Columns["Value"]!.DataType);
+
+        // Optionally, you can also check the "Id" column.
+        // Depending on your overall design, you might want both columns to be string.
+        // For this test we assume the custom guess function is applied to all columns.
+        Assert.True(dt.Columns.Contains("Id"));
+        Assert.Equal(typeof(string), dt.Columns["Id"]!.DataType);
     }
 }
