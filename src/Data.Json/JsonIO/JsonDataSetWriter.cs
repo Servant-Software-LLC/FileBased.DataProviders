@@ -75,14 +75,7 @@ public class JsonDataSetWriter : IDataSetWriter
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;
                     case "String":
-                        try
-                        {
-                            jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine(ex.ToString());
-                        }
+                        jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
                         break;
                     case "Boolean":
                         jsonWriter.WriteBoolean(column.ColumnName, (bool)row[column]);
@@ -163,6 +156,13 @@ public class JsonDataSetWriter : IDataSetWriter
 
                     jsonString = Encoding.UTF8.GetString(stream.ToArray());
                 }
+
+                //The virtual data table may be holding a lock on the backing resource (like a file), therefore dispose of it.
+                if (table is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+                dataSet!.Tables.Remove(table.TableName);
 
                 using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
                 {

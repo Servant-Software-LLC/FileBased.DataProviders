@@ -1,5 +1,9 @@
-﻿using Data.Common.Extension;
+﻿using Data.Common.DataSource;
+using Data.Common.Extension;
 using Data.Tests.Common.Extensions;
+using Data.Tests.Common.POCOs;
+using Data.Tests.Common.Utils;
+using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
 using Xunit;
@@ -99,7 +103,7 @@ public static class DataReaderTests
             Assert.Equal(4, reader.FieldCount);
 
             //first Row
-            Assert.True(reader.Read());
+            Assert.True(reader.Read(), "Unable to read the first row from the DbDataReader");
             Assert.Equal("Joe", reader["name"]);
             Assert.IsType<string>(reader["name"]);
             Assert.Equal("Joe@gmail.com", reader["email"]);
@@ -511,5 +515,31 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         // Assert
 
         //TODO
+    }
+
+    public static void Reader_Supports_Large_Data_Files<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, UnendingStream unendingStream)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        const string tableName = nameof(TestRecord);
+
+        var connection = createFileConnection();
+        StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
+        connection.DataSourceProvider = dataSourceProvider;
+
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+        var reader = command.ExecuteReader();
+
+        //This should not go into an infinite loop, reading in all of the stream.
+        Assert.True(reader.Read());
+
+
+        Assert.Equal(2, reader.FieldCount);
+
+        //Validate the first record
+        Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
+        Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
     }
 }

@@ -261,14 +261,14 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         var reader = FileConnection!.FileReader;
 
         var transactionScopedRows = FileTransaction == null ? null : FileTransaction.TransactionScopedRows;
-        var dataTable = reader.ReadFile(fileStatement, transactionScopedRows, true);
+        var virtualDataTable = reader.ReadFile(fileStatement, transactionScopedRows, true);
 
         object result = null;
 
         //SELECT query - Per https://learn.microsoft.com/en-us/dotnet/api/system.data.idbcommand.executescalar?view=net-7.0#definition
         //       "Executes the query, and returns the first column of the first row in the resultset returned
         //       by the query. Extra columns or rows are ignored."
-        var firstRow = dataTable.Rows.FirstOrDefault();
+        var firstRow = virtualDataTable.Rows.FirstOrDefault();
         if (firstRow != null)
         {
             var rowValues = firstRow.ItemArray;

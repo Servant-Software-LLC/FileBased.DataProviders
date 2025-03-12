@@ -93,7 +93,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _guessRows, guessRows: _guessRows,
                                                 guessTypeFunction: _guessTypeFunction);
 
-        DataTable schemaTable = new DataTable(TableName);
+        Columns.Clear();
         if (firstPage.Columns.Count > 0)
         {
             // Create columns using the names and data types determined from the first page of data.
@@ -101,7 +101,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             {
                 Type dataType = _preferredFloatingPointDataType.GetClrType(col.DataType);
                 DataColumn dc = new DataColumn(col.Name, dataType);
-                schemaTable.Columns.Add(dc);
+                Columns.Add(dc);
             }
         }
         else if (!string.IsNullOrEmpty(_transformStream.HeaderLine))
@@ -110,12 +110,9 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             var columnNamesFromStream = _transformStream.HeaderLine.Split(',');
             foreach (var name in columnNamesFromStream)
             {
-                schemaTable.Columns.Add(new DataColumn(name.Trim(), typeof(string)));
+                Columns.Add(new DataColumn(name.Trim(), typeof(string)));
             }
         }
-
-        // Set the Columns property (inherited from VirtualDataTable) with the determined schema.
-        Columns = schemaTable.Columns;
     }
 
     /// <summary>
@@ -160,13 +157,10 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
 
     private IEnumerable<DataRow> ToDataRows(DataFrame dataFrame)
     {
-        // Create a schema DataTable to construct new DataRow objects.
-        DataTable schemaTable = CreateEmptyDataTable();
-
         for (int rowIndex = 0; rowIndex < dataFrame.Rows.Count; rowIndex++)
         {
-            DataRow newRow = schemaTable.NewRow();
-            for (int colIndex = 0; colIndex < schemaTable.Columns.Count; colIndex++)
+            DataRow newRow = NewRow();
+            for (int colIndex = 0; colIndex < Columns.Count; colIndex++)
             {
                 var value = dataFrame.Columns[colIndex][rowIndex] ?? DBNull.Value;
                 newRow[colIndex] = value;

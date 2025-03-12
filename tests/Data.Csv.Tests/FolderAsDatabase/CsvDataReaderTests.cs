@@ -234,7 +234,6 @@ public class CsvDataReaderTests
     public void Reader_Supports_Large_Data_Files()
     {
         int counter = 0;
-        const string tableName = nameof(TestRecord);
 
         var unendingStream = new UnendingCsvStream<TestRecord>(() =>
         {
@@ -247,25 +246,8 @@ public class CsvDataReaderTests
             return record;
         });
 
-        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
-        StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
-        connection.DataSourceProvider = dataSourceProvider;
-
-        connection.Open();
-
-        using var command = connection.CreateCommand();
-        command.CommandText = $"SELECT * FROM {tableName}";
-        var reader = command.ExecuteReader();
-
-        //This should not go into an infinite loop, reading in all of the stream.
-        Assert.True(reader.Read());
-
-
-        Assert.Equal(2, reader.FieldCount);
-
-        //Validate the first record
-        Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
-        Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
+        DataReaderTests.Reader_Supports_Large_Data_Files(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB), unendingStream);
     }
 
     [Fact]

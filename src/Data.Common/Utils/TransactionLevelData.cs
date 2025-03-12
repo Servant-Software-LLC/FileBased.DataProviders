@@ -1,5 +1,6 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.POCOs;
+using System.Data;
 
 namespace Data.Common.Utils;
 
@@ -36,7 +37,7 @@ internal class TransactionLevelData
                 throw new InvalidOperationException($"The table {table} does not exist in the database.");
 
             VirtualDataTable tableWithPotentialTransactionRows = new(table.TableName);
-            tableWithPotentialTransactionRows.Columns = storedDataTable.Columns;
+            tableWithPotentialTransactionRows.AdoptDataTable(storedDataTable);
             tableWithPotentialTransactionRows.Rows = AddInsertedRowsOfTransaction(table, tableWithPotentialTransactionRows, storedDataTable.Rows);
            
             database.Tables.Add(tableWithPotentialTransactionRows);

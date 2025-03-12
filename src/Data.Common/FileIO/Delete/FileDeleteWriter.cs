@@ -43,10 +43,9 @@ public abstract class FileDeleteWriter : FileWriter
             {
                 dataTable!.Rows.Remove(dataRow.Row);
             }
-            
+
             //Save the results of the deletion back onto the virtual table, which will get saved in the finally with a Save() call below.
-            virtualDataTable.Columns = dataTable.Columns;
-            virtualDataTable.Rows = dataTable.Rows.Cast<DataRow>();
+            virtualDataTable.AdoptDataTable(dataTable);
 
             return rowsAffected;
         }

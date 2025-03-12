@@ -8,7 +8,10 @@ public static class ClientFactoryTests
 {
     public static void CreateCommand_ReadsData(DbProviderFactory dbProviderFactory)
     {
-        // Arrange
+        // Arrange 
+
+        // This connection uses a DataSourceProvider with table streams (employees and locations)
+        // See under the unit tests project's Sources/Folder for these source files.
         var connection = CustomDataSourceFactory.VirtualFolderAsDB(dbProviderFactory);
 
         connection.Open();
