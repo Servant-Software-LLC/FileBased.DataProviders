@@ -3,12 +3,13 @@
 /// <summary>
 /// A stream that reads from a specified region of an underlying stream.
 /// </summary>
-public class SubStream : Stream
+public class SubStream : Stream, IDisposable
 {
     private readonly Stream baseStream;
     private readonly long start;
     private readonly long length;
     private long position;
+    private bool disposed = false;
 
     public SubStream(Stream baseStream, long start, long length)
     {
@@ -71,4 +72,23 @@ public class SubStream : Stream
 
     public override void Write(byte[] buffer, int offset, int count) =>
         throw new NotSupportedException();
+
+    protected override void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                baseStream.Dispose();
+            }
+            disposed = true;
+        }
+        base.Dispose(disposing);
+    }
+
+    public new void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 }
