@@ -26,9 +26,9 @@ public class CsvDataReaderTests
     }
 
     [Fact]
-    public void Reader_ShouldReadData_StreamedDataSource()
+    public async Task Reader_ShouldReadData_StreamedDataSource()
     {
-        DataReaderTests.Reader_ShouldReadData(() =>
+        await DataReaderTests.Reader_ShouldReadData2(() =>
             CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
     }
 
@@ -108,7 +108,7 @@ public class CsvDataReaderTests
     [Fact]
     public void Reader_ShouldReadData_DataFrame_OddBehavior()
     {
-        const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+        const string csvString = "Id, Name, ï¿½ nAMe ï¿½\n1, Bogart, Bob";
         const string tableName = "Table";
 
         var connection = CsvConnectionFactory.GetCsvConnection(tableName, csvString);

@@ -36,7 +36,7 @@ internal class TransactionLevelData
                 throw new InvalidOperationException($"The table {table} does not exist in the database.");
 
             VirtualDataTable tableWithPotentialTransactionRows = new(table.TableName);
-            tableWithPotentialTransactionRows.Columns = storedDataTable.Columns;
+            tableWithPotentialTransactionRows.AdoptDataTable(storedDataTable);
             tableWithPotentialTransactionRows.Rows = AddInsertedRowsOfTransaction(table, tableWithPotentialTransactionRows, storedDataTable.Rows);
            
             database.Tables.Add(tableWithPotentialTransactionRows);

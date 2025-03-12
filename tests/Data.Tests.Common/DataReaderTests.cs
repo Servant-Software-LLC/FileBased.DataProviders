@@ -8,7 +8,7 @@ namespace Data.Json.Tests.FileAsDatabase;
 
 public static class DataReaderTests
 {
-    public static void Reader_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static async Task Reader_ShouldReadData2<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -28,6 +28,41 @@ public static class DataReaderTests
         command = connection.CreateCommand("SELECT * FROM employees");
         reader = command.ExecuteReader();
 
+        int rowsRead = 0;
+        while (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            rowsRead++;
+        }
+        
+        // Assert
+        fieldCount = reader.FieldCount;
+        Assert.Equal(5, fieldCount);
+        Assert.Equal(1001, rowsRead);
+
+        // Close the connection
+        connection.Close();
+    }
+    
+    public static void Reader_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - Query the locations table
+        var command = connection.CreateCommand("SELECT * FROM locations");
+        var reader = command.ExecuteReader();
+
+        // Assert
+        Assert.True(reader.Read());
+        var fieldCount = reader.FieldCount;
+        Assert.Equal(4, fieldCount);
+
+        // Act - Query the employees table
+        command = connection.CreateCommand("SELECT * FROM employees");
+        reader = command.ExecuteReader();
+        
         // Assert
         Assert.True(reader.Read());
         fieldCount = reader.FieldCount;
