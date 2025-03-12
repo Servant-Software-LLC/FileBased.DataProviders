@@ -8,7 +8,7 @@ namespace Data.Json.Tests.FileAsDatabase;
 
 public static class DataReaderTests
 {
-    public static async Task Reader_ShouldReadData2<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static async Task Reader_ShouldReadDataLarge<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange

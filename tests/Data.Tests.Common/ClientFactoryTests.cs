@@ -9,7 +9,7 @@ public static class ClientFactoryTests
     public static void CreateCommand_ReadsData(DbProviderFactory dbProviderFactory)
     {
         // Arrange
-        var connection = CustomDataSourceFactory.VirtualFolderAsDB(dbProviderFactory);
+        var connection = CustomDataSourceFactory.VirtualFolderAsDB(dbProviderFactory, false);
 
         connection.Open();
         var command = dbProviderFactory.CreateCommand();

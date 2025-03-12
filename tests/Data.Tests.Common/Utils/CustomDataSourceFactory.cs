@@ -8,23 +8,23 @@ namespace Data.Tests.Common.Utils;
 
 public static class CustomDataSourceFactory
 {
-    public static FileConnection<TFileParameter> VirtualFolderAsDB<TFileParameter>(Func<FileConnectionString, FileConnection<TFileParameter>> createConnection)
+    public static FileConnection<TFileParameter> VirtualFolderAsDB<TFileParameter>(Func<FileConnectionString, FileConnection<TFileParameter>> createConnection, bool largeFolder = false)
             where TFileParameter : FileParameter<TFileParameter>, new()
     {
         var connection = createConnection(FileConnectionString.CustomDataSource);
-        return (FileConnection<TFileParameter>)SetupConnection(connection);
+        return (FileConnection<TFileParameter>)SetupConnection(connection, largeFolder);
     }
 
-    public static IFileConnection VirtualFolderAsDB(DbProviderFactory dbProviderFactory)
+    public static IFileConnection VirtualFolderAsDB(DbProviderFactory dbProviderFactory, bool largeFolder)
     {
         var connection = dbProviderFactory.CreateConnection() as IFileConnection;
-        return SetupConnection(connection!);
+        return SetupConnection(connection!, largeFolder);
     }
 
-    public static IFileConnection SetupConnection(IFileConnection connection)
+    public static IFileConnection SetupConnection(IFileConnection connection, bool largeFolder)
     {
         var database = new DatabaseFullPaths(connection.FileExtension);
-        var folderPath = database.Folder;
+        var folderPath = largeFolder ? database.LargeFolder : database.Folder;
         var extension = connection.FileExtension;
 
         var dataSourceProvider = new StreamedDataSource();
