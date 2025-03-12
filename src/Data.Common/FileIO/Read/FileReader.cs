@@ -20,11 +20,29 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     public VirtualDataSet DataSet { get; protected set; }
     public DataSet SchemaDataSet { get; protected set; }
 
-    public void MarkTableToUpdate(string tableName) => tablesToUpdate.Add(tableName);
-    public void FreeDataSet()
+    public void MarkTableToUpdate(string tableName)
     {
-        DataSet.Dispose();
-        DataSet = null;
+        if (DataSet == null)
+            throw new Exception("Didn't expect that the DataSet would be null in the FileReader when marking a table to update.");
+
+        var table = DataSet.Tables[tableName]; 
+        if (table == null)
+            throw new Exception($"Didn't expect that the DataSet wouldn't contain a table called '{tableName}' in the FileReader when marking a table to update.");
+
+        if (table is IFreeStreams freeStreamTable)
+        {
+            freeStreamTable.FreeStreams();
+        }
+
+        tablesToUpdate.Add(tableName);
+    }
+
+    public void MarkDataSetToUpdate()
+    {
+        foreach (var table in DataSet.Tables)
+        {
+            MarkTableToUpdate(table.TableName);
+        }
     }
 
     /// <summary>

@@ -22,7 +22,7 @@ public class JsonDataSetWriter : IDataSetWriter
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileStatement.FromTable.TableName, fileReader.DataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, fileReader);
         }
         else
         {
@@ -121,8 +121,8 @@ public class JsonDataSetWriter : IDataSetWriter
                 jsonString = Encoding.UTF8.GetString(stream.ToArray());
             }
 
-            //Free up the tables before writing them all out.
-            fileReader.FreeDataSet();
+            //Free up the streams held by the tables before writing them all out.
+            fileReader.MarkDataSetToUpdate();
 
             log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
 
@@ -138,11 +138,11 @@ public class JsonDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string tableName, VirtualDataSet dataSet)
+    private void SaveFolderAsDB(string tableName, FileReader fileReader)
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
+            var tablesToWrite = fileReader.DataSet!.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
@@ -162,11 +162,11 @@ public class JsonDataSetWriter : IDataSetWriter
                 }
 
                 //The virtual data table may be holding a lock on the backing resource (like a file), therefore dispose of it.
-                if (table is IDisposable disposable)
+                if (table is IFreeStreams freeStreamsTable)
                 {
-                    disposable.Dispose();
+                    freeStreamsTable.FreeStreams();
+                    fileReader.MarkTableToUpdate(table.TableName);
                 }
-                dataSet!.Tables.Remove(table.TableName);
 
                 using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))
                 {

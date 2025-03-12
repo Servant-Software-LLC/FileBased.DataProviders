@@ -47,10 +47,14 @@ internal class JsonReader : FileReader
         StreamReader streamReaderTable = Read(string.Empty);
         JsonDatabaseStreamSplitter jsonDatabaseStreamSplitter = new(streamReaderTable.BaseStream);
 
+        //Gather the previous table schemas, because a JSON dataset without data does not have a schema stored in the JSON content.
+        //Instead, the schema may have been added by the consumer of this library by using CREATE TABLE and ALTER TABLE statements.
+        var previousTableSchemas = GatherPreviousTableSchemas();
+
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter);
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas);
     }
 
     protected override void UpdateFromFile()
@@ -58,10 +62,13 @@ internal class JsonReader : FileReader
         StreamReader streamReaderTable = Read(string.Empty);
         JsonDatabaseStreamSplitter jsonDatabaseStreamSplitter = new(streamReaderTable.BaseStream);
 
+        //Gather the previous table schemas, because a JSON dataset without data does not have a schema stored in the JSON content.
+        //Instead, the schema may have been added by the consumer of this library by using CREATE TABLE and ALTER TABLE statements.
+        var previousTableSchemas = GatherPreviousTableSchemas();
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter);
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas);
     }
 
     #endregion
@@ -70,5 +77,19 @@ internal class JsonReader : FileReader
     {
         StreamReader textReader = fileConnection.DataSourceProvider.GetTextReader(tableName);
         return textReader;
+    }
+
+    private IDictionary<string, DataColumnCollection> GatherPreviousTableSchemas()
+    {
+        Dictionary<string, DataColumnCollection> results = new();
+        if (DataSet != null)
+        {
+            foreach (var table in DataSet.Tables)
+            {
+                results[table.TableName] = table.Columns;
+            }
+        }
+
+        return results;
     }
 }

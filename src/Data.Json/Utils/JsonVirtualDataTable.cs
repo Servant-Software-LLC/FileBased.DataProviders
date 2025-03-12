@@ -9,7 +9,7 @@ namespace Data.Json.Utils;
 /// The schema (i.e. column names and data types) is inferred from the first object.
 /// Rows are produced on demand without loading the entire file into memory.
 /// </summary>
-public class JsonVirtualDataTable : VirtualDataTable, IDisposable
+public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
 {
     private Stream stream;
     private readonly int bufferSize;
@@ -50,6 +50,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable
     {
         byte[] buffer = new byte[bufferSize];
         int bytesRead = 0;
+
         // We'll accumulate data until we can parse the first complete object.
         MemoryStream preamble = new MemoryStream();
         bool foundFirstObject = false;
@@ -208,6 +209,11 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable
     }
 
     public void Dispose()
+    {
+        FreeStreams();
+    }
+
+    public void FreeStreams()
     {
         stream.Dispose();
         Rows = null;    //These Rows cannot enumerate on the disposed stream anymore.
