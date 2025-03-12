@@ -16,26 +16,26 @@ internal class XmlDataSetWriter : IDataSetWriter
         this.fileQuery = fileQuery;
     }
 
-    public void WriteDataSet(VirtualDataSet dataSet)
+    public void WriteDataSet(FileReader fileReader)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileQuery.FromTable.TableName, dataSet);
+            SaveFolderAsDB(fileQuery.FromTable.TableName, fileReader.DataSet);
         }
         else
         {
-            SaveToFile(dataSet);
+            SaveToFile(fileReader);
         }
     }
 
-    private void SaveToFile(VirtualDataSet virtualDataSet)
+    private void SaveToFile(FileReader fileReader)
     {
         try
         {
             log.LogDebug($"{GetType()}.{nameof(SaveToFile)}(). Saving file {fileConnection.Database}");
             using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(string.Empty))
             {
-                WriteXml(virtualDataSet, textWriter, XmlWriteMode.WriteSchema);
+                WriteXml(fileReader.DataSet, textWriter, XmlWriteMode.WriteSchema);
             }
         }
         catch (Exception ex)

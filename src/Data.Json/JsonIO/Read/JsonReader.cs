@@ -29,21 +29,13 @@ internal class JsonReader : FileReader
 
     protected override void UpdateFromFolder(string tableName)
     {
-        StreamReader streamReaderTable = Read(tableName);
- 
-        var existingTable = DataSet!.Tables[tableName];
-        if (existingTable == null)
-        {
-            existingTable = new JsonVirtualDataTable(streamReaderTable.BaseStream, tableName);
-            DataSet!.Tables.Add(existingTable);
-        }
-        else
-        {
-            DataSet.RemoveWithDisposal(tableName);
+        DataSet.RemoveWithDisposal(tableName);
 
-            // Replace the Rows enumerable with a new one based on the updated JSON array.
-            DataSet!.Tables.Add(new JsonVirtualDataTable(streamReaderTable.BaseStream, tableName));
-        }
+        StreamReader streamReaderTable = Read(tableName);
+
+        // Replace the Rows enumerable with a new one based on the updated JSON array.
+        var reloadedVirtualDataTable = new JsonVirtualDataTable(streamReaderTable.BaseStream, tableName);
+        DataSet!.Tables.Add(reloadedVirtualDataTable);
     }
 
     #endregion

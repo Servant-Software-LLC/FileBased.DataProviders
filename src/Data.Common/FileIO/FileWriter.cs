@@ -38,7 +38,7 @@ public abstract class FileWriter
             return true;
         }
 
-        dataSetWriter.Value.WriteDataSet(fileReader.DataSet!);
+        dataSetWriter.Value.WriteDataSet(fileReader);
       
         return true;
     }

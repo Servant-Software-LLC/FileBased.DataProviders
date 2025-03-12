@@ -8,8 +8,10 @@ namespace Data.Json.Utils;
 /// This implementation accepts a <see cref="JsonDatabaseStreamSplitter"/>, which splits a large JSON file into 
 /// streams for each table, and creates a VirtualDataTable for each table.
 /// </summary>
-public class JsonDatabaseVirtualDataSet : VirtualDataSet
+public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable
 {
+    private readonly JsonDatabaseStreamSplitter splitter;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonDatabaseVirtualDataSet"/> class using a JSON stream splitter.
     /// </summary>
@@ -19,8 +21,7 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="splitter"/> is null.</exception>
     public JsonDatabaseVirtualDataSet(JsonDatabaseStreamSplitter splitter)
     {
-        if (splitter == null)
-            throw new ArgumentNullException(nameof(splitter));
+        this.splitter = splitter ?? throw new ArgumentNullException(nameof(splitter));
 
         // Get a dictionary mapping table names to streams representing each table's JSON array.
         IDictionary<string, Stream> tableStreams = splitter.GetTableStreams();
@@ -33,4 +34,9 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet
         }
     }
 
+    void IDisposable.Dispose()
+    {
+        splitter.Dispose();
+        base.Dispose();
+    }
 }

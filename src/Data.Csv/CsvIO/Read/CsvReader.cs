@@ -35,13 +35,8 @@ internal class CsvReader : FileReader
 
     protected override void UpdateFromFolder(string tableName)
     {
-        // Determine if the table exists in the DataSet, if not create it.
-        var dataTable = DataSet!.Tables[tableName];
-        if (dataTable == null)
-        {
-            // Fill the existing DataTable with the new data
-            DataSet!.Tables.Remove(tableName);
-        }
+        //Remove the table if it exists
+        DataSet!.RemoveWithDisposal(tableName);
 
         var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName);
 

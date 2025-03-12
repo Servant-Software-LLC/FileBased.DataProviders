@@ -10,7 +10,7 @@ namespace Data.Json.Utils;
 /// This class assumes that the underlying stream is seekable and that the JSON structure is
 /// well-formed.
 /// </summary>
-public class JsonDatabaseStreamSplitter
+public class JsonDatabaseStreamSplitter : IDisposable
 {
     private readonly Stream baseStream;
     private readonly int bufferSize;
@@ -119,5 +119,10 @@ public class JsonDatabaseStreamSplitter
         baseStream.Seek(originalPosition, SeekOrigin.Begin);
 
         return result;
+    }
+
+    public void Dispose()
+    {
+        baseStream.Dispose();
     }
 }

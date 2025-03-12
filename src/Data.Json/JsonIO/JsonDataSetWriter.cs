@@ -18,15 +18,15 @@ public class JsonDataSetWriter : IDataSetWriter
         this.fileStatement = fileStatement;
     }
 
-    public void WriteDataSet(VirtualDataSet virtualDataSet)
+    public void WriteDataSet(FileReader fileReader)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileStatement.FromTable.TableName, virtualDataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, fileReader.DataSet);
         }
         else
         {
-            SaveFileAsDB(virtualDataSet);
+            SaveFileAsDB(fileReader);
         }
     }
 
@@ -98,7 +98,7 @@ public class JsonDataSetWriter : IDataSetWriter
         jsonWriter.WriteEndArray();
     }
 
-    private void SaveFileAsDB(VirtualDataSet virtualDataSet)
+    private void SaveFileAsDB(FileReader fileReader)
     {
         try
         {
@@ -110,7 +110,8 @@ public class JsonDataSetWriter : IDataSetWriter
                 using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
                 {
                     jsonWriter.WriteStartObject();
-                    foreach (var table in virtualDataSet!.Tables)
+                    var tables = fileReader.DataSet.Tables.Cast<VirtualDataTable>().ToList();
+                    foreach (var table in tables)
                     {
                         log.LogDebug($"Processing DataTable {table.TableName}");
                         WriteTable(jsonWriter, table, true);
@@ -119,6 +120,9 @@ public class JsonDataSetWriter : IDataSetWriter
                 }
                 jsonString = Encoding.UTF8.GetString(stream.ToArray());
             }
+
+            //Free up the tables before writing them all out.
+            fileReader.FreeDataSet();
 
             log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
 

@@ -20,6 +20,13 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     public VirtualDataSet DataSet { get; protected set; }
     public DataSet SchemaDataSet { get; protected set; }
 
+    public void MarkTableToUpdate(string tableName) => tablesToUpdate.Add(tableName);
+    public void FreeDataSet()
+    {
+        DataSet.Dispose();
+        DataSet = null;
+    }
+
     /// <summary>
     /// Read in file (representing a table) from a folder and creates DataTable instance for the matching <see cref="tableName"/>
     /// </summary>
