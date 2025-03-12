@@ -26,10 +26,17 @@ public class CsvDataReaderTests
     }
 
     [Fact]
-    public async Task Reader_ShouldReadData_StreamedDataSource()
+    public void Reader_ShouldReadData_StreamedDataSource()
     {
-        await DataReaderTests.Reader_ShouldReadData2(() =>
+        DataReaderTests.Reader_ShouldReadData(() =>
             CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString)));
+    }
+
+    [Fact]
+    public async Task Reader_ShouldReadDataAsync_LargeStreamedDataSource()
+    {
+        await DataReaderTests.Reader_ShouldReadDataLarge(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString), true));
     }
 
     [Fact]
