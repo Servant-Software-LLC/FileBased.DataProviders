@@ -13,6 +13,10 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable
 {
     private Stream stream;
     private readonly int bufferSize;
+    private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
+    {
+        AllowTrailingCommas = true
+    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonVirtualDataTable"/> class.
@@ -54,7 +58,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable
         {
             preamble.Write(buffer, 0, bytesRead);
             ReadOnlySpan<byte> span = preamble.GetBuffer().AsSpan(0, (int)preamble.Length);
-            var reader = new Utf8JsonReader(span, isFinalBlock: false, state: default);
+            var reader = new Utf8JsonReader(span, isFinalBlock: false, state: new JsonReaderState(readerOptions));
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.StartArray)
@@ -129,7 +133,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable
     private IEnumerable<DataRow> EnumerateRows()
     {
         byte[] buffer = new byte[bufferSize];
-        var jsonState = new JsonReaderState();
+        var jsonState = new JsonReaderState(readerOptions);
         bool insideArray = false;
         while (true)
         {

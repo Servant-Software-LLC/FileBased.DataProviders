@@ -1,7 +1,6 @@
 [
   {
-    "Id": 1
-    /*This is the database name used in the MockDB GraphQL API when it is not provided for the Name field of the Database object.*/,
+    "Id": 1,
     "DefaultDatabaseName": "MockDB",
     "SeedDatabases": 1,
     "CaseSensitive": 0,
