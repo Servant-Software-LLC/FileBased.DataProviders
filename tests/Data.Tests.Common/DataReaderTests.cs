@@ -28,15 +28,16 @@ public static class DataReaderTests
         command = connection.CreateCommand("SELECT * FROM employees");
         reader = command.ExecuteReader();
 
+        int rowsRead = 0;
         while (await reader.ReadAsync().ConfigureAwait(false))
         {
-            
+            rowsRead++;
         }
         
         // Assert
-        Assert.True(reader.Read());
         fieldCount = reader.FieldCount;
-        Assert.Equal(4, fieldCount);
+        Assert.Equal(5, fieldCount);
+        Assert.Equal(1001, rowsRead);
 
         // Close the connection
         connection.Close();

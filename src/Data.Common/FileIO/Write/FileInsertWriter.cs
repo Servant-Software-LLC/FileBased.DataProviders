@@ -87,8 +87,7 @@ public abstract class FileInsertWriter : FileWriter
             RealizeSchema(dataTable);
 
             //Schema may have changed the columns and rows.
-            virtualDataTable.Columns = dataTable.Columns;
-            virtualDataTable.Rows = virtualDataTable.Rows;
+            virtualDataTable.AdoptDataTable(dataTable);
         }
 
         var rowValues = fileStatement.GetValues();

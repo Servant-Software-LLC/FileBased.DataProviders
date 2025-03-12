@@ -2,6 +2,8 @@
 using Data.Common.Utils.ConnectionString;
 using SqlBuildingBlocks.POCOs;
 using Data.Common.Utils;
+using System.IO;
+using System.Text;
 
 namespace Data.Csv.Utils;
 
@@ -19,9 +21,9 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     private readonly Func<IEnumerable<string>, Type> _guessTypeFunction;
 
     // Hold on to the underlying stream so we can keep paging through it.
-    private readonly NonResettingStreamWrapper _nonResettingStreamWrapper;
     private readonly CsvTransformStream _transformStream;
-    private readonly StreamReader _reader;
+    private readonly StreamReader _baseReader;
+    private readonly StreamReader _transformReader;
     private bool _disposed;
 
     /// <summary>
@@ -57,34 +59,33 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         _guessTypeFunction = guessTypeFunction;
 
         // Instead of using "using", store the reader and transform stream for later use.
-        _reader = streamReader ?? throw new ArgumentNullException(nameof(streamReader));
-        _transformStream = new CsvTransformStream(_reader);
-        _nonResettingStreamWrapper = new NonResettingStreamWrapper(_transformStream);
+        _baseReader = streamReader ?? throw new ArgumentNullException(nameof(streamReader));
+        _transformStream = new CsvTransformStream(_baseReader);
+        _transformReader = new StreamReader(_transformStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
 
         // Determine the schema and column data types using the first page.
-        var firstPageDataRows = InitializeSchemaAndColumnTypes();
-
+        DetermineColumns();
 
         // Set the Rows property to a lazy iterator that pages in DataRows on demand.
-        Rows = GetRowsIterator(firstPageDataRows);
+        Rows = GetRowsIterator();
     }
 
     /// <summary>
     /// Initializes the schema (the Columns property) and determines column data types from the first page of the CSV.
     /// </summary>
-    private IEnumerable<DataRow> InitializeSchemaAndColumnTypes()
-    {
-        DetermineColumns();
+    //private IEnumerable<DataRow> InitializeSchemaAndColumnTypes()
+    //{
+    //    DetermineColumns();
 
-        // DataFrame would only use float for the precision of its floating point numbers.  After a first pass using the DataFrame to guess at the types,
-        // we need a second pass indicating our higher precision floating points if a precision of double or decimal is needed.
-        var columns = Columns.Cast<DataColumn>().ToList();
-        string[] columnNames = columns.Select(col => col.ColumnName).ToArray();
-        Type[] columnTypes = columns.Select(col => col.DataType).ToArray();
-        DataFrame firstDataPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _pageSize, guessRows: _guessRows, columnNames: columnNames, dataTypes: columnTypes);
+    //    // DataFrame would only use float for the precision of its floating point numbers.  After a first pass using the DataFrame to guess at the types,
+    //    // we need a second pass indicating our higher precision floating points if a precision of double or decimal is needed.
+    //    //var columns = Columns.Cast<DataColumn>().ToList();
+    //    //string[] columnNames = columns.Select(col => col.ColumnName).ToArray();
+    //    //Type[] columnTypes = columns.Select(col => col.DataType).ToArray();
+    //    //DataFrame firstDataPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _pageSize, columnNames: columnNames, dataTypes: columnTypes);
 
-        return ToDataRows(firstDataPage);
-    }
+    //    return ToDataRows();
+    //}
 
     private void DetermineColumns()
     {
@@ -93,7 +94,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _guessRows, guessRows: _guessRows,
                                                 guessTypeFunction: _guessTypeFunction);
 
-        DataTable schemaTable = new DataTable(TableName);
+        Columns.Clear();
         if (firstPage.Columns.Count > 0)
         {
             // Create columns using the names and data types determined from the first page of data.
@@ -101,7 +102,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             {
                 Type dataType = _preferredFloatingPointDataType.GetClrType(col.DataType);
                 DataColumn dc = new DataColumn(col.Name, dataType);
-                schemaTable.Columns.Add(dc);
+                Columns.Add(dc);
             }
         }
         else if (!string.IsNullOrEmpty(_transformStream.HeaderLine))
@@ -110,39 +111,35 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             var columnNamesFromStream = _transformStream.HeaderLine.Split(',');
             foreach (var name in columnNamesFromStream)
             {
-                schemaTable.Columns.Add(new DataColumn(name.Trim(), typeof(string)));
+                Columns.Add(new DataColumn(name.Trim(), typeof(string)));
             }
         }
-
-        // Set the Columns property (inherited from VirtualDataTable) with the determined schema.
-        Columns = schemaTable.Columns;
     }
 
     /// <summary>
     /// Returns an iterator that lazily loads rows from the CSV file in pages using the predetermined column types.
     /// </summary>
     /// <returns>An enumerable sequence of <see cref="DataRow"/>.</returns>
-    private IEnumerable<DataRow> GetRowsIterator(IEnumerable<DataRow> firstPageDataRows)
+    private IEnumerable<DataRow> GetRowsIterator()
     {
-        //First enumerate on the rows of the first page that was loaded when determining data types.
-        int numberOfFirstPageRows = 0;
-        foreach(DataRow dataRow in firstPageDataRows)
-        {
-            numberOfFirstPageRows++;
-            yield return dataRow;
-        }
+        bool firstPage = true;
+        _transformStream.Seek(0, SeekOrigin.Begin);
 
-        // If fewer rows than the page size were read, assume we've reached the end of the CSV.
-        if (numberOfFirstPageRows < _pageSize)
-            yield break;
-
-        while (true)
+        while (!_transformReader.EndOfStream)
         {
             // Load a page using the predetermined column types so that no further type guessing occurs.
             var columns = Columns.Cast<DataColumn>().ToList();
             string[] columnNames = columns.Select(col => col.ColumnName).ToArray();
             Type[] columnTypes = columns.Select(col => col.DataType).ToArray();
-            DataFrame page = DataFrame.LoadCsv(_nonResettingStreamWrapper, header: false, numberOfRowsToRead: _pageSize, guessRows: _guessRows, columnNames: columnNames, dataTypes: columnTypes);
+
+            var pageData = ReadPageData(firstPage);
+            if (string.IsNullOrWhiteSpace(pageData)) 
+            {
+                yield break;
+            }
+
+            DataFrame page = DataFrame.LoadCsvFromString(pageData, header: firstPage, columnNames: columnNames, dataTypes: columnTypes);
+            firstPage = false;
             if (page.Rows.Count == 0)
                 yield break;
 
@@ -158,15 +155,33 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         }
     }
 
+    private string ReadPageData(bool firstPage)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        //Don't count the header of the CSV data
+        var pageSize = _pageSize + (firstPage ? 1 : 0);
+        for (int i = 0; i < pageSize; i++)
+        {
+            string line = _transformReader.ReadLine();
+            if (line == null)
+            {
+                break;
+            }
+
+            stringBuilder.AppendLine(line);
+        }
+
+        return stringBuilder.ToString();
+    }
+
     private IEnumerable<DataRow> ToDataRows(DataFrame dataFrame)
     {
         // Create a schema DataTable to construct new DataRow objects.
-        DataTable schemaTable = CreateEmptyDataTable();
-
         for (int rowIndex = 0; rowIndex < dataFrame.Rows.Count; rowIndex++)
         {
-            DataRow newRow = schemaTable.NewRow();
-            for (int colIndex = 0; colIndex < schemaTable.Columns.Count; colIndex++)
+            DataRow newRow = NewRow();
+            for (int colIndex = 0; colIndex < Columns.Count; colIndex++)
             {
                 var value = dataFrame.Columns[colIndex][rowIndex] ?? DBNull.Value;
                 newRow[colIndex] = value;
@@ -179,9 +194,8 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     {
         if (!_disposed)
         {
-            _nonResettingStreamWrapper?.Dispose();
             _transformStream?.Dispose();
-            _reader?.Dispose();
+            _baseReader?.Dispose();
             _disposed = true;
         }
     }
