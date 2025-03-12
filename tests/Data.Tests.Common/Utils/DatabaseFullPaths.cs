@@ -12,6 +12,7 @@ public class DatabaseFullPaths
     }
 
     public string Folder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder");
+    public string LargeFolder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "LargeFolder");
     public string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{extension}");
     public string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{extension}");
     public string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");

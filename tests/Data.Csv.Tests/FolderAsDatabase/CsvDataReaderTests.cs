@@ -33,6 +33,13 @@ public class CsvDataReaderTests
     }
 
     [Fact]
+    public async Task Reader_ShouldReadDataAsync_LargeStreamedDataSource()
+    {
+        await DataReaderTests.Reader_ShouldReadDataLarge(() =>
+            CustomDataSourceFactory.VirtualFolderAsDB((connectionString) => new CsvConnection(connectionString), true));
+    }
+
+    [Fact]
     public void Reader_ShouldReadData_If_ColumnNames_Preceded_With_Space()
     {
         const string filePath = "Sources/sample.csv";
@@ -108,7 +115,7 @@ public class CsvDataReaderTests
     [Fact]
     public void Reader_ShouldReadData_DataFrame_OddBehavior()
     {
-        const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+        const string csvString = "Id, Name, ï¿½ nAMe ï¿½\n1, Bogart, Bob";
         const string tableName = "Table";
 
         var connection = CsvConnectionFactory.GetCsvConnection(tableName, csvString);
