@@ -454,6 +454,6 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
     public void Dispose()
     {
         //_fileWatcher.Dispose();
-        //DataSet.Dispose();
+        MarkDataSetToUpdate();  //Frees up the associated Streams
     }
 }
