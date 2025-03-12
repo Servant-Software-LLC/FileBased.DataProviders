@@ -44,7 +44,7 @@ public class JsonDataSetWriter : IDataSetWriter
         else
             jsonWriter.WriteStartArray();
 
-        foreach (DataRow row in table.Rows)
+        foreach (DataRow row in table.Rows ?? Enumerable.Empty<DataRow>())
         {
             log.LogDebug($"Writing object start for DataRow.");
             jsonWriter.WriteStartObject();

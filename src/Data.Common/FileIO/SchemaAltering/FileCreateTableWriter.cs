@@ -59,6 +59,9 @@ public abstract class FileCreateTableWriter : FileWriter
 
             if (tableWithNoColumns)
             {
+                //Free up the table's streams.
+                fileReader.MarkTableToUpdate(tableName);
+
                 //Remove the table from the DataSet.
                 fileReader.DataSet.Tables.Remove(tableName);
             }
