@@ -6,6 +6,7 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
+using System.IO;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -558,6 +559,10 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         const string tableName = nameof(TestRecord);
 
         var connection = createFileConnection();
+
+        byte[] bomBuffer = new byte[3];
+        var read = unendingStream.Read(bomBuffer, 0, bomBuffer.Length);
+
         StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
         connection.DataSourceProvider = dataSourceProvider;
 

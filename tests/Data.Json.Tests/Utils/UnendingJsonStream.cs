@@ -26,7 +26,7 @@ internal class UnendingJsonStream<TRecord> : UnendingStream, IDisposable
     {
         this.createObject = createObject ?? throw new ArgumentNullException(nameof(createObject));
         memoryStream = new MemoryStream();
-        streamWriter = new StreamWriter(memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+        streamWriter = new StreamWriter(memoryStream, new UTF8Encoding(false), bufferSize: 1024, leaveOpen: true);
         jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true
@@ -47,6 +47,7 @@ internal class UnendingJsonStream<TRecord> : UnendingStream, IDisposable
         {
             firstRecord = false;
             // For the first record, simply serialize and write.
+            streamWriter.WriteLine("[");
             TRecord record = createObject();
             string json = JsonSerializer.Serialize(record, jsonOptions);
             streamWriter.Write(json);
