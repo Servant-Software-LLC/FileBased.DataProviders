@@ -1,10 +1,10 @@
 ﻿namespace Data.Common.Utils;
 
 /// <summary>
-/// A simple stream that reads from a first stream until it’s exhausted, then continues reading from a second stream.
+/// A stream that reads from a first stream until it’s exhausted, then continues reading from a second stream.
 /// Disposing the ConcatStream disposes both inner streams.
 /// </summary>
-public class ConcatStream : Stream, IDisposable
+public class ConcatStream : Stream
 {
     private readonly Stream first;
     private readonly Stream second;
@@ -15,13 +15,39 @@ public class ConcatStream : Stream, IDisposable
     {
         this.first = first ?? throw new ArgumentNullException(nameof(first));
         this.second = second ?? throw new ArgumentNullException(nameof(second));
+
+        if (!first.CanRead || !second.CanRead)
+            throw new ArgumentException("Both streams must be readable.");
     }
 
     public override bool CanRead => first.CanRead && second.CanRead;
-    public override bool CanSeek => false;
+    public override bool CanSeek => first.CanSeek && second.CanSeek;
     public override bool CanWrite => false;
-    public override long Length => throw new NotSupportedException();
-    public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+    public override long Length
+    {
+        get
+        {
+            if (!CanSeek)
+                throw new NotSupportedException("Cannot get length of non-seekable streams.");
+            return first.Length + second.Length;
+        }
+    }
+
+    public override long Position
+    {
+        get
+        {
+            if (!CanSeek)
+                throw new NotSupportedException("Cannot get position of non-seekable streams.");
+            return firstExhausted ? first.Length + second.Position : first.Position;
+        }
+        set
+        {
+            Seek(value, SeekOrigin.Begin);
+        }
+    }
+
     public override void Flush() { }
 
     public override int Read(byte[] buffer, int offset, int count)
@@ -40,12 +66,49 @@ public class ConcatStream : Stream, IDisposable
         return second.Read(buffer, offset, count);
     }
 
-    public override long Seek(long offset, SeekOrigin origin) =>
-        throw new NotSupportedException();
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        if (!CanSeek)
+            throw new NotSupportedException("Seeking is not supported.");
+
+        long targetPosition;
+        switch (origin)
+        {
+            case SeekOrigin.Begin:
+                targetPosition = offset;
+                break;
+            case SeekOrigin.Current:
+                targetPosition = Position + offset;
+                break;
+            case SeekOrigin.End:
+                targetPosition = Length + offset;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(origin), "Invalid seek origin.");
+        }
+
+        if (targetPosition < 0 || targetPosition > Length)
+            throw new ArgumentOutOfRangeException(nameof(offset), "Seek position is out of bounds.");
+
+        if (targetPosition < first.Length)
+        {
+            first.Position = targetPosition;
+            firstExhausted = false;
+        }
+        else
+        {
+            second.Position = targetPosition - first.Length;
+            firstExhausted = true;
+        }
+
+        return Position;
+    }
+
     public override void SetLength(long value) =>
-        throw new NotSupportedException();
+        throw new NotSupportedException("Setting length is not supported.");
+
     public override void Write(byte[] buffer, int offset, int count) =>
-        throw new NotSupportedException();
+        throw new NotSupportedException("Writing is not supported.");
 
     protected override void Dispose(bool disposing)
     {
@@ -59,11 +122,5 @@ public class ConcatStream : Stream, IDisposable
             disposed = true;
         }
         base.Dispose(disposing);
-    }
-
-    public new void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
     }
 }

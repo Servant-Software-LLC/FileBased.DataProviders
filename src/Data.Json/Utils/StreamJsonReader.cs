@@ -14,6 +14,10 @@ public class StreamJsonReader
     private MemoryStream leftover;
     private bool isFinalBlock = false;
     private long bomLength = 0;
+    private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
+    {
+        AllowTrailingCommas = true
+    };
 
     // Holds the most recent combined buffer.
     private byte[] currentCombinedBuffer = Array.Empty<byte>();
@@ -56,27 +60,29 @@ public class StreamJsonReader
     /// </summary>
     /// <param name="stream">The underlying stream containing JSON data. Must be non-null.</param>
     /// <param name="bufferSize">The buffer size (in bytes) used for incremental reading. Default is 4096.</param>
-    public StreamJsonReader(Stream stream, int bufferSize = 4096)
+    public StreamJsonReader(Stream stream, bool checkForBom, int bufferSize = 4096)
     {
         stream.Seek(0, SeekOrigin.Begin);
-
-        //Check for BOM
-        byte[] bomBuffer = new byte[3];
-        var read = stream.Read(bomBuffer, 0, bomBuffer.Length);
-        for (int counter = 0; counter < bomBuffer.Length; counter++)
+        if (checkForBom)
         {
-            if (bomBuffer[counter] > 127)
-                bomLength++;
-            else
-                break;
+            //Check for BOM
+            byte[] bomBuffer = new byte[3];
+            var read = stream.Read(bomBuffer, 0, bomBuffer.Length);
+            for (int counter = 0; counter < bomBuffer.Length; counter++)
+            {
+                if (bomBuffer[counter] > 127)
+                    bomLength++;
+                else
+                    break;
+            }
+            stream.Seek(bomLength, SeekOrigin.Begin);
         }
-        stream.Seek(bomLength, SeekOrigin.Begin);
 
         this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         this.bufferSize = bufferSize;
         buffer = new byte[bufferSize];
         leftover = new MemoryStream();
-        CurrentState = default;
+        CurrentState = new JsonReaderState(readerOptions);
         TotalBytesConsumed = 0;
     }
 
@@ -193,9 +199,6 @@ public class StreamJsonReader
         // Calculate the absolute start offset of the container.
         long absoluteStart = TokenAbsoluteIndex;
 
-        // Save the current state so we can resume after skipping.
-        JsonReaderState savedState = CurrentState;
-
         // Use TrySkip to skip the container; after this, the next token's start is the container's end.
         if (!TrySkip())
             throw new Exception("Failed to skip container.");
@@ -222,7 +225,8 @@ public class StreamJsonReader
         stream.Seek(originalPosition, SeekOrigin.Begin);
 
         var dataStr = Encoding.UTF8.GetString(data, 0, totalRead);
-        return JsonDocument.Parse(data);
+        JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true };
+        return JsonDocument.Parse(data, jsonDocumentOptions);
     }
 
     /// <summary>
@@ -236,7 +240,7 @@ public class StreamJsonReader
         int length = (int)(BytesConsumed - TokenStartIndex);
         ReadOnlySpan<byte> tokenSpan = currentCombinedBuffer.AsSpan(start, length);
         // Create a temporary reader over the token span.
-        var tempReader = new Utf8JsonReader(tokenSpan, isFinalBlock: true, state: default);
+        var tempReader = new Utf8JsonReader(tokenSpan, isFinalBlock: true, state: CurrentState);
         tempReader.Read();
         return tempReader.GetString();
     }

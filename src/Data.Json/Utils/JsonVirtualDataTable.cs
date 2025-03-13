@@ -13,10 +13,6 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
 {
     private Stream stream;
     private readonly int bufferSize;
-    private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
-    {
-        AllowTrailingCommas = true
-    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonVirtualDataTable"/> class.
@@ -53,7 +49,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         // We'll accumulate data until we can parse the first complete object.
         bool foundFirstObject = false;
 
-        var reader = new StreamJsonReader(stream);
+        var reader = new StreamJsonReader(stream, true);
         reader.Preamble = new MemoryStream();
         while (!foundFirstObject && reader.Read())
         {
@@ -126,63 +122,40 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// </summary>
     private IEnumerable<DataRow> EnumerateRows()
     {
-        byte[] buffer = new byte[bufferSize];
-        var jsonState = new JsonReaderState(readerOptions);
         bool insideArray = false;
-        while (true)
+        var reader = new StreamJsonReader(stream, false);
+        while (reader.Read())
         {
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            if (bytesRead == 0)
-                yield break;
-
-            ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(buffer, 0, bytesRead);
-
-            // Create the reader with the current state.
-            var reader = new Utf8JsonReader(span, isFinalBlock: false, state: jsonState);
-
-            // Accumulate rows from this chunk in a local list.
-            List<DataRow> rowsInCurrentBuffer = new List<DataRow>();    //Defer yielding in while loop.  Otherwise can't build with an error CS4007: Instance of type 'System.Text.Json.Utf8JsonReader' cannot be preserved across 'await' or 'yield' boundary.
-            while (reader.Read())
+            if (!insideArray && reader.TokenType == JsonTokenType.StartArray)
             {
-                if (!insideArray && reader.TokenType == JsonTokenType.StartArray)
-                {
-                    insideArray = true;
-                    continue;
-                }
-                if (insideArray)
-                {
-                    if (reader.TokenType == JsonTokenType.EndArray)
-                        break;
+                insideArray = true;
+                continue;
+            }
+            if (insideArray)
+            {
+                if (reader.TokenType == JsonTokenType.EndArray)
+                    break;
 
-                    if (reader.TokenType == JsonTokenType.StartObject)
+                if (reader.TokenType == JsonTokenType.StartObject)
+                {
+                    // Parse the complete JSON object.
+                    using (JsonDocument doc = reader.ParseCurrentValue())
                     {
-                        // Parse the complete JSON object.
-                        using (JsonDocument doc = JsonDocument.ParseValue(ref reader))
-                        {
-                            JsonElement obj = doc.RootElement;
+                        JsonElement obj = doc.RootElement;
 
-                            // Create a new DataRow from the schema.
-                            DataRow row = NewRow();
-                            foreach (DataColumn col in Columns)
+                        // Create a new DataRow from the schema.
+                        DataRow row = NewRow();
+                        foreach (DataColumn col in Columns)
+                        {
+                            if (obj.TryGetProperty(col.ColumnName, out JsonElement prop))
                             {
-                                if (obj.TryGetProperty(col.ColumnName, out JsonElement prop))
-                                {
-                                    row[col.ColumnName] = ConvertJsonElement(prop, col.DataType);
-                                }
+                                row[col.ColumnName] = ConvertJsonElement(prop, col.DataType);
                             }
-                            rowsInCurrentBuffer.Add(row);
                         }
+
+                        yield return row;
                     }
                 }
-            }
-
-            // Save the reader's state so we can continue from where we left off.
-            jsonState = reader.CurrentState;
-
-            // Now yield all rows that were in the current buffer.
-            foreach (DataRow row in rowsInCurrentBuffer)
-            {
-                yield return row;
             }
         }
     }
