@@ -94,12 +94,12 @@ public static class DataReaderTests
             //first Row
             Assert.True(reader.Read());
             Assert.IsType<DateTime>(reader["birthDate"]);
-            Assert.Equal("5/11/1993 12:00:00 AM", reader["birthDate"].ToString());
+            Assert.Equal(new DateTime(1993, 5, 11), reader["birthDate"]);
 
             //second row
             Assert.True(reader.Read());
             Assert.IsType<DateTime>(reader["birthDate"]);
-            Assert.Equal("6/12/1995 12:00:00 AM", reader["birthDate"].ToString());
+            Assert.Equal(new DateTime(1995, 6, 12), reader["birthDate"]);
         }
 
         connection.Close();
