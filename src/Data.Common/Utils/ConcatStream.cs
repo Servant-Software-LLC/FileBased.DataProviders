@@ -4,7 +4,7 @@
 /// A stream that reads from a first stream until it’s exhausted, then continues reading from a second stream.
 /// Disposing the ConcatStream disposes both inner streams.
 /// </summary>
-public class ConcatStream : Stream
+public class ConcatStream : Stream, IDisposable
 {
     private readonly Stream first;
     private readonly Stream second;
