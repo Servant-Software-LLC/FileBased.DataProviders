@@ -13,7 +13,6 @@ public class StreamJsonReader
     private byte[] buffer;
     private MemoryStream leftover;
     private bool isFinalBlock = false;
-    private long bomLength = 0;
     private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
     {
         AllowTrailingCommas = true
@@ -60,24 +59,9 @@ public class StreamJsonReader
     /// </summary>
     /// <param name="stream">The underlying stream containing JSON data. Must be non-null.</param>
     /// <param name="bufferSize">The buffer size (in bytes) used for incremental reading. Default is 4096.</param>
-    public StreamJsonReader(Stream stream, bool checkForBom, int bufferSize = 4096)
+    public StreamJsonReader(Stream stream, int bufferSize = 4096)
     {
         stream.Seek(0, SeekOrigin.Begin);
-        if (checkForBom)
-        {
-            //Check for BOM
-            byte[] bomBuffer = new byte[3];
-            var read = stream.Read(bomBuffer, 0, bomBuffer.Length);
-            for (int counter = 0; counter < bomBuffer.Length; counter++)
-            {
-                if (bomBuffer[counter] > 127)
-                    bomLength++;
-                else
-                    break;
-            }
-            stream.Seek(bomLength, SeekOrigin.Begin);
-        }
-
         this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         this.bufferSize = bufferSize;
         buffer = new byte[bufferSize];
@@ -88,9 +72,11 @@ public class StreamJsonReader
 
     /// <summary>
     /// Attempts to read the next JSON token from the underlying stream.
+    /// If <paramref name="bytesConsumedList"/> is not null, appends only the new bytes read from the stream.
     /// Returns true if a token is successfully read; false if end-of-stream is reached.
     /// </summary>
-    public bool Read()
+    /// <param name="bytesConsumedList">Optional list into which new bytes read are appended.</param>
+    public bool Read(List<byte> bytesConsumedList = null)
     {
         while (true)
         {
@@ -137,6 +123,16 @@ public class StreamJsonReader
 
                 // Compute how many bytes were left unconsumed.
                 int consumed = (int)reader.BytesConsumed;
+
+                // Append only the first 'consumed' bytes from the combined buffer.
+                if (bytesConsumedList != null && consumed > 0)
+                {
+                    for (int i = 0; i < consumed; i++)
+                    {
+                        bytesConsumedList.Add(combined[i]);
+                    }
+                }
+
                 int remaining = combinedLength - consumed;
 
                 // Replace leftover with the remaining bytes.
@@ -163,7 +159,8 @@ public class StreamJsonReader
     /// This method returns true if the value was successfully skipped, or false if the end of the stream was reached
     /// before the entire value could be skipped.
     /// </summary>
-    public bool TrySkip()
+    /// <param name="bytesConsumedList">Optional list into which new bytes read while skipping are appended.</param>
+    public bool TrySkip(List<byte> bytesConsumedList = null)
     {
         // If the current token is not a container, nothing to skip.
         if (TokenType != JsonTokenType.StartObject && TokenType != JsonTokenType.StartArray)
@@ -173,7 +170,7 @@ public class StreamJsonReader
         while (depth > 0)
         {
             // Attempt to read the next token.
-            if (!Read())
+            if (!Read(bytesConsumedList))
                 return false; // End-of-stream encountered before fully skipping.
 
             if (TokenType == JsonTokenType.StartObject || TokenType == JsonTokenType.StartArray)
@@ -185,46 +182,22 @@ public class StreamJsonReader
     }
 
     /// <summary>
-    /// Parses the current JSON value (which must be a container) into a JsonDocument.
-    /// This method behaves similarly to JsonDocument.ParseValue(ref reader).
-    /// It calculates the absolute byte offsets of the container in the underlying stream,
-    /// reads that segment (using the stream's seek capability), and returns a JsonDocument for that segment.
+    /// Parses the current JSON container (object or array) into a JsonDocument.
+    /// This method creates an accumulator list, passes it to TrySkip so that only the bytes consumed
+    /// during the skipping of the container are accumulated, and then parses those bytes into a JsonDocument.
     /// </summary>
-    /// <returns>A JsonDocument representing the current JSON container.</returns>
     public JsonDocument ParseCurrentValue()
     {
         if (TokenType != JsonTokenType.StartObject && TokenType != JsonTokenType.StartArray)
             throw new InvalidOperationException("Current token is not a container.");
 
-        // Calculate the absolute start offset of the container.
-        long absoluteStart = TokenAbsoluteIndex;
+        List<byte> bytesConsumedList = new List<byte>() { (byte)(TokenType == JsonTokenType.StartObject ? '{' : '[') };
 
-        // Use TrySkip to skip the container; after this, the next token's start is the container's end.
-        if (!TrySkip())
+        if (!TrySkip(bytesConsumedList))
             throw new Exception("Failed to skip container.");
 
-        // Now the new TokenStartIndex should be at the end of the container.
-        long absoluteEnd = TokenAbsoluteIndex + 1;
-        long length = absoluteEnd - absoluteStart;
-        if (length <= 0)
-            throw new Exception("Container length is non-positive.");
-
-        // Because our stream is seekable, we can now read that segment.
-        long originalPosition = stream.Position;
-        stream.Seek(bomLength + absoluteStart, SeekOrigin.Begin);
-        byte[] data = new byte[length];
-        int totalRead = 0;
-        while (totalRead < length)
-        {
-            int read = stream.Read(data, totalRead, (int)(length - totalRead));
-            if (read == 0)
-                break;
-            totalRead += read;
-        }
-        // Restore original position.
-        stream.Seek(originalPosition, SeekOrigin.Begin);
-
-        var dataStr = Encoding.UTF8.GetString(data, 0, totalRead);
+        byte[] data = bytesConsumedList.ToArray();
+        var dataStr = Encoding.UTF8.GetString(data, 0, bytesConsumedList.Count);
         JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true };
         return JsonDocument.Parse(data, jsonDocumentOptions);
     }

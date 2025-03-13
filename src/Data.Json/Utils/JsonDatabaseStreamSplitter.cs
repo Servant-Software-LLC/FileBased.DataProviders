@@ -43,7 +43,7 @@ public class JsonDatabaseStreamSplitter : IDisposable
         long arrayStart = 0;
 
         // We use a loop to read through the file in chunks.
-        var reader = new StreamJsonReader(baseStream, true);
+        var reader = new StreamJsonReader(baseStream);
         while (reader.Read())
         {
             if (!insideRoot)

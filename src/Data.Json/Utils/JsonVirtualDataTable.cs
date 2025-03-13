@@ -49,7 +49,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         // We'll accumulate data until we can parse the first complete object.
         bool foundFirstObject = false;
 
-        var reader = new StreamJsonReader(stream, true);
+        var reader = new StreamJsonReader(stream);
         reader.Preamble = new MemoryStream();
         while (!foundFirstObject && reader.Read())
         {
@@ -123,7 +123,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     private IEnumerable<DataRow> EnumerateRows()
     {
         bool insideArray = false;
-        var reader = new StreamJsonReader(stream, false);
+        var reader = new StreamJsonReader(stream);
         while (reader.Read())
         {
             if (!insideArray && reader.TokenType == JsonTokenType.StartArray)

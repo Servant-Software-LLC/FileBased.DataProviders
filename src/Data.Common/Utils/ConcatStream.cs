@@ -87,7 +87,7 @@ public class ConcatStream : Stream, IDisposable
                 throw new ArgumentOutOfRangeException(nameof(origin), "Invalid seek origin.");
         }
 
-        if (targetPosition < 0 || targetPosition > Length)
+        if (targetPosition < 0)
             throw new ArgumentOutOfRangeException(nameof(offset), "Seek position is out of bounds.");
 
         if (targetPosition < first.Length)
