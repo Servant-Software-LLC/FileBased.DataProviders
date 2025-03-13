@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using System.Text.RegularExpressions;
+using Data.Common.Utils;
 using SqlBuildingBlocks.POCOs;
 
 namespace Data.Json.Utils;
@@ -70,7 +71,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
                         DataTable schemaTable = new DataTable(TableName);
                         foreach (JsonProperty prop in firstObj.EnumerateObject())
                         {
-                            Type type = MapJsonValueKindToType(prop.Value.ValueKind);
+                            Type type = MapJsonValueKindToType(prop.Value);
                             AddColumn(prop.Name, type);
                         }
                         foundFirstObject = true;
@@ -108,14 +109,29 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         }
     }
 
-    private static Type MapJsonValueKindToType(JsonValueKind kind) =>
-        kind switch
+    private static Type MapJsonValueKindToType(JsonElement element) =>
+        element.ValueKind switch
         {
             JsonValueKind.Number => typeof(double),
             JsonValueKind.True => typeof(bool),
             JsonValueKind.False => typeof(bool),
+            JsonValueKind.String => DateTimeTryParse(element.GetString()) ? typeof(DateTime) : typeof(string),
             _ => typeof(string)
         };
+    
+    private static bool DateTimeTryParse(string columnValue)
+    {
+        // Ensures that the string begins with a date format where components are separated by - / or .
+        const string datePattern = @"^(?:\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}).*$";
+
+        if (DateTime.TryParse(columnValue, out DateTime _) &&
+            Regex.IsMatch(columnValue, datePattern))
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Returns an enumerable of DataRow objects by incrementally reading JSON objects from the stream.
@@ -171,6 +187,9 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
             return element.TryGetDouble(out double d) ? d : 0.0;
         if (targetType == typeof(bool))
             return element.GetBoolean();
+        if (targetType == typeof(DateTime))
+            return DateTime.SpecifyKind(DateTime.Parse(element.GetString()), DateTimeKind.Utc);
+            
         return element.ToString();
     }
 
