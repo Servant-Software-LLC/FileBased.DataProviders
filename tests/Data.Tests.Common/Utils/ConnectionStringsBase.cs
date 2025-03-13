@@ -11,6 +11,8 @@ public abstract class ConnectionStringsBase : IConnectionStrings
 
     public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(DataSourceType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Database.Folder };
+    
+    public virtual FileConnectionString WithBirthDate => new FileConnectionString() { DataSource = Database.WithBirthDate };
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = Database.File };
 

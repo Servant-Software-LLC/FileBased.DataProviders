@@ -32,7 +32,7 @@ public class JsonConnection : FileConnection<JsonParameter>
     /// </summary>
     public override string FileExtension => "json";
 
-    public Func<IEnumerable<(string, JsonValueKind)>, Type> GuessTypeFunction { get; set; }
+    public Func<IEnumerable<JsonElement>, Type> GuessTypeFunction { get; set; }
 
     protected override FileReader CreateFileReader => new JsonReader(this);
 

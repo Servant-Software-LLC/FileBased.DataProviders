@@ -34,6 +34,14 @@ public class JsonDataReaderTests
         DataReaderTests.Reader_ShouldReturnData(() =>
        new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+    
+    [Fact]
+    public void Reader_ShouldReturnDateTimeType()
+    {
+        DataReaderTests.Reader_ShouldReturnDateTimeType(() =>
+            new JsonConnection(ConnectionStrings.Instance.WithBirthDate));
+    }
+
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
