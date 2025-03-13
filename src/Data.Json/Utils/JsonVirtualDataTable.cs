@@ -13,6 +13,8 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
 {
     private Stream stream;
     private readonly int bufferSize;
+    private readonly int guessRows;
+    private readonly Func<IEnumerable<(string, JsonValueKind)>, Type> guessTypeFunction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonVirtualDataTable"/> class.
@@ -26,16 +28,18 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// <param name="bufferSize">
     /// The buffer size to use when reading from the stream.
     /// </param>
-    public JsonVirtualDataTable(Stream stream, string tableName, int bufferSize = 4096)
+    public JsonVirtualDataTable(Stream stream, string tableName, int guessRows, Func<IEnumerable<(string, JsonValueKind)>, Type> guessTypeFunction, int bufferSize)
         : base(tableName)
     {
-        this.bufferSize = bufferSize;
         this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
-        
-        // Read a “preamble” to determine the schema.
-        InitializeSchemaAndPrepareStream();
+        this.guessRows = guessRows > 0 ? guessRows : throw new ArgumentOutOfRangeException(nameof(guessRows), $"Guess rows must be 1 or greater.  Value: {guessRows}");
+        this.guessTypeFunction = guessTypeFunction ?? DefaultGuessTypeFunction;
+        this.bufferSize = bufferSize;
 
-        // Set up the Rows enumerable to stream in DataRow objects.
+        // Read a “preamble” to determine the schema.
+        DetermineColumns();
+
+        // Determine the schema and column data types using the first page.
         Rows = EnumerateRows();
     }
 
@@ -44,12 +48,12 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// uses that first object to infer the schema, and then resets the stream so that enumeration will start
     /// from the beginning of the JSON.
     /// </summary>
-    private void InitializeSchemaAndPrepareStream()
+    private void DetermineColumns()
     {
         // We'll accumulate data until we can parse the first complete object.
         bool foundFirstObject = false;
 
-        var reader = new StreamJsonReader(stream);
+        var reader = new StreamJsonReader(stream, bufferSize);
         reader.Preamble = new MemoryStream();
         while (!foundFirstObject && reader.Read())
         {
@@ -108,6 +112,45 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         }
     }
 
+
+    private Type DefaultGuessTypeFunction(IEnumerable<(string, JsonValueKind)> values)
+    {
+        Type finalGuess = null;
+        foreach((string stringValue, JsonValueKind valueKind) in values)
+        {
+            var rowGuessType = MapJsonValueKindToType(valueKind);
+            if (finalGuess == null) 
+            {
+                finalGuess = rowGuessType;
+                continue;
+            }
+
+            finalGuess = CompatibleType(finalGuess, rowGuessType);
+        }
+
+        return finalGuess;
+    }
+
+    private static Type CompatibleType(Type a, Type b)
+    {
+        if (a == null)
+            throw new ArgumentNullException(nameof(a));
+        if (b == null) 
+            throw new ArgumentNullException(nameof (b));
+
+        if (a == b)
+            return a;
+
+        if (a == typeof(string) || b == typeof(string))
+            return typeof(string);
+
+        if ((a == typeof(double) && b == typeof(bool)) ||
+            (a == typeof(bool) && b == typeof(double)))
+            return typeof(double);
+
+        throw new InvalidOperationException($"Unexpected types to compare. a={a.FullName} b={b.FullName}");
+    }
+
     private static Type MapJsonValueKindToType(JsonValueKind kind) =>
         kind switch
         {
@@ -123,7 +166,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     private IEnumerable<DataRow> EnumerateRows()
     {
         bool insideArray = false;
-        var reader = new StreamJsonReader(stream);
+        var reader = new StreamJsonReader(stream, bufferSize);
         while (reader.Read())
         {
             if (!insideArray && reader.TokenType == JsonTokenType.StartArray)

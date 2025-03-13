@@ -68,23 +68,6 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         Rows = GetRowsIterator();
     }
 
-    /// <summary>
-    /// Initializes the schema (the Columns property) and determines column data types from the first page of the CSV.
-    /// </summary>
-    //private IEnumerable<DataRow> InitializeSchemaAndColumnTypes()
-    //{
-    //    DetermineColumns();
-
-    //    // DataFrame would only use float for the precision of its floating point numbers.  After a first pass using the DataFrame to guess at the types,
-    //    // we need a second pass indicating our higher precision floating points if a precision of double or decimal is needed.
-    //    //var columns = Columns.Cast<DataColumn>().ToList();
-    //    //string[] columnNames = columns.Select(col => col.ColumnName).ToArray();
-    //    //Type[] columnTypes = columns.Select(col => col.DataType).ToArray();
-    //    //DataFrame firstDataPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _pageSize, columnNames: columnNames, dataTypes: columnTypes);
-
-    //    return ToDataRows();
-    //}
-
     private void DetermineColumns()
     {
         // Load the first page of data (which also reads the header).  Note:  Using the _transformStream on this LoadCsv, because we do want a Seek to
