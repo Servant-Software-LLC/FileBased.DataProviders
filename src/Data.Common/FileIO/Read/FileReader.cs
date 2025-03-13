@@ -43,6 +43,10 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         {
             MarkTableToUpdate(table.TableName);
         }
+        if (DataSet is IFreeStreams freeStreamsDataSet)
+        {
+            freeStreamsDataSet.FreeStreams();
+        }
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ namespace Data.Json.Utils;
 /// This implementation accepts a <see cref="JsonDatabaseStreamSplitter"/>, which splits a large JSON file into 
 /// streams for each table, and creates a VirtualDataTable for each table.
 /// </summary>
-public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable
+public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStreams
 {
     private readonly JsonDatabaseStreamSplitter splitter;
 
@@ -48,9 +48,14 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable
         }
     }
 
-    void IDisposable.Dispose()
+    public void FreeStreams()
     {
         splitter.Dispose();
+    }
+
+    void IDisposable.Dispose()
+    {
+        FreeStreams();
         base.Dispose();
     }
 }
