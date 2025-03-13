@@ -18,15 +18,15 @@ public class JsonDataSetWriter : IDataSetWriter
         this.fileStatement = fileStatement;
     }
 
-    public void WriteDataSet(VirtualDataSet virtualDataSet)
+    public void WriteDataSet(FileReader fileReader)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileStatement.FromTable.TableName, virtualDataSet);
+            SaveFolderAsDB(fileStatement.FromTable.TableName, fileReader);
         }
         else
         {
-            SaveFileAsDB(virtualDataSet);
+            SaveFileAsDB(fileReader);
         }
     }
 
@@ -44,7 +44,7 @@ public class JsonDataSetWriter : IDataSetWriter
         else
             jsonWriter.WriteStartArray();
 
-        foreach (DataRow row in table.Rows)
+        foreach (DataRow row in table.Rows ?? Enumerable.Empty<DataRow>())
         {
             log.LogDebug($"Writing object start for DataRow.");
             jsonWriter.WriteStartObject();
@@ -75,14 +75,7 @@ public class JsonDataSetWriter : IDataSetWriter
                         jsonWriter.WriteNumber(column.ColumnName, (decimal)row[column]);
                         break;
                     case "String":
-                        try
-                        {
-                            jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine(ex.ToString());
-                        }
+                        jsonWriter.WriteString(column.ColumnName, row[column].ToString().AsSpan());
                         break;
                     case "Boolean":
                         jsonWriter.WriteBoolean(column.ColumnName, (bool)row[column]);
@@ -105,7 +98,7 @@ public class JsonDataSetWriter : IDataSetWriter
         jsonWriter.WriteEndArray();
     }
 
-    private void SaveFileAsDB(VirtualDataSet virtualDataSet)
+    private void SaveFileAsDB(FileReader fileReader)
     {
         try
         {
@@ -117,7 +110,8 @@ public class JsonDataSetWriter : IDataSetWriter
                 using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions() { Indented = fileConnection.Formatted ?? false }))
                 {
                     jsonWriter.WriteStartObject();
-                    foreach (var table in virtualDataSet!.Tables)
+                    var tables = fileReader.DataSet.Tables.Cast<VirtualDataTable>().ToList();
+                    foreach (var table in tables)
                     {
                         log.LogDebug($"Processing DataTable {table.TableName}");
                         WriteTable(jsonWriter, table, true);
@@ -126,6 +120,9 @@ public class JsonDataSetWriter : IDataSetWriter
                 }
                 jsonString = Encoding.UTF8.GetString(stream.ToArray());
             }
+
+            //Free up the streams held by the tables before writing them all out.
+            fileReader.MarkDataSetToUpdate();
 
             log.LogDebug($"Json string length {jsonString.Length}{Environment.NewLine}Json:{Environment.NewLine}{jsonString}");
 
@@ -141,11 +138,11 @@ public class JsonDataSetWriter : IDataSetWriter
         }
     }
 
-    private void SaveFolderAsDB(string tableName, VirtualDataSet dataSet)
+    private void SaveFolderAsDB(string tableName, FileReader fileReader)
     {
         try
         {
-            var tablesToWrite = dataSet!.Tables.Cast<VirtualDataTable>();
+            var tablesToWrite = fileReader.DataSet!.Tables.Cast<VirtualDataTable>();
             if (!string.IsNullOrEmpty(tableName))
                 tablesToWrite = tablesToWrite.Where(t => t.TableName == tableName);
 
@@ -162,6 +159,13 @@ public class JsonDataSetWriter : IDataSetWriter
                     }
 
                     jsonString = Encoding.UTF8.GetString(stream.ToArray());
+                }
+
+                //The virtual data table may be holding a lock on the backing resource (like a file), therefore dispose of it.
+                if (table is IFreeStreams freeStreamsTable)
+                {
+                    freeStreamsTable.FreeStreams();
+                    fileReader.MarkTableToUpdate(table.TableName);
                 }
 
                 using (var textWriter = fileConnection.DataSourceProvider.GetTextWriter(table.TableName))

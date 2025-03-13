@@ -33,8 +33,7 @@ internal class XmlReader : FileReader
             var newDataTable = tempDataSet.Tables[0];
 
             //If the table is already in the VirtualDataSet, then remove it.
-            if (DataSet!.Tables.Contains(tableName))
-                DataSet!.Tables.Remove(tableName);
+            DataSet!.RemoveWithDisposal(tableName);
 
             //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
             VirtualDataTable virtualDataTable = new(newDataTable);

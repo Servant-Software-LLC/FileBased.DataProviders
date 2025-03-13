@@ -337,6 +337,11 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         //Remember here, that the whole data table is going to reside in-memory at this point.
         var dataTable = virtualDataTable.ToDataTable();
 
+        foreach (SqlTable table in selectQuery.Tables)
+        {
+            fileReader.MarkTableToUpdate(table.TableName);
+        }
+
         var cols = GetColumns(dataTable, selectQuery);
         dataTable.Columns
             .Cast<DataColumn>()

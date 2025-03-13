@@ -17,11 +17,11 @@ internal class CsvDataSetWriter : IDataSetWriter
         this.fileQuery = fileQuery;
     }
 
-    public void WriteDataSet(VirtualDataSet dataSet)
+    public void WriteDataSet(FileReader fileReader)
     {
         if (fileConnection.DataSourceType == DataSourceType.Directory)
         {
-            SaveFolderAsDB(fileQuery.FromTable.TableName, dataSet);
+            SaveFolderAsDB(fileQuery.FromTable.TableName, fileReader.DataSet);
         }
         else
         {

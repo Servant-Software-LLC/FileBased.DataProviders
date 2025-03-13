@@ -1,5 +1,6 @@
 ﻿using SqlBuildingBlocks.LogicalEntities;
 using SqlBuildingBlocks.POCOs;
+using System.Data;
 
 namespace Data.Common.Utils;
 

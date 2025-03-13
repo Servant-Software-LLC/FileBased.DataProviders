@@ -1,8 +1,6 @@
 ﻿using Microsoft.Data.Analysis;
 using Data.Common.Utils.ConnectionString;
 using SqlBuildingBlocks.POCOs;
-using Data.Common.Utils;
-using System.IO;
 using System.Text;
 
 namespace Data.Csv.Utils;
@@ -177,7 +175,6 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
 
     private IEnumerable<DataRow> ToDataRows(DataFrame dataFrame)
     {
-        // Create a schema DataTable to construct new DataRow objects.
         for (int rowIndex = 0; rowIndex < dataFrame.Rows.Count; rowIndex++)
         {
             DataRow newRow = NewRow();
@@ -194,8 +191,9 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     {
         if (!_disposed)
         {
-            _transformStream?.Dispose();
-            _baseReader?.Dispose();
+            _transformReader.Dispose();
+            _transformStream.Dispose();
+            _baseReader.Dispose();
             _disposed = true;
         }
     }
