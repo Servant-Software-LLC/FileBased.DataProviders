@@ -76,7 +76,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-        public static void Reader_ShouldReturnDateTimeType<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+    public static void Reader_ShouldReturnDateTimeType<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
