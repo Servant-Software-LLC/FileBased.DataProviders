@@ -6,7 +6,6 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
-using System.IO;
 using Xunit;
 
 namespace Data.Json.Tests.FileAsDatabase;
@@ -77,6 +76,35 @@ public static class DataReaderTests
         connection.Close();
     }
 
+        public static void Reader_ShouldReturnDateTimeType<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM [employeeWithBirthDate]");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(5, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.IsType<DateTime>(reader["birthDate"]);
+            Assert.Equal("5/11/1993 12:00:00 AM", reader["birthDate"].ToString());
+
+            //second row
+            Assert.True(reader.Read());
+            Assert.IsType<DateTime>(reader["birthDate"]);
+            Assert.Equal("6/12/1995 12:00:00 AM", reader["birthDate"].ToString());
+        }
+
+        connection.Close();
+    }
+    
     public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
