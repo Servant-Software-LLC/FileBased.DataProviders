@@ -560,9 +560,6 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
 
         var connection = createFileConnection();
 
-        byte[] bomBuffer = new byte[3];
-        var read = unendingStream.Read(bomBuffer, 0, bomBuffer.Length);
-
         StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
         connection.DataSourceProvider = dataSourceProvider;
 
