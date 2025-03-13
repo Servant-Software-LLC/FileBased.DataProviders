@@ -181,7 +181,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
 
     public void FreeStreams()
     {
-        stream.Dispose();
         Rows = null;    //These Rows cannot enumerate on the disposed stream anymore.
+        stream.Dispose();
     }
 }
