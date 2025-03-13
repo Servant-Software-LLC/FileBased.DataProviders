@@ -36,6 +36,7 @@ public class SubStream : Stream, IDisposable
     {
         if (position >= length)
             return 0;
+
         // Position the base stream at the appropriate offset.
         baseStream.Seek(start + position, SeekOrigin.Begin);
         int toRead = (int)Math.Min(count, length - position);

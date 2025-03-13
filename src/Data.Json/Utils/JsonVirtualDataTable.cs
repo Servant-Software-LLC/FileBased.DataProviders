@@ -35,8 +35,10 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     {
         this.bufferSize = bufferSize;
         this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+        
         // Read a “preamble” to determine the schema.
         InitializeSchemaAndPrepareStream();
+
         // Set up the Rows enumerable to stream in DataRow objects.
         Rows = EnumerateRows();
     }
@@ -48,58 +50,49 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// </summary>
     private void InitializeSchemaAndPrepareStream()
     {
-        byte[] buffer = new byte[bufferSize];
-        int bytesRead = 0;
-
         // We'll accumulate data until we can parse the first complete object.
-        MemoryStream preamble = new MemoryStream();
         bool foundFirstObject = false;
-        // Continue reading until we find a complete object.
-        while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+
+        var reader = new StreamJsonReader(stream);
+        reader.Preamble = new MemoryStream();
+        while (!foundFirstObject && reader.Read())
         {
-            preamble.Write(buffer, 0, bytesRead);
-            ReadOnlySpan<byte> span = preamble.GetBuffer().AsSpan(0, (int)preamble.Length);
-            var reader = new Utf8JsonReader(span, isFinalBlock: false, state: new JsonReaderState(readerOptions));
-            while (reader.Read())
+            if (reader.TokenType == JsonTokenType.StartArray)
             {
-                if (reader.TokenType == JsonTokenType.StartArray)
+                // Skip the array start.
+                continue;
+            }
+            if (reader.TokenType == JsonTokenType.StartObject)
+            {
+                try
                 {
-                    // Skip the array start.
-                    continue;
-                }
-                if (reader.TokenType == JsonTokenType.StartObject)
-                {
-                    try
+                    // Attempt to parse the entire object.
+                    using (JsonDocument doc = reader.ParseCurrentValue())
                     {
-                        // Attempt to parse the entire object.
-                        using (JsonDocument doc = JsonDocument.ParseValue(ref reader))
+                        JsonElement firstObj = doc.RootElement;
+                        // Infer schema from firstObj.
+                        DataTable schemaTable = new DataTable(TableName);
+                        foreach (JsonProperty prop in firstObj.EnumerateObject())
                         {
-                            JsonElement firstObj = doc.RootElement;
-                            // Infer schema from firstObj.
-                            DataTable schemaTable = new DataTable(TableName);
-                            foreach (JsonProperty prop in firstObj.EnumerateObject())
-                            {
-                                Type type = MapJsonValueKindToType(prop.Value.ValueKind);
-                                AddColumn(prop.Name, type);
-                            }
-                            foundFirstObject = true;
-                            break;
+                            Type type = MapJsonValueKindToType(prop.Value.ValueKind);
+                            AddColumn(prop.Name, type);
                         }
+                        foundFirstObject = true;
+                        break;
                     }
-                    catch (Exception)
-                    {
-                        // Incomplete object; continue reading more bytes.
-                        //TODO:  Do we halt completely??  Log this error or something else?
-                    }
+                }
+                catch (Exception)
+                {
+                    // Incomplete object; continue reading more bytes.
+                    //TODO:  Do we halt completely??  Log this error or something else?
                 }
             }
-            if (foundFirstObject)
-                break;
         }
+
         // Now, we must re-create the stream so that it returns the preamble bytes first,
         // then continues with the remainder of the original stream.
-        preamble.Position = 0;
-        stream = new ConcatStream(preamble, stream);
+        reader.Preamble.Position = 0;
+        stream = new ConcatStream(reader.Preamble, stream);
     }
 
     private void AddColumn(string columnName, Type columnType)

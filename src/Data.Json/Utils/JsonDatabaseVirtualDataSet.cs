@@ -25,6 +25,7 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable
 
         // Get a dictionary mapping table names to streams representing each table's JSON array.
         IDictionary<string, Stream> tableStreams = splitter.GetTableStreams();
+
         foreach (var kvp in tableStreams)
         {
             // Create a virtual table for each table stream.

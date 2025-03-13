@@ -38,72 +38,57 @@ public class JsonDatabaseStreamSplitter : IDisposable
         long originalPosition = baseStream.Position;
         baseStream.Seek(0, SeekOrigin.Begin);
 
-        var state = new JsonReaderState();
-        long totalBytesRead = 0;
-        byte[] buffer = new byte[bufferSize];
-        int bytesRead;
         bool insideRoot = false;
         string currentProperty = null;
         long arrayStart = 0;
 
         // We use a loop to read through the file in chunks.
-        while ((bytesRead = baseStream.Read(buffer, 0, buffer.Length)) > 0)
+        var reader = new StreamJsonReader(baseStream);
+        while (reader.Read())
         {
-            ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(buffer, 0, bytesRead);
-            var reader = new Utf8JsonReader(span, isFinalBlock: false, state: state);
-            while (reader.Read())
+            if (!insideRoot)
             {
-                if (!insideRoot)
+                if (reader.TokenType == JsonTokenType.StartObject)
                 {
-                    if (reader.TokenType == JsonTokenType.StartObject)
-                    {
-                        insideRoot = true;
-                    }
-                    continue;
+                    insideRoot = true;
                 }
-
-                // The root token has already been read.
-
-                // If we've found the table name
-                if (reader.TokenType == JsonTokenType.PropertyName)
-                {
-                    currentProperty = reader.GetString();
-                    continue;
-                }
-
-                // If we're at the table data
-                if (reader.TokenType == JsonTokenType.StartArray && currentProperty != null)
-                {
-                    // Record the start offset of the array.
-                    arrayStart = totalBytesRead + reader.TokenStartIndex;
-                    // Now, skip the array.
-                    int depth = 1;
-                    while (depth > 0)
-                    {
-                        if (!reader.Read())
-                            break;
-                        if (reader.TokenType == JsonTokenType.StartArray)
-                            depth++;
-                        else if (reader.TokenType == JsonTokenType.EndArray)
-                            depth--;
-                    }
-                    long arrayEnd = totalBytesRead + reader.BytesConsumed;
-                    tablePositions[currentProperty] = (arrayStart, arrayEnd);
-                    currentProperty = null;
-                    continue;
-                }
-
-                // If we're at the end of the root
-                if (reader.TokenType == JsonTokenType.EndObject)
-                {
-                    //Nothing more to do.
-                    continue;
-                }
-
-                throw new DataException($"Expected JSON token.  Token type: {reader.TokenType}  currentProperty: {currentProperty}");
+                continue;
             }
-            totalBytesRead += bytesRead;
-            state = reader.CurrentState;
+
+            // The root token has already been read.
+
+            // If we've found the table name
+            if (reader.TokenType == JsonTokenType.PropertyName)
+            {
+                currentProperty = reader.GetString();
+                continue;
+            }
+
+            // If we're at the table data
+            if (reader.TokenType == JsonTokenType.StartArray && currentProperty != null)
+            {
+                // Record the start offset of the array.
+                arrayStart = reader.TokenAbsoluteIndex;
+
+                //Skip this entire array.
+                var success = reader.TrySkip();
+                if (!success)
+                    throw new Exception("The end of the stream was encountered before skipping this JSON array.");
+
+                long arrayEnd = reader.TokenAbsoluteIndex + 1;
+                tablePositions[currentProperty] = (arrayStart, arrayEnd);
+                currentProperty = null;
+                continue;
+            }
+
+            // If we're at the end of the root
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                //Nothing more to do.
+                continue;
+            }
+
+            throw new DataException($"Expected JSON token.  Token type: {reader.TokenType}  currentProperty: {currentProperty}");
         }
 
         // Create a substream for each table.
