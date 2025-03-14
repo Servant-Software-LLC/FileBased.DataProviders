@@ -1,12 +1,23 @@
 ﻿using Data.Json.Utils;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using System.Data;
+using System.Diagnostics;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Data.Json.Tests;
 
 public class JsonVirtualDataTableTests
 {
+    private readonly ITestOutputHelper logger;
+
+    public JsonVirtualDataTableTests(ITestOutputHelper logger)
+    {
+        this.logger = logger;
+    }
+
+
     [Fact]
     public void Columns_DefaultGuessTypeFunc_RowsLessThanGuessRows()
     {
@@ -199,6 +210,37 @@ public class JsonVirtualDataTableTests
 
         //Getting the second row should throw an exception.
         Assert.Throws<InvalidDataException>(() => rowEnumerator.MoveNext());
+
+    }
+
+    [Fact(Skip = "Don't run performance test")]
+    public void Rows_PerformanceTest()
+    {
+        //Arrange
+        var stream = File.OpenRead(Path.Combine("Sources", "Large", "Large_5MB.json"));
+
+        // Start timer
+        var stopwatch = Stopwatch.StartNew();
+
+        //Act:  Columns are determined in the ctor.
+        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+
+        const int maxRows = 100000;
+        int rows = 0;
+        foreach (var row in table.Rows)
+        {
+            if (rows >= maxRows)
+                break;
+            rows++;
+
+            //logger.WriteLine($"After {rows} rows Leftover length: {table.LeftoverLength}");
+        }
+
+        // Stop timer
+        stopwatch.Stop();
+
+        // Output execution time
+        logger.WriteLine($"For {rows} the test execution time: {stopwatch.ElapsedMilliseconds} ms");
 
     }
 

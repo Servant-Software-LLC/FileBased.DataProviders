@@ -18,9 +18,6 @@ public class StreamJsonReader
         AllowTrailingCommas = true
     };
 
-    // Holds the most recent combined buffer.
-    private byte[] currentCombinedBuffer = Array.Empty<byte>();
-
     /// <summary>
     /// Gets the current reader state.
     /// </summary>
@@ -48,11 +45,14 @@ public class StreamJsonReader
 
     public long TokenAbsoluteIndex => TotalBytesConsumed - BytesConsumed + TokenStartIndex;
 
+    public string PropertyString { get; private set; }
+
     /// <summary>
     /// If set, then buffers read from the stream provided in the ctor are written to this preamble stream.
     /// </summary>
     public Stream Preamble { get; set; }
 
+    public long LeftoverLength => leftover.Length;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamJsonReader"/> class.
@@ -76,40 +76,58 @@ public class StreamJsonReader
     /// Returns true if a token is successfully read; false if end-of-stream is reached.
     /// </summary>
     /// <param name="bytesConsumedList">Optional list into which new bytes read are appended.</param>
-    public bool Read(List<byte> bytesConsumedList = null)
-    {
+    public bool Read(List<byte> bytesConsumedList = null) => Read_Internal(bytesConsumedList, false);
+
+    private bool Read_Internal(List<byte> bytesConsumedList, bool skipGrabbingPropertyString)
+    { 
         while (true)
         {
-            // Read from the underlying stream into our temporary buffer.
-            int bytesRead = stream.Read(buffer, 0, bufferSize);
-            if (bytesRead == 0)
-            {
-                isFinalBlock = true;
-            }
-
-            if (Preamble != null)
-            {
-                Preamble.Write(buffer, 0, bytesRead);
-            }
-
             // Create a combined buffer consisting of leftover bytes (if any) plus new bytes.
             int leftoverCount = (int)leftover.Length;
 
-            byte[] combined = new byte[leftoverCount + bytesRead];
-            if (leftoverCount > 0)
+            //Do we need to replenish the leftovers?
+            int bytesReadThisPass = 0;
+            if (leftoverCount < bufferSize/2)
             {
-                Array.Copy(leftover.ToArray(), combined, leftoverCount);
+                // Read from the underlying stream into our temporary buffer.
+                int bytesRead = stream.Read(buffer, 0, bufferSize);
+                bytesReadThisPass = bytesRead;
+                if (bytesRead == 0)
+                {
+                    isFinalBlock = true;
+                }
+
+                if (Preamble != null)
+                {
+                    Preamble.Write(buffer, 0, bytesRead);
+                }
             }
-            if (bytesRead > 0)
+
+            byte[] combined;
+            
+            if (bytesReadThisPass > 0)
             {
-                Array.Copy(buffer, 0, combined, leftoverCount, bytesRead);
+                combined = new byte[leftoverCount + bytesReadThisPass];
+                if (leftoverCount > 0)
+                {
+                    Array.Copy(leftover.ToArray(), combined, leftoverCount);
+                }
+                if (bytesReadThisPass > 0)
+                {
+                    Array.Copy(buffer, 0, combined, leftoverCount, bytesReadThisPass);
+                }
             }
-            currentCombinedBuffer = combined; // Store the current combined buffer.
+            else
+            {
+                // We did not add another buffer this round.
+                combined = leftover.ToArray();
+            }
+
             int combinedLength = combined.Length;
 
             // Create a Utf8JsonReader over the combined buffer.
             var spanCombined = combined.AsSpan(0, combinedLength);
-            string result = Encoding.UTF8.GetString(combined, 0, combinedLength);
+            //string result = Encoding.UTF8.GetString(combined, 0, combinedLength);
             var reader = new Utf8JsonReader(spanCombined, isFinalBlock, CurrentState);
 
             if (reader.Read())
@@ -120,6 +138,16 @@ public class StreamJsonReader
                 BytesConsumed = reader.BytesConsumed;
                 TotalBytesConsumed += BytesConsumed;
                 CurrentState = reader.CurrentState;
+
+                //Only store the ability to call GetString(), if the token is a String, PropertyName or Null
+                if (!skipGrabbingPropertyString && TokenType == JsonTokenType.PropertyName)
+                {
+                    PropertyString = reader.GetString();
+                }
+                else
+                {
+                    PropertyString = null;
+                }
 
                 // Compute how many bytes were left unconsumed.
                 int consumed = (int)reader.BytesConsumed;
@@ -170,7 +198,7 @@ public class StreamJsonReader
         while (depth > 0)
         {
             // Attempt to read the next token.
-            if (!Read(bytesConsumedList))
+            if (!Read_Internal(bytesConsumedList, true))
                 return false; // End-of-stream encountered before fully skipping.
 
             if (TokenType == JsonTokenType.StartObject || TokenType == JsonTokenType.StartArray)
@@ -203,18 +231,11 @@ public class StreamJsonReader
     }
 
     /// <summary>
-    /// Returns the string value of the current token.
-    /// This method mimics Utf8JsonReader.GetString() by re-parsing the token span.
+    /// Returns the string value of the current property token.
     /// </summary>
-    public string GetString()
-    {
-        // Calculate the absolute token span within the current combined buffer.
-        int start = (int)TokenStartIndex;
-        int length = (int)(BytesConsumed - TokenStartIndex);
-        ReadOnlySpan<byte> tokenSpan = currentCombinedBuffer.AsSpan(start, length);
-        // Create a temporary reader over the token span.
-        var tempReader = new Utf8JsonReader(tokenSpan, isFinalBlock: true, state: CurrentState);
-        tempReader.Read();
-        return tempReader.GetString();
-    }
+    /// <remarks>
+    /// This method does NOT following the same behavior as Utf8JsonReader.GetString.  To optimize performance, the string of 
+    /// the property token is only grabbed when we're not skipping.  If the token was String or Null, we don't grab that.
+    /// </remarks>
+    public string GetString() => PropertyString != null ? PropertyString : throw new InvalidOperationException($"Unable to GetString() because the current token isn't JsonTokenType.PropertyName.  TokenType: {TokenType}");
 }

@@ -74,6 +74,9 @@
     <None Update="Sources\GettingStarted\Posts.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Sources\Large\Large_5MB.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Sources\WithTrailingComma\GeneralSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -109,7 +109,7 @@ public class BufferedResetStream : Stream
                 bufferStream.Dispose();
                 bufferStream = null;
                 BufferReleased = true;
-                Debug.WriteLine("Buffer released.");
+                //Debug.WriteLine("Buffer released.");
             }
 
             while (totalRead < count)
@@ -125,7 +125,7 @@ public class BufferedResetStream : Stream
                         resetReadOffset += toCopy;
                         totalRead += toCopy;
 
-                        Debug.WriteLine($"Read from buffer: {toCopy}");
+                        //Debug.WriteLine($"Read from buffer: {toCopy}");
                         continue;
                     }
                 }
@@ -143,7 +143,7 @@ public class BufferedResetStream : Stream
                     totalRead += innerRead;
                     logicalPosition += innerRead;
 
-                    Debug.WriteLine($"Read from inner stream: {innerRead}");
+                    //Debug.WriteLine($"Read from inner stream: {innerRead}");
                 }
                 else
                 {
@@ -151,7 +151,7 @@ public class BufferedResetStream : Stream
                 }
             }
 
-            Debug.WriteLine(Encoding.UTF8.GetString(buffer, offset, totalRead));
+            //Debug.WriteLine(Encoding.UTF8.GetString(buffer, offset, totalRead));
             return totalRead;
         }
         else
@@ -164,8 +164,8 @@ public class BufferedResetStream : Stream
                 logicalPosition += bytesRead;
             }
 
-            Debug.WriteLine($"Read from inner stream & saved to buffer: {bytesRead}");
-            Debug.WriteLine(Encoding.UTF8.GetString(buffer, offset, bytesRead));
+            //Debug.WriteLine($"Read from inner stream & saved to buffer: {bytesRead}");
+            //Debug.WriteLine(Encoding.UTF8.GetString(buffer, offset, bytesRead));
             return bytesRead;
         }
     }
@@ -192,7 +192,7 @@ public class BufferedResetStream : Stream
             hasResetOccurred = true;
             resetReadOffset = 0;
 
-            Debug.WriteLine("Reset performed. Remaining resets: " + remainingResets);
+            //Debug.WriteLine("Reset performed. Remaining resets: " + remainingResets);
             return 0;
         }
         throw new NotSupportedException("Only Seek(0, Begin) is supported for resets.");
