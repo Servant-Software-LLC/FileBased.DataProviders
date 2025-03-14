@@ -19,7 +19,7 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStre
     /// A <see cref="JsonDatabaseStreamSplitter"/> that returns substreams for each table within a large JSON document.
     /// </param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="splitter"/> is null.</exception>
-    public JsonDatabaseVirtualDataSet(JsonDatabaseStreamSplitter splitter, IDictionary<string, DataColumnCollection> previousTableSchemas)
+    public JsonDatabaseVirtualDataSet(JsonDatabaseStreamSplitter splitter, IDictionary<string, DataColumnCollection> previousTableSchemas, int guessRows, Func<IEnumerable<JsonElement>, Type> guessTypeFunction, int bufferSize)
     {
         this.splitter = splitter ?? throw new ArgumentNullException(nameof(splitter));
 
@@ -29,7 +29,7 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStre
         foreach (var kvp in tableStreams)
         {
             // Create a virtual table for each table stream.
-            var virtualTable = new JsonVirtualDataTable(kvp.Value, kvp.Key);
+            var virtualTable = new JsonVirtualDataTable(kvp.Value, kvp.Key, guessRows, guessTypeFunction, bufferSize);
 
             //If this virtual data table has no columns, then the JSON content was an empty array.  In this
             //case, we need to copy the schema from the previous table.

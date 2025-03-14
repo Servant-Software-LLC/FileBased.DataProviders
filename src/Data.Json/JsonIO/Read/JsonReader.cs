@@ -11,6 +11,9 @@ namespace Data.Json.JsonIO.Read;
 /// </summary>
 internal class JsonReader : FileReader
 {
+    private const int guessRows = 10;
+    private const int bufferSize = 4096;
+
     public JsonReader(JsonConnection jsonConnection)
         : base(jsonConnection)
     {
@@ -23,7 +26,7 @@ internal class JsonReader : FileReader
         StreamReader streamReaderTable = Read(tableName);
 
         // For folder mode, the file itself is a JSON array representing a table.
-        VirtualDataTable virtualDataTable = new JsonVirtualDataTable(streamReaderTable.BaseStream, tableName);
+        VirtualDataTable virtualDataTable = PrepareDataTable(streamReaderTable.BaseStream, tableName);
         DataSet!.Tables.Add(virtualDataTable);
     }
 
@@ -34,8 +37,15 @@ internal class JsonReader : FileReader
         StreamReader streamReaderTable = Read(tableName);
 
         // Replace the Rows enumerable with a new one based on the updated JSON array.
-        var reloadedVirtualDataTable = new JsonVirtualDataTable(streamReaderTable.BaseStream, tableName);
+        var reloadedVirtualDataTable = PrepareDataTable(streamReaderTable.BaseStream, tableName);
         DataSet!.Tables.Add(reloadedVirtualDataTable);
+    }
+
+    private VirtualDataTable PrepareDataTable(Stream stream, string tableName, int pageSize = 1000)
+    {
+        JsonVirtualDataTable virtualDataTable = new(stream, tableName, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
+
+        return virtualDataTable;
     }
 
     #endregion
@@ -54,7 +64,7 @@ internal class JsonReader : FileReader
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas);
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
     }
 
     protected override void UpdateFromFile()
@@ -68,7 +78,7 @@ internal class JsonReader : FileReader
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas);
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
     }
 
     #endregion
