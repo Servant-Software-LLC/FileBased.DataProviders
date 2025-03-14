@@ -24,7 +24,9 @@ public class StreamedDataSource : IDataSourceProvider, IDisposable
     /// <exception cref="ArgumentNullException">
     /// Thrown when either <paramref name="tableName"/> or <paramref name="utf8TableData"/> is null.
     /// </exception>
-    public StreamedDataSource(string tableName, Stream stream) => AddTable(tableName, () => stream);
+    public StreamedDataSource(string tableName, Stream stream) => AddTable(tableName, stream);
+
+    public StreamedDataSource(string tableName, string tableContent) => AddTable(tableName, tableContent);
 
     public StreamedDataSource(string tableName, Func<Stream> streamCreationFunc) => AddTable(tableName, streamCreationFunc);
 
@@ -43,6 +45,16 @@ public class StreamedDataSource : IDataSourceProvider, IDisposable
     }
 
     public void AddTable(string tableName, Stream stream) => AddTable(tableName, ()=>stream);
+
+    public void AddTable(string tableName, string tableContent)
+    {
+        if (string.IsNullOrEmpty(tableContent))
+            throw new ArgumentNullException(nameof(tableContent));
+
+        byte[] fileBytes = Encoding.UTF8.GetBytes(tableContent);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        AddTable(tableName, fileStream);
+    }
 
     /// <summary>
     /// Gets the type of the data source, which is <see cref="DataSourceType.Directory"/> for this implementation.

@@ -129,10 +129,8 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
             const string tableName = "Table";
 
-            byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
-            MemoryStream fileStream = new MemoryStream(fileBytes);
             var connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+            StreamedDataSource dataSourceProvider = new(tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
@@ -169,10 +167,8 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
             const string tableName = "Table";
 
-            byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
-            MemoryStream fileStream = new MemoryStream(fileBytes);
             IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+            StreamedDataSource dataSourceProvider = new(tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
@@ -204,10 +200,8 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string csvString = "Id,ProductName,Category,Amount,IsActive,Point,Initials,Today,NullFiled\n0.6864690584930528,Handmade Plastic Car,rich,67,True,0.16745076678158033,C,06/30/1955 00:00:00,";
             const string tableName = "Table";
 
-            byte[] fileBytes = Encoding.UTF8.GetBytes(csvString);
-            MemoryStream fileStream = new MemoryStream(fileBytes);
             IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+            StreamedDataSource dataSourceProvider = new(tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
