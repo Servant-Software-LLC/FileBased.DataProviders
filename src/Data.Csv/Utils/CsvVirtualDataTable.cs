@@ -52,7 +52,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         : base(tableName)
     {
         _pageSize = pageSize;
-        _guessRows = guessRows;
+        _guessRows = guessRows > 0 ? guessRows : throw new ArgumentOutOfRangeException(nameof(guessRows), $"Guess row must be greater than 0.  GuessRows: {guessRows}");
         _preferredFloatingPointDataType = preferredFloatingPointDataType;
         _guessTypeFunction = guessTypeFunction;
 

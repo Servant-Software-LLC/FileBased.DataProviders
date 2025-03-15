@@ -58,10 +58,11 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName, int pageSize = 1000, int numberOfRowsToReadForInference = 10)
+    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName, int pageSize = 1000)
     {
-        CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, numberOfRowsToReadForInference, 
-                                                   fileConnection.PreferredFloatingPointDataType, ((CsvConnection)fileConnection).GuessTypeFunction);
+        CsvConnection csvConnection = (CsvConnection)fileConnection;
+        CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, csvConnection.GuessTypeRows, 
+                                                   fileConnection.PreferredFloatingPointDataType, csvConnection.GuessTypeFunction);
 
         return virtualDataTable;
     }

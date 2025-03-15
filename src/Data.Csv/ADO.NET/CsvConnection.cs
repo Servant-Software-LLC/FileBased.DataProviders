@@ -33,6 +33,7 @@ public class CsvConnection : FileConnection<CsvParameter>
     public override string FileExtension => "csv";
 
     public Func<IEnumerable<string>, Type> GuessTypeFunction { get; set; }
+    public int GuessTypeRows { get; set; } = 1000;
 
     protected override FileReader CreateFileReader => new CsvReader(this);
 

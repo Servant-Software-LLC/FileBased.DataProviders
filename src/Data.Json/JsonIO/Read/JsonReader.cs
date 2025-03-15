@@ -43,7 +43,8 @@ internal class JsonReader : FileReader
 
     private VirtualDataTable PrepareDataTable(Stream stream, string tableName, int pageSize = 1000)
     {
-        JsonVirtualDataTable virtualDataTable = new(stream, tableName, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
+        JsonConnection jsonConnection = (JsonConnection)fileConnection;
+        JsonVirtualDataTable virtualDataTable = new(stream, tableName, jsonConnection.GuessTypeRows, jsonConnection.GuessTypeFunction, bufferSize);
 
         return virtualDataTable;
     }
@@ -64,7 +65,8 @@ internal class JsonReader : FileReader
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
+        JsonConnection jsonConnection = (JsonConnection)fileConnection;
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, jsonConnection.GuessTypeRows, jsonConnection.GuessTypeFunction, bufferSize);
     }
 
     protected override void UpdateFromFile()
@@ -78,7 +80,8 @@ internal class JsonReader : FileReader
         DataSet?.Dispose();
 
         // For file mode, the JSON document's root is an object with properties as tables.
-        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, guessRows, ((JsonConnection)fileConnection).GuessTypeFunction, bufferSize);
+        JsonConnection jsonConnection = (JsonConnection)fileConnection;
+        DataSet = new JsonDatabaseVirtualDataSet(jsonDatabaseStreamSplitter, previousTableSchemas, jsonConnection.GuessTypeRows, jsonConnection.GuessTypeFunction, bufferSize);
     }
 
     #endregion
