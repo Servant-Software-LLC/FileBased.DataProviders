@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>11.0</LangVersion>      
+    <PackageId>ServantSoftware.Data.Xls</PackageId>
+    <Title>ServantSoftware.Data.Xls</Title>
+    <Product>ADO.NET Xls Data Provider</Product>
+    <PackageReadmeFile>README.Data.Xls.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\README.Data.Xls.md" Link="README.Data.Xls.md" Pack="true" PackagePath="\" />
+
+    <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+  </ItemGroup>
+</Project>
