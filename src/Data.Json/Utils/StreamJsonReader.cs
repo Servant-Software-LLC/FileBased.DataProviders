@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 namespace Data.Json.Utils;
 
@@ -8,6 +9,9 @@ namespace Data.Json.Utils;
 /// </summary>
 public class StreamJsonReader
 {
+    private static int readBreakpointHit;
+    private static int bufferBreakpointHit;
+
     private readonly Stream stream;
     private readonly int bufferSize;
     private byte[] buffer;
@@ -89,8 +93,18 @@ public class StreamJsonReader
             int bytesReadThisPass = 0;
             if (leftoverCount < bufferSize/2)
             {
+                bufferBreakpointHit++;
+                Debug.WriteLine($"Buffer Read hits: {bufferBreakpointHit}");
+
                 // Read from the underlying stream into our temporary buffer.
                 int bytesRead = stream.Read(buffer, 0, bufferSize);
+
+                if (bufferBreakpointHit >= 1593 /* 1594 */)
+                {
+                    string result = Encoding.UTF8.GetString(buffer, 0, bufferSize);
+                    Debug.WriteLine($"Last before failure");
+                }
+
                 bytesReadThisPass = bytesRead;
                 if (bytesRead == 0)
                 {
@@ -128,6 +142,15 @@ public class StreamJsonReader
             // Create a Utf8JsonReader over the combined buffer.
             var spanCombined = combined.AsSpan(0, combinedLength);
             //string result = Encoding.UTF8.GetString(combined, 0, combinedLength);
+            //Debug.WriteLine(result);
+            readBreakpointHit++;
+            //Debug.WriteLine($"Utf8JsonReader Read hits: {breakpointHit}");
+            if (readBreakpointHit >= 75550 /* 75569 */)
+            {
+                string result = Encoding.UTF8.GetString(combined, 0, combinedLength);
+                Debug.WriteLine($"Last before failure");
+            }
+
             var reader = new Utf8JsonReader(spanCombined, isFinalBlock, CurrentState);
 
             if (reader.Read())

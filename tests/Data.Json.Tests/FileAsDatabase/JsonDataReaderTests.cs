@@ -56,7 +56,7 @@ public class JsonDataReaderTests
        new JsonConnection(ConnectionStrings.Instance.FileAsDB));
     }
 
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Reader_ShouldReadDataWithInnerJoin()
     {
         DataReaderTests.Reader_ShouldReadDataWithInnerJoin(() =>
