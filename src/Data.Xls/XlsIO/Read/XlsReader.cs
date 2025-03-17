@@ -1,6 +1,7 @@
 ﻿using Data.Xls.Utils;
 using SqlBuildingBlocks.POCOs;
 using System.Data.XlsClient;
+using Data.Common.Utils.ConnectionString;
 
 namespace Data.Xls.XlsIO.Read;
 
@@ -43,8 +44,7 @@ internal class XlsReader : FileReader
     private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName, int pageSize = 1000)
     {
         XlsConnection csvConnection = (XlsConnection)fileConnection;
-        XlsVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, csvConnection.GuessTypeRows, 
-                                                   fileConnection.PreferredFloatingPointDataType, csvConnection.GuessTypeFunction);
+        XlsVirtualDataTable virtualDataTable = new(streamReader.BaseStream, tableName, csvConnection.GuessTypeRows, FloatingPointDataType.Double, csvConnection.GuessTypeFunction);
 
         return virtualDataTable;
     }

@@ -19,6 +19,9 @@
     <!-- Data.Json -->
     <PackageReference Update="System.Text.Json" Version="8.0.5" />
         
+    <!-- Data.Xls -->
+    <PackageReference Update="DocumentFormat.OpenXml" Version="3.3.0"/>
+        
     <!-- EF Core Providers -->
     <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />

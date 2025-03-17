@@ -12,6 +12,8 @@
   <ItemGroup>
     <None Include="..\..\README.Data.Xls.md" Link="README.Data.Xls.md" Pack="true" PackagePath="\" />
 
+    <PackageReference Include="DocumentFormat.OpenXml" />
     <ProjectReference Include="..\Data.Common\Data.Common.csproj" />
+    
   </ItemGroup>
 </Project>

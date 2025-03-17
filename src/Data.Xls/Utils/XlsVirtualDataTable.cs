@@ -1,4 +1,8 @@
-﻿using Data.Common.Utils.ConnectionString;
+﻿using System.Text.RegularExpressions;
+using Data.Common.Utils.ConnectionString;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SqlBuildingBlocks.POCOs;
 
 namespace Data.Xls.Utils;
@@ -11,13 +15,13 @@ namespace Data.Xls.Utils;
 /// </summary>
 public class XlsVirtualDataTable : VirtualDataTable, IDisposable
 {
+    private Stream _stream;
     private readonly int _guessRows;
     private readonly int _pageSize;
-    private readonly FloatingPointDataType _preferredFloatingPointDataType;
     private readonly Func<IEnumerable<string>, Type> _guessTypeFunction;
-
-    // Hold on to the underlying stream so we can keep paging through it.
-    private readonly StreamReader _baseReader;
+    private Dictionary<string, string> _columnLetterHeadingMap;
+    private readonly FloatingPointDataType _preferredFloatingPointDataType;
+    
     private bool _disposed;
 
     /// <summary>
@@ -39,52 +43,76 @@ public class XlsVirtualDataTable : VirtualDataTable, IDisposable
     /// The preferred floating point data type for numeric columns.
     /// </param>
     public XlsVirtualDataTable(
-        StreamReader streamReader,
+        Stream stream,
         string tableName,
-        int pageSize,
         int guessRows,
         FloatingPointDataType preferredFloatingPointDataType,
         Func<IEnumerable<string>, Type> guessTypeFunction)
         : base(tableName)
     {
-        _pageSize = pageSize;
+        _stream = stream ?? throw new ArgumentNullException(nameof(stream));
         _guessRows = guessRows > 0 ? guessRows : throw new ArgumentOutOfRangeException(nameof(guessRows), $"Guess row must be greater than 0.  GuessRows: {guessRows}");
-        _preferredFloatingPointDataType = preferredFloatingPointDataType;
         _guessTypeFunction = guessTypeFunction;
-
-        // Instead of using "using", store the reader and transform stream for later use.
-        _baseReader = streamReader ?? throw new ArgumentNullException(nameof(streamReader));
+        _columnLetterHeadingMap = new Dictionary<string, string>();
+        _preferredFloatingPointDataType = preferredFloatingPointDataType;
 
         // Determine the schema and column data types using the first page.
         DetermineColumns();
 
         // Set the Rows property to a lazy iterator that pages in DataRows on demand.
-        Rows = GetRowsIterator();
+        Rows = XslxReader.GetRowsIterator(_stream, this);
     }
 
     private void DetermineColumns()
     {
-        Columns.Clear();
-
-        //Foreach column discovered
-        //Columns.Add(new DataColumn(name, dataType));
-
+        var columnsOfData = XslxReader.GetColumnValues(_stream, _guessRows);
+        var columnTypes = GuessTypes(columnsOfData);
+        
+        foreach (var columnType in columnTypes)
+        {
+            AddColumn(columnType.Key, columnType.Value);
+        }
+        
+        if (_stream.CanSeek)
+        {
+            _stream.Seek(0, SeekOrigin.Begin);
+        }
     }
 
-    /// <summary>
-    /// Returns an iterator that lazily loads rows from the CSV file in pages using the predetermined column types.
-    /// </summary>
-    /// <returns>An enumerable sequence of <see cref="DataRow"/>.</returns>
-    private IEnumerable<DataRow> GetRowsIterator()
+    private void AddColumn(string columnName, Type columnType)
     {
-        yield break;
+        var existingColumnIndex = Columns.IndexOf(columnName);
+        if (existingColumnIndex == -1)
+        {
+            //This is a new column, which is the common scenario
+            Columns.Add(columnName, columnType);
+            return;
+        }
+
+        var existingColumn = Columns[existingColumnIndex];
+        if (existingColumn.DataType != columnType) 
+        {
+            throw new InvalidOperationException($"The column {columnName} already exists in this virtual table. Further, the data types don't match.  Existing: {existingColumn.DataType.FullName} New: {columnType.FullName}");
+        }
+    }
+    
+    private Dictionary<string, Type> GuessTypes(IDictionary<string, List<string>> columnsOfData)
+    {
+        var columnTypesMap = new Dictionary<string, Type>();
+        foreach (var pair in columnsOfData)
+        {
+            var type = TypeGuesser.GuessType(pair.Value);
+            columnTypesMap.Add(pair.Key, _preferredFloatingPointDataType.GetClrType(type));
+        }
+        
+        return columnTypesMap;
     }
 
     public void Dispose()
     {
         if (!_disposed)
         {
-            _baseReader.Dispose();
+            _stream.Dispose();
             _disposed = true;
         }
     }

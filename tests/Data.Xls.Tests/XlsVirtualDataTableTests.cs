@@ -2,6 +2,9 @@
 using System.Data;
 using System.Diagnostics;
 using System.Text;
+using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,6 +20,47 @@ public class XlsVirtualDataTableTests
     }
 
 
+    [Fact]
+    public void GivenHeaderOnly_WhenCreatingNewXlsVirtualDataTable_ThenReturnColumnsWithStringDataType()
+    {
+        // Open the file stream
+        var path = Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "headerOnly.xlsx");
+        FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var streamReader = new StreamReader(fileStream);
+
+        var table = new XlsVirtualDataTable(streamReader.BaseStream, "Table", 1, FloatingPointDataType.Double, null);
+
+        table.Columns["Index"].ColumnName.Should().Be("Index");
+        table.Columns["Index"].DataType.Should().Be(typeof(string));
+        table.Columns["First Name"].ColumnName.Should().Be("First Name");
+        table.Columns["First Name"].DataType.Should().Be(typeof(string));
+        table.Columns["Last Name"].ColumnName.Should().Be("Last Name");
+        table.Columns["Last Name"].DataType.Should().Be(typeof(string));
+    }
+
+    [Fact]
+    public void GivenColumnWithNumberCells_WhenCreatingNewXlsVirtualDataTable_ThenSetColumnDataTypeToNumber()
+    {
+        // Open the file stream
+        var path = Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Simple.xlsx");
+        FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var streamReader = new StreamReader(fileStream);
+        
+        var table = new XlsVirtualDataTable(streamReader.BaseStream, "Table", 1, FloatingPointDataType.Double, null);
+        
+        table.Columns["Name"].ColumnName.Should().Be("Name");
+        table.Columns["Name"].DataType.Should().Be(typeof(string));
+        table.Columns["Age"].ColumnName.Should().Be("Age");
+        table.Columns["Age"].DataType.Should().Be(typeof(double));
+        
+        var dataTableRows = table.Rows.ToList();
+        dataTableRows.Should().HaveCount(1);
+        var firstRow = dataTableRows[0];
+        firstRow.Should().NotBeNull();
+        firstRow["Name"].Should().Be("Alice");
+        firstRow["Age"].Should().Be(30);
+    }
+    
 /*
     [Fact]
     public void Columns_DefaultGuessTypeFunc_RowsLessThanGuessRows()
