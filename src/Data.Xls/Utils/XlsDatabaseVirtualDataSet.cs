@@ -64,7 +64,7 @@ public class XlsDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStrea
     /// <summary>
     /// Disposes this XlsDatabaseVirtualDataSet and frees all underlying resources.
     /// </summary>
-    public void Dispose()
+    public new void Dispose()
     {
         if (!disposed)
         {
