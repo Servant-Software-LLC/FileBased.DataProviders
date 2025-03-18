@@ -105,6 +105,29 @@ public static class DataReaderTests
         connection.Close();
     }
     
+    public static void Reader_ShouldReadFormulasAsString<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM [withFormula]");
+
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(3, reader.FieldCount);
+            
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Sum"]);
+            Assert.Equal("SUM(A2:B2)3", reader["Sum"]);
+        }
+
+        connection.Close();
+    }
+    
     public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

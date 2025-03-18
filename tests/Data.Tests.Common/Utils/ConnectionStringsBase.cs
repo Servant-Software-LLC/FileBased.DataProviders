@@ -16,6 +16,7 @@ public abstract class ConnectionStringsBase : IConnectionStrings
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = Database.File };
     public virtual FileConnectionString WithDateTimeFileAsDB => new FileConnectionString() { DataSource = Database.WithDateTime };
+    public virtual FileConnectionString WithFormulaFileAsDB => new FileConnectionString() { DataSource = Database.WithFormula };
     public virtual FileConnectionString EmptyWithTablesFolderAsDB => new FileConnectionString() { DataSource = Database.FolderEmptyWithTables };
     public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = Database.FileEmptyWithTables };
 

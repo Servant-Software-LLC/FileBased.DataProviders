@@ -31,6 +31,13 @@ public class XlsDataReaderTests
     }
 
     [Fact]
+    public void Reader_ShouldReadFormulasAsString()
+    {
+        DataReaderTests.Reader_ShouldReadFormulasAsString(() =>
+            new XlsConnection(ConnectionStrings.Instance.WithFormulaFileAsDB));
+    }
+
+    [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
