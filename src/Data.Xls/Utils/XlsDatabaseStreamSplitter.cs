@@ -15,6 +15,7 @@ public class XlsDatabaseStreamSplitter : IDisposable
 {
     private readonly SpreadsheetDocument document;
     private bool disposed = false;
+    private Stream _stream;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="XlsDatabaseStreamSplitter"/> class using the provided XLS/XLSX stream.
@@ -22,9 +23,10 @@ public class XlsDatabaseStreamSplitter : IDisposable
     /// <param name="stream">A stream containing an XLS or XLSX file.</param>
     public XlsDatabaseStreamSplitter(Stream stream)
     {
-        if (stream == null) throw new ArgumentNullException(nameof(stream));
+        _stream = stream;
+        if (_stream == null) throw new ArgumentNullException(nameof(_stream));
         // Open the document in read-only mode.
-        document = SpreadsheetDocument.Open(stream, false);
+        document = SpreadsheetDocument.Open(_stream, false);
     }
 
     /// <summary>
@@ -41,7 +43,7 @@ public class XlsDatabaseStreamSplitter : IDisposable
             // Retrieve the corresponding WorksheetPart.
             WorksheetPart worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id);
             // Create an XlsSheetStream for this sheet (using the SAX approach).
-            var sheetStream = new XlsSheetStream(worksheetPart);
+            var sheetStream = new XlsSheetStream(_stream, worksheetPart);
             result[sheet.Name] = sheetStream;
         }
         return result;

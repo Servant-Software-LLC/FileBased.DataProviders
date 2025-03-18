@@ -8,7 +8,7 @@ namespace Data.Xls.Tests.FileAsDatabase;
 
 public class XlsDataReaderTests
 {
-    /*
+    
     [Fact]
     public void Reader_ShouldReadData()
     {
@@ -102,5 +102,5 @@ public class XlsDataReaderTests
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
             new XlsConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
-    */
+    
 }

@@ -13,16 +13,18 @@ namespace Data.Xls.Utils;
 public class XlsSheetStream : Stream, IDisposable
 {
     private readonly WorksheetPart worksheetPart;
-    private readonly IEnumerator<string> csvLineEnumerator;
+    private IEnumerator<string> csvLineEnumerator;
     private MemoryStream currentBuffer;
     private bool disposed = false;
+    private Stream _stream;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="XlsSheetStream"/> class.
     /// </summary>
     /// <param name="worksheetPart">The WorksheetPart representing the sheet to be transformed.</param>
-    public XlsSheetStream(WorksheetPart worksheetPart)
+    public XlsSheetStream(Stream stream, WorksheetPart worksheetPart)
     {
+        _stream = stream;
         this.worksheetPart = worksheetPart ?? throw new ArgumentNullException(nameof(worksheetPart));
         csvLineEnumerator = CreateCsvLineEnumerator(worksheetPart);
         currentBuffer = new MemoryStream();
@@ -105,7 +107,17 @@ public class XlsSheetStream : Stream, IDisposable
     public override long Length => throw new NotSupportedException();
     public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
     public override void Flush() { }
-    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        if (origin != SeekOrigin.Begin && offset != 0)
+            throw new NotSupportedException();
+        
+        _stream.Seek(0, origin);
+        currentBuffer = new MemoryStream();
+        csvLineEnumerator = CreateCsvLineEnumerator(worksheetPart);
+        return 0;
+    }
     public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
