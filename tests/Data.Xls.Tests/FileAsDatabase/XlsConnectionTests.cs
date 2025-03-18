@@ -6,7 +6,6 @@ namespace Data.Xls.Tests.FileAsDatabase;
 
 public class XlsConnectionTests
 {
-    /*
     [Fact]
     public void Open_DatabaseExists() =>
         ConnectionTests.Open_DatabaseExists(() => new XlsConnection(ConnectionStrings.Instance.FileAsDB));
@@ -17,12 +16,14 @@ public class XlsConnectionTests
 
     [Fact]
     public void Open_DatabaseDoesNotExist_AutoCreate() =>
-        ConnectionTests.Open_DatabaseDoesNotExist_AutoCreate(() => new XlsConnection(ConnectionStrings.Instance.bogusFileDB));
+        ConnectionTests.Open_DatabaseDoesNotExist_AutoCreate(() =>
+            new XlsConnection(ConnectionStrings.Instance.bogusFileDB));
 
     [Fact]
     public void ChangeDatabase_DatabaseExists() =>
         ConnectionTests.ChangeDatabase_DatabaseExists(() =>
-            new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.eComFileDataBase);
+                new XlsConnection(ConnectionStrings.Instance.FileAsDB),
+            ConnectionStrings.Instance.Database.eComFileDataBase);
 
     [Fact]
     public void ChangeDatabase_DatabaseDoesNotExist() =>
@@ -43,5 +44,4 @@ public class XlsConnectionTests
     public void GetSchema_Columns() =>
         ConnectionTests.GetSchema_Columns(() =>
             new XlsConnection(ConnectionStrings.Instance.FileAsDB));
-    */
 }

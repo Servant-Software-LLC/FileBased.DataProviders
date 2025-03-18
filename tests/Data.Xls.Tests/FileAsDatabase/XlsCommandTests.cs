@@ -12,8 +12,6 @@ namespace Data.Xls.Tests.FileAsDatabase;
 /// </summary>
 public class XlsCommandTests
 {
-    /*
-     
     [Fact]
     public void ExecuteScalar_ShouldReturnFirstRowFirstColumn()
     {
@@ -93,12 +91,11 @@ public class XlsCommandTests
         }, databaseName, 0);
     }
 
-    [Fact]
+    [Fact (Skip = "XSLX table create not implemented")]
     public void ExecuteNonQuery_CreateTable()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
         CommandTests.ExecuteNonQuery_CreateTable(
           () => new XlsConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
-    */
 }
