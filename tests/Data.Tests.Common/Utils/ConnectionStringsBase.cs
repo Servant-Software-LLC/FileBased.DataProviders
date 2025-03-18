@@ -12,10 +12,10 @@ public abstract class ConnectionStringsBase : IConnectionStrings
     public virtual FileConnectionString Admin => new FileConnectionString() { DataSource = $":{nameof(DataSourceType.Admin)}:" };
     public virtual FileConnectionString FolderAsDB => new FileConnectionString() { DataSource = Database.Folder };
     
-    public virtual FileConnectionString WithBirthDate => new FileConnectionString() { DataSource = Database.WithBirthDate };
+    public virtual FileConnectionString WithDateTimeFolder => new FileConnectionString() { DataSource = Database.WithDateTimeFolder };
 
     public virtual FileConnectionString FileAsDB => new FileConnectionString() { DataSource = Database.File };
-
+    public virtual FileConnectionString WithDateTimeFileAsDB => new FileConnectionString() { DataSource = Database.WithDateTime };
     public virtual FileConnectionString EmptyWithTablesFolderAsDB => new FileConnectionString() { DataSource = Database.FolderEmptyWithTables };
     public virtual FileConnectionString EmptyWithTablesFileAsDB => new FileConnectionString() { DataSource = Database.FileEmptyWithTables };
 
