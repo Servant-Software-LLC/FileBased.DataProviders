@@ -227,7 +227,7 @@ public class JsonVirtualDataTableTests
 
         const int maxRows = 100000;
         int rows = 0;
-        foreach (var row in table.Rows)
+        foreach (var row in table.Rows!)
         {
             if (rows >= maxRows)
                 break;
