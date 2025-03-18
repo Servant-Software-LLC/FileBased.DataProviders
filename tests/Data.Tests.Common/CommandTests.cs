@@ -10,10 +10,11 @@ namespace Data.Tests.Common;
 /// </summary>
 public static class CommandTests
 {
-    public static void ExecuteScalar_ShouldReturnFirstRowFirstColumn<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+    public static void ExecuteScalar_ShouldReturnFirstRowFirstColumn<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection, string databaseName = "")
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
-        const string query = "SELECT city, state FROM locations";
+        var locations = TableName.GetTableName(databaseName, "locations");
+        var query = $"SELECT city, state FROM [{locations}]";
 
         // Arrange
         var connection = createConnection();
@@ -45,7 +46,7 @@ public static class CommandTests
         connection.Close();
     }
 
-    public static void ExecuteScalar_ShouldCountRecords<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+    public static void ExecuteScalar_ShouldCountRecords<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection, string databaseName = "")
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -54,7 +55,8 @@ public static class CommandTests
 
         // Act - Count the records in the locations table
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT COUNT(*) FROM locations where id=1 or id=2";
+        var locations = TableName.GetTableName(databaseName, "locations");
+        command.CommandText = $"SELECT COUNT(*) FROM [{locations}] where id=1 or id=2";
 
         var count = (int)command.ExecuteScalar()!;
 
@@ -63,7 +65,8 @@ public static class CommandTests
 
         // Act - Count the records in the employees table
         command = connection.CreateCommand();
-        command.CommandText = "SELECT COUNT(*) FROM employees where name='Joe' OR name='Bob' OR name='Jim' OR name='Mike'";
+        var employees = TableName.GetTableName(databaseName, "employees");
+        command.CommandText = $"SELECT COUNT(*) FROM [{employees}] where name='Joe' OR name='Bob' OR name='Jim' OR name='Mike'";
         count = (int)command.ExecuteScalar()!;
 
         // Assert
@@ -72,7 +75,7 @@ public static class CommandTests
         // Close the connection
         connection.Close();
     }
-
+    
     public static void ExecuteScalar_ShouldCountSchemaTableRecords<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

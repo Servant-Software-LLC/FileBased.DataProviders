@@ -31,6 +31,7 @@ public class XlsDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStrea
     /// <exception cref="ArgumentNullException">Thrown if splitter is null.</exception>
     public XlsDatabaseVirtualDataSet(
         Stream xlsStream,
+        string databaseName,
         int guessRows,
         int pageSize,
         FloatingPointDataType preferredFloatingPointDataType,
@@ -46,7 +47,8 @@ public class XlsDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStrea
             StreamReader sr = new StreamReader(kvp.Value, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
             // Create a CSV virtual data table from the StreamReader.
             // This is our reusable CSV provider.
-            CsvVirtualDataTable virtualTable = new CsvVirtualDataTable(sr, kvp.Key, pageSize, guessRows, preferredFloatingPointDataType, guessTypeFunction);
+            var tableName = $"{databaseName} - {kvp.Key}";
+            CsvVirtualDataTable virtualTable = new CsvVirtualDataTable(sr, tableName, pageSize, guessRows, preferredFloatingPointDataType, guessTypeFunction);
             // If the sheet was empty, you might want to fall back to a previously saved schema.
             // (For now we assume that each sheet contains at least a header row.)
             Tables.Add(virtualTable);

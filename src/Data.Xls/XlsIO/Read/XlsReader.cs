@@ -22,8 +22,8 @@ internal class XlsReader : FileReader
         DataSet?.Dispose();
 
         XlsConnection xlsConnection = (XlsConnection)fileConnection;
-
-        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, xlsConnection.GuessTypeRows, pageSize,
+        var databaseName = Path.GetFileNameWithoutExtension(xlsConnection.Database);
+        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, databaseName, xlsConnection.GuessTypeRows, pageSize,
                                                 fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
     }
 
@@ -34,7 +34,8 @@ internal class XlsReader : FileReader
         DataSet?.Dispose();
 
         XlsConnection xlsConnection = (XlsConnection)fileConnection;
-        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, xlsConnection.GuessTypeRows, pageSize, fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+        var databaseName = Path.GetFileNameWithoutExtension(xlsConnection.Database);
+        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, databaseName, xlsConnection.GuessTypeRows, pageSize, fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
     }
 
     protected override void ReadFromFolder(string tableName) =>

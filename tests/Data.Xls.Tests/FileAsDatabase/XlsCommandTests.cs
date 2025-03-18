@@ -16,16 +16,14 @@ public class XlsCommandTests
     public void ExecuteScalar_ShouldReturnFirstRowFirstColumn()
     {
         CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
-          () => new XlsConnection(ConnectionStrings.Instance.
-          FileAsDB));
+          () => new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
     }
 
     [Fact]
     public void ExecuteScalar_ShouldCountRecords()
     {
         CommandTests.ExecuteScalar_ShouldCountRecords(
-           () => new XlsConnection(ConnectionStrings.Instance.
-           FileAsDB));
+           () => new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
     }
 
     [Fact]
