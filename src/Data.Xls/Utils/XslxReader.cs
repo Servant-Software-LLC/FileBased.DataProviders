@@ -30,7 +30,7 @@ public static class XslxReader
                             // Read the first row as headers
                             foreach (Cell cell in row.Elements<Cell>())
                             {
-                                string header = spreadsheetDocument.GetCellValue(cell);
+                                string header = spreadsheetDocument.WorkbookPart.GetCellValue(cell);
                                 headers.Add(header);
                                 columnsOfData[header] = new List<string>();
                             }
@@ -45,7 +45,7 @@ public static class XslxReader
                             {
                                 if (columnIndex < headers.Count)
                                 {
-                                    string value = spreadsheetDocument.GetCellValue(cell);
+                                    string value = spreadsheetDocument.WorkbookPart.GetCellValue(cell);
                                     columnsOfData[headers[columnIndex]].Add(value);
                                 }
 
@@ -100,7 +100,7 @@ public static class XslxReader
                         int columnIndex = 0;
                         foreach (Cell cell in row.Elements<Cell>())
                         {
-                            string? value = spreadsheetDocument.GetCellValue(cell);
+                            string? value = spreadsheetDocument.WorkbookPart.GetCellValue(cell);
                             dataRow[table.Columns[columnIndex++].ColumnName] = value;
                         }
 

@@ -13,6 +13,7 @@ namespace Data.Xls.Utils;
 public class XlsSheetStream : Stream, IDisposable
 {
     private readonly WorksheetPart worksheetPart;
+    private readonly WorkbookPart workbookPart;
     private IEnumerator<string> csvLineEnumerator;
     private MemoryStream currentBuffer;
     private bool disposed = false;
@@ -22,10 +23,11 @@ public class XlsSheetStream : Stream, IDisposable
     /// Initializes a new instance of the <see cref="XlsSheetStream"/> class.
     /// </summary>
     /// <param name="worksheetPart">The WorksheetPart representing the sheet to be transformed.</param>
-    public XlsSheetStream(Stream stream, WorksheetPart worksheetPart)
+    public XlsSheetStream(Stream stream, WorkbookPart workbookPart, WorksheetPart worksheetPart)
     {
         _stream = stream;
         this.worksheetPart = worksheetPart ?? throw new ArgumentNullException(nameof(worksheetPart));
+        this.workbookPart = workbookPart ?? throw new ArgumentNullException(nameof(workbookPart));
         csvLineEnumerator = CreateCsvLineEnumerator(worksheetPart);
         currentBuffer = new MemoryStream();
     }
@@ -52,7 +54,7 @@ public class XlsSheetStream : Stream, IDisposable
                     {
                         // For simplicity, use cell.InnerText.
                         // In production, handle shared strings and cell formatting.
-                        cells.Add(cell.InnerText);
+                        cells.Add(workbookPart.GetCellValue(cell));
                     }
                     yield return string.Join(",", cells);
                 }

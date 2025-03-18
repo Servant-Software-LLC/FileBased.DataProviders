@@ -43,7 +43,7 @@ public class XlsDatabaseStreamSplitter : IDisposable
             // Retrieve the corresponding WorksheetPart.
             WorksheetPart worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id);
             // Create an XlsSheetStream for this sheet (using the SAX approach).
-            var sheetStream = new XlsSheetStream(_stream, worksheetPart);
+            var sheetStream = new XlsSheetStream(_stream, workbookPart, worksheetPart);
             result[sheet.Name] = sheetStream;
         }
         return result;
