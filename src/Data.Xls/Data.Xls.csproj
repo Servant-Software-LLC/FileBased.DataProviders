@@ -17,4 +17,7 @@
     <ProjectReference Include="..\Data.Csv\Data.Csv.csproj" />
     
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="XlsIO\Read\" />
+  </ItemGroup>
 </Project>

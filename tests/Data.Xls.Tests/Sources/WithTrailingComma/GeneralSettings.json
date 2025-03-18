@@ -1,8 +1,0 @@
-[
-  {
-    "Id": 1,
-    "DefaultDatabaseName": "MockDB",
-    "SeedDatabases": 1,
-    "CaseSensitive": 0,
-  }
-]

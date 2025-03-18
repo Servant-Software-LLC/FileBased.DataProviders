@@ -23,8 +23,8 @@ internal class XlsReader : FileReader
 
         XlsConnection xlsConnection = (XlsConnection)fileConnection;
 
-        //TODO: 
-        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, xlsConnection.GuessTypeRows, pageSize, fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, xlsConnection.GuessTypeRows, pageSize,
+                                                fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
     }
 
     protected override void UpdateFromFile()

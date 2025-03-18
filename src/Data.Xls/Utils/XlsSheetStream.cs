@@ -123,12 +123,13 @@ public class XlsSheetStream : Stream, IDisposable
     public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
-    public void Dispose()
+    public new void Dispose()
     {
         if (!disposed)
         {
             currentBuffer.Dispose();
             csvLineEnumerator.Dispose();
+            base.Dispose();
             disposed = true;
         }
     }
