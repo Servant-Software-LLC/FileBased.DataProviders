@@ -1,5 +1,5 @@
 using Data.Common.Extension;
-using Data.Json.Tests.FileAsDatabase;
+using Data.Tests.Common.FileAsDatabase;
 using System.Data.XmlClient;
 using System.Reflection;
 using Xunit;

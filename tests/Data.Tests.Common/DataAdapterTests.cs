@@ -4,7 +4,7 @@ using System.Data.FileClient;
 using System.Diagnostics;
 using Xunit;
 
-namespace Data.Json.Tests.FileAsDatabase;
+namespace Data.Tests.Common.FileAsDatabase;
 
 public static class DataAdapterTests
 {
