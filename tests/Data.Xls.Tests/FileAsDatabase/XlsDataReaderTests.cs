@@ -22,6 +22,13 @@ public class XlsDataReaderTests
         DataReaderTests.Reader_ShouldReturnData(() =>
        new XlsConnection(ConnectionStrings.Instance.FileAsDB));
     }
+    
+    [Fact]
+    public void Reader_ShouldReturnDateTimeType()
+    {
+        DataReaderTests.Reader_ShouldReturnDateTimeType(() =>
+            new XlsConnection(ConnectionStrings.Instance.WithDateTimeFileAsDB));
+    }
 
     [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()

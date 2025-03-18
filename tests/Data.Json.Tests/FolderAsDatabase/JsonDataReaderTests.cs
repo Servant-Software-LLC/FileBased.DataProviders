@@ -39,7 +39,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnDateTimeType()
     {
         DataReaderTests.Reader_ShouldReturnDateTimeType(() =>
-            new JsonConnection(ConnectionStrings.Instance.WithBirthDate));
+            new JsonConnection(ConnectionStrings.Instance.WithDateTimeFolder));
     }
 
 

@@ -81,7 +81,7 @@ public static class DataReaderTests
     {
         // Arrange
         var connection = createFileConnection();
-        var command = connection.CreateCommand("SELECT * FROM [employeeWithBirthDate]");
+        var command = connection.CreateCommand("SELECT * FROM [withDateTime]");
 
         // Act
         connection.Open();
