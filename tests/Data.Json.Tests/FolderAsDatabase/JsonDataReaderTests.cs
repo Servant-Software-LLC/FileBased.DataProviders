@@ -1,6 +1,7 @@
 using Data.Common.Extension;
 using Data.Json.Tests.FileAsDatabase;
 using Data.Json.Tests.Utils;
+using Data.Tests.Common.FileAsDatabase;
 using Data.Tests.Common.POCOs;
 using Data.Tests.Common.Utils;
 using System.Data.JsonClient;
@@ -39,7 +40,7 @@ public class JsonDataReaderTests
     public void Reader_ShouldReturnDateTimeType()
     {
         DataReaderTests.Reader_ShouldReturnDateTimeType(() =>
-            new JsonConnection(ConnectionStrings.Instance.WithBirthDate));
+            new JsonConnection(ConnectionStrings.Instance.WithDateTimeFolder));
     }
 
 

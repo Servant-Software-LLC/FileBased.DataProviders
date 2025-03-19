@@ -2,7 +2,7 @@ using Data.Common.DataSource;
 using Data.Common.Extension;
 using Data.Common.Utils.ConnectionString;
 using Data.Csv.Tests.Utils;
-using Data.Json.Tests.FileAsDatabase;
+using Data.Tests.Common.FileAsDatabase;
 using Data.Tests.Common.POCOs;
 using Data.Tests.Common.Utils;
 using System.Data;

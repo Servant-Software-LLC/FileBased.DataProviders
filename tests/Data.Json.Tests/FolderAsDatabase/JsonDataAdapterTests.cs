@@ -3,6 +3,7 @@ using Data.Common.Extension;
 using System.Data.JsonClient;
 using System.Reflection;
 using Xunit;
+using Data.Tests.Common.FileAsDatabase;
 
 namespace Data.Json.Tests.FolderAsDatabase;
 

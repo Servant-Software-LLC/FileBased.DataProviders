@@ -11,7 +11,6 @@ namespace Data.Json.JsonIO.Read;
 /// </summary>
 internal class JsonReader : FileReader
 {
-    private const int guessRows = 10;
     private const int bufferSize = 4096;
 
     public JsonReader(JsonConnection jsonConnection)

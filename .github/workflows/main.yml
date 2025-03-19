@@ -13,6 +13,7 @@ env:
   DataJsonPackageId: ServantSoftware.Data.Json
   DataCsvPackageId: ServantSoftware.Data.Csv
   DataXmlPackageId: ServantSoftware.Data.Xml
+  DataXlsPackageId: ServantSoftware.Data.Xls
   EFCoreCommonPackageId: ServantSoftware.EFCore.FileBasedProviders.Common
   EFCoreJsonPackageId: ServantSoftware.EFCore.Json
   EFCoreCsvPackageId: ServantSoftware.EFCore.Csv
@@ -63,6 +64,9 @@ jobs:
 
     - name: Push to nuget.org (XML provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+
+    - name: Push to nuget.org (XLS provider)
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXlsPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (EF Common provider)
       run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate

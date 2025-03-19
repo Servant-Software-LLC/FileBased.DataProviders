@@ -11,10 +11,13 @@ public class DatabaseFullPaths
         this.extension = !string.IsNullOrEmpty(extension) ? extension : throw new ArgumentNullException(nameof(extension));
     }
 
+    public string DatabaseFileName => "database";
     public string Folder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "Folder");
-    public string WithBirthDate => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "WithBirthDate");
+    public string WithDateTimeFolder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "WithDateTime");
     public string LargeFolder => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "LargeFolder");
-    public string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"database.{extension}");
+    public string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"{DatabaseFileName}.{extension}");
+    public string WithDateTime => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"withDateTime.{extension}");
+    public string WithFormula => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithFormula.{extension}");
     public string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{extension}");
     public string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
     public string FolderEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "EmptyDatabase");
