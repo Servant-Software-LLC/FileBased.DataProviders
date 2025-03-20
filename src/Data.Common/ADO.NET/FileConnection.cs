@@ -250,7 +250,10 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         else
         {
             // If the data source provider is set, then properly set the connection string to custom.
-            ConnectionString = FileConnectionString.CustomDataSource;
+            if (string.IsNullOrEmpty(ConnectionString))
+            {
+                ConnectionString = FileConnectionString.CustomDataSource;                
+            }
         }
 
         state = ConnectionState.Open;
