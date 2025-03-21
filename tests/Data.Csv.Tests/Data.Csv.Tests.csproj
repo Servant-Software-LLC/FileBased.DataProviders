@@ -70,6 +70,18 @@
     <None Update="Sources\sample.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Sources\Separators\pipe_separator.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\Separators\semicolon_separator.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\Separators\separators_combination.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Sources\Separators\tab_separator.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Sources\TdmTestData.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

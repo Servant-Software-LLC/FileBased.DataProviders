@@ -27,18 +27,20 @@ using System.Text.RegularExpressions;
 /// </summary>
 public class CsvTransformStream : Stream
 {
-    private StreamReader streamReader;
+    private readonly StreamReader streamReader;
+    private readonly char separator;
+    private int expectedSeparatorCount;
     private MemoryStream bufferStream;
-    private int expectedCommaCount;
     private long logicalPosition;
 
     public string HeaderLine { get; private set; }
 
-    public CsvTransformStream(StreamReader streamReader)
+    public CsvTransformStream(StreamReader streamReader, char separator)
     {
         this.streamReader = streamReader ?? throw new ArgumentNullException(nameof(streamReader));
         bufferStream = new MemoryStream();
         logicalPosition = 0;
+        this.separator = separator;
     }
 
     private void InitializeHeader()
@@ -51,9 +53,9 @@ public class CsvTransformStream : Stream
         }
 
         // Replace all whitespace (including non-breaking) with a single space
-        HeaderLine = Regex.Replace(rawHeaderLine, @"\s+", " ").Replace("\uFFFD", "");
+        HeaderLine = Regex.Replace(rawHeaderLine, @"[^\S\t]+", " ").Replace("\uFFFD", "");
 
-        expectedCommaCount = HeaderLine.Split(',').Length - 1;
+        expectedSeparatorCount = HeaderLine.Split(separator).Length - 1;
         WriteToBuffer(HeaderLine + "\n");
     }
 
@@ -86,10 +88,10 @@ public class CsvTransformStream : Stream
             string line;
             while ((line = streamReader.ReadLine()) != null)
             {
-                int commaCount = CountCommasOutsideQuotes(line);
-                if (commaCount < expectedCommaCount)
+                int separatorCount = CountSeparatorsOutsideQuotes(line);
+                if (separatorCount < expectedSeparatorCount)
                 {
-                    line += new string(',', expectedCommaCount - commaCount);
+                    line += new string(separator, expectedSeparatorCount - separatorCount);
                 }
 
                 WriteToBuffer(line + "\n");
@@ -123,7 +125,7 @@ public class CsvTransformStream : Stream
         return bytesRead;
     }
 
-    private int CountCommasOutsideQuotes(string line)
+    private int CountSeparatorsOutsideQuotes(string line)
     {
         bool inQuotes = false;
         int commaCount = 0;
@@ -131,7 +133,7 @@ public class CsvTransformStream : Stream
         foreach (char c in line)
         {
             if (c == '"') inQuotes = !inQuotes;
-            else if (c == ',' && !inQuotes) commaCount++;
+            else if (c == separator && !inQuotes) commaCount++;
         }
 
         return commaCount;
