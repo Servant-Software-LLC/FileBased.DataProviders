@@ -176,6 +176,43 @@ public class JsonVirtualDataTableTests
     }
 
     [Fact]
+    public void Rows_SingleObjectOutsideOfArray_Success()
+    {
+        // Arrange
+        const string jsonContent = @"
+  {
+    ""name"": ""George"",
+    ""email"": ""GeorgeMaltby@hotmail.com"",
+    ""salary"": 5000,
+    ""married"": false
+  }
+";
+
+        var stream = GetStream(jsonContent);
+
+        // Act: Columns are determined in the constructor.
+        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+
+        // Assert
+        Assert.NotNull(table.Columns);
+        Assert.Equal(4, table.Columns.Count);
+        AssertColumn(table.Columns, "name", typeof(string));
+        AssertColumn(table.Columns, "email", typeof(string));
+        AssertColumn(table.Columns, "salary", typeof(double));
+        AssertColumn(table.Columns, "married", typeof(bool));
+
+        Assert.NotNull(table.Rows);
+        var rows = table.Rows.ToList();
+        Assert.Single(rows);
+        var row = rows[0];
+        Assert.Equal("George", row["name"]);
+        Assert.Equal("GeorgeMaltby@hotmail.com", row["email"]);
+        Assert.Equal(5000d, row["salary"]);
+        Assert.Equal(false, row["married"]);
+    }
+
+
+    [Fact]
     public void Rows_RowPastGuessRowOfDifferentType_ShouldThrowError()
     {
         //Arrange
