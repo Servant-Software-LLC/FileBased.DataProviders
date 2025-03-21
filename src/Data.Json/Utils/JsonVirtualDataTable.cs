@@ -262,10 +262,15 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         var reader = new StreamJsonReader(stream, bufferSize);
         while (reader.Read())
         {
-            if (!insideArray && reader.TokenType == JsonTokenType.StartArray)
+            if (!insideArray) 
             {
-                insideArray = true;
-                continue;
+                // Since https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/95, we allow a single JSON object that isn't in an array.
+                insideArray = reader.TokenType is JsonTokenType.StartArray or JsonTokenType.StartObject;
+
+                if (reader.TokenType == JsonTokenType.StartArray)
+                {
+                    continue;
+                } 
             }
             if (insideArray)
             {
