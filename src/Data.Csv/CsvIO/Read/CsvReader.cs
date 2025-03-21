@@ -63,8 +63,12 @@ internal class CsvReader : FileReader
     private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName)
     {
         CsvConnection csvConnection = (CsvConnection)fileConnection;
+        CsvSeparatorDetector separatorDetector = new(streamReader.BaseStream, csvConnection.SupportedSeparators, csvConnection.GuessSeparatorRows);
+        var separator = separatorDetector.Detect();
+
         CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, csvConnection.GuessTypeRows, 
-                                                   fileConnection.PreferredFloatingPointDataType, csvConnection.GuessTypeFunction);
+                                                   fileConnection.PreferredFloatingPointDataType, csvConnection.GuessTypeFunction,
+                                                   separator);
 
         return virtualDataTable;
     }
