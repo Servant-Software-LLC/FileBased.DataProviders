@@ -1,6 +1,6 @@
 ﻿namespace Data.Common.Utils;
 
-internal class StreamedTableManager : IDisposable
+public class StreamedTableManager : IDisposable
 {
     private const int streamResetsAllowed = 4;
     private readonly Dictionary<string, StreamHolder> tables = new();

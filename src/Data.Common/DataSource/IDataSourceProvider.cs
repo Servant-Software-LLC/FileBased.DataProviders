@@ -7,6 +7,11 @@
 public interface IDataSourceProvider
 {
     /// <summary>
+    /// Name of the database
+    /// </summary>
+    string Database { get; }
+
+    /// <summary>
     /// Gets the type of the data source (e.g., Directory or File).
     /// </summary>
     DataSourceType DataSourceType { get; }

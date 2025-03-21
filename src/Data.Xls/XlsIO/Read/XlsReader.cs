@@ -1,8 +1,6 @@
-﻿using Data.Xls.Utils;
+﻿using Data.Csv.Utils;
 using SqlBuildingBlocks.POCOs;
 using System.Data.XlsClient;
-using Data.Common.Utils.ConnectionString;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Data.Xls.XlsIO.Read;
 
@@ -15,39 +13,51 @@ internal class XlsReader : FileReader
     {
     }
 
-    protected override void ReadFromFile()
+    protected override void ReadFromFile() =>
+        throw new NotSupportedException("ReadFromFile should not be called.  XLS provider makes collection of streams for each table.");
+
+    protected override void UpdateFromFile() =>
+        throw new NotSupportedException("UpdateFromFile should not be called.  XLS provider makes collection of streams for each table.");
+
+    protected override void ReadFromFolder(string tableName)
     {
-        StreamReader streamReaderTable = Read(string.Empty);
+        StreamReader streamReaderTable = Read(tableName);
 
-        DataSet?.Dispose();
+        //The CsvVirtualDataTable will assume ownership of disposing the textReader, because the
+        //IEnumerable<DataRow> Rows within it could still be fetching from this reader.
+        VirtualDataTable dataTable = PrepareDataTable(streamReaderTable, tableName);
 
-        XlsConnection xlsConnection = (XlsConnection)fileConnection;
-        var databaseName = Path.GetFileNameWithoutExtension(xlsConnection.Database);
-        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, databaseName, xlsConnection.GuessTypeRows, pageSize,
-                                                fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+        DataSet!.Tables.Add(dataTable ?? new VirtualDataTable(new DataTable(tableName)));
     }
 
-    protected override void UpdateFromFile()
+    protected override void UpdateFromFolder(string tableName)
     {
-        StreamReader streamReaderTable = Read(string.Empty);
-
+        //Remove the table if it exists
         DataSet?.Dispose();
+        DataSet = new();
 
-        XlsConnection xlsConnection = (XlsConnection)fileConnection;
-        var databaseName = Path.GetFileNameWithoutExtension(xlsConnection.Database);
-        DataSet = new XlsDatabaseVirtualDataSet(streamReaderTable.BaseStream, databaseName, xlsConnection.GuessTypeRows, pageSize, fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+        StreamReader streamReaderTable = Read(tableName);
+
+        //The CsvVirtualDataTable will assume ownership of disposing the textReader, because the
+        //IEnumerable<DataRow> Rows within it could still be fetching from this reader.
+        var newDataTable = PrepareDataTable(streamReaderTable, tableName);
+        DataSet!.Tables.Add(newDataTable);
     }
-
-    protected override void ReadFromFolder(string tableName) =>
-        throw new NotSupportedException("FolderAsDatabase is not supported for the XLS provider.");
-
-    protected override void UpdateFromFolder(string tableName) =>
-        throw new NotSupportedException("FolderAsDatabase is not supported for the XLS provider.");
 
     private StreamReader Read(string tableName)
     {
         StreamReader textReader = fileConnection.DataSourceProvider.GetTextReader(tableName);
         return textReader;
+    }
+
+    // Read the data from the folder to create a DataTable
+    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName)
+    {
+        XlsConnection xlsConnection = (XlsConnection)fileConnection;
+        CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, xlsConnection.GuessTypeRows,
+                                                   fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+
+        return virtualDataTable;
     }
 
 }

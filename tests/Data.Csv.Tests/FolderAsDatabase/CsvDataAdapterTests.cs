@@ -130,7 +130,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string tableName = "Table";
 
             var connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, csvString);
+            TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
@@ -168,7 +168,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string tableName = "Table";
 
             IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, csvString);
+            TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();
@@ -201,7 +201,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
             const string tableName = "Table";
 
             IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);
-            StreamedDataSource dataSourceProvider = new(tableName, csvString);
+            TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, csvString);
 
             connection.DataSourceProvider = dataSourceProvider;
             connection.Open();

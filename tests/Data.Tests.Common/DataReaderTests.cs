@@ -47,7 +47,7 @@ public static class DataReaderTests
         connection.Close();
     }
     
-    public static void Reader_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -55,8 +55,7 @@ public static class DataReaderTests
         connection.Open();
 
         // Act - Query the locations table
-        var locations = TableName.GetTableName(databaseName, "locations");
-        var command = connection.CreateCommand($"SELECT * FROM [{locations}]");
+        var command = connection.CreateCommand($"SELECT * FROM [locations]");
         var reader = command.ExecuteReader();
 
         // Assert
@@ -65,8 +64,7 @@ public static class DataReaderTests
         Assert.Equal(4, fieldCount);
 
         // Act - Query the employees table
-        var employees = TableName.GetTableName(databaseName, "employees");
-        command = connection.CreateCommand($"SELECT * FROM [{employees}]");
+        command = connection.CreateCommand($"SELECT * FROM [employees]");
         reader = command.ExecuteReader();
         
         // Assert
@@ -78,13 +76,12 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnDateTimeType<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_ShouldReturnDateTimeType<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
-        var withDateTime = TableName.GetTableName(databaseName, "withDateTime");
-        var command = connection.CreateCommand($"SELECT * FROM [{withDateTime}]");
+        var command = connection.CreateCommand($"SELECT * FROM [withDateTime]");
 
         // Act
         connection.Open();
@@ -113,7 +110,7 @@ public static class DataReaderTests
     {
         // Arrange
         var connection = createFileConnection();
-        var command = connection.CreateCommand("SELECT * FROM [withFormula - withFormula]");
+        var command = connection.CreateCommand("SELECT * FROM [WithFormula]");
 
         // Act
         connection.Open();
@@ -131,13 +128,12 @@ public static class DataReaderTests
         connection.Close();
     }
     
-    public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_ShouldReturnData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
-        var employees = TableName.GetTableName(databaseName, "employees");
-        var command = connection.CreateCommand($"SELECT * FROM [{employees}]");
+        var command = connection.CreateCommand($"SELECT * FROM [employees]");
 
         // Act
         connection.Open();
@@ -178,13 +174,12 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_Limit_ShouldReturnOnlyFirstRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_Limit_ShouldReturnOnlyFirstRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
-        var tableName = TableName.GetTableName(databaseName, "employees");
-        var command = connection.CreateCommand($"SELECT * FROM [{tableName}] LIMIT 1");
+        var command = connection.CreateCommand($"SELECT * FROM [employees] LIMIT 1");
 
         // Act
         connection.Open();
@@ -214,13 +209,12 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_Limit_ShouldReturnOnlySecondRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_Limit_ShouldReturnOnlySecondRow<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
-        var tableName = TableName.GetTableName(databaseName, "employees");
-        var command = connection.CreateCommand($"SELECT * FROM [{tableName}] LIMIT 1,1");
+        var command = connection.CreateCommand($"SELECT * FROM [employees] LIMIT 1,1");
 
         // Act
         connection.Open();
@@ -253,7 +247,7 @@ public static class DataReaderTests
     }
 
 
-    public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string fileName = "")
+    public static void Reader_ShouldReturnSchemaTablesData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -273,18 +267,16 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var firstTableName = reader["TABLE_NAME"].ToString();
-            var employeesTableName = TableName.GetTableName(fileName, "employees");
-            var locationsTableName = TableName.GetTableName(fileName, "locations");
-            Assert.True(string.Compare(firstTableName, employeesTableName, true) == 0 ||
-                        string.Compare(firstTableName, locationsTableName, true) == 0);
+            Assert.True(string.Compare(firstTableName, "employees", true) == 0 ||
+                        string.Compare(firstTableName, "locations", true) == 0);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
 
             //second row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
             var secondTableName = reader["TABLE_NAME"].ToString();
-            Assert.True(string.Compare(firstTableName, employeesTableName, true) == 0 ||
-                        string.Compare(firstTableName, locationsTableName, true) == 0);
+            Assert.True(string.Compare(secondTableName, "employees", true) == 0 ||
+                        string.Compare(secondTableName, "locations", true) == 0);
             Assert.NotEqual(firstTableName, secondTableName);
             Assert.Equal("BASE TABLE", reader["TABLE_TYPE"]);
 
@@ -295,7 +287,7 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnSchemaColumnsData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string fileName = "")
+    public static void Reader_ShouldReturnSchemaColumnsData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -307,7 +299,6 @@ public static class DataReaderTests
         connection.Open();
         using (var reader = command.ExecuteReader())
         {
-            var employeesTableName = TableName.GetTableName(fileName, "employees");
             // Assert
             Assert.NotNull(reader);
             Assert.Equal(4, reader.FieldCount);
@@ -315,57 +306,56 @@ public static class DataReaderTests
             //First Row
             Assert.True(reader.Read(), $"Unable to read the first row of the {nameof(DbDataReader)} in INFORMATION_SCHEMA.COLUMNS");
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(employeesTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("email", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
 
             //Second Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(employeesTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("married", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : typeof(bool)).FullName, reader["DATA_TYPE"]);
 
             //Third Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(employeesTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("name", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
 
             //Fourth Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(employeesTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("employees", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("salary", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
-            var locationsTableName = TableName.GetTableName(fileName, "locations");
             //Fifth Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(locationsTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("city", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
 
             //Sixth Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(locationsTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("id", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
             //Seventh Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(locationsTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("state", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal(typeof(string).FullName, reader["DATA_TYPE"]);
 
             //Eighth Row
             Assert.True(reader.Read());
             Assert.Equal(databaseName, reader["TABLE_CATALOG"]);
-            Assert.True(string.Compare(locationsTableName, reader["TABLE_NAME"].ToString(), true) == 0);
+            Assert.True(string.Compare("locations", reader["TABLE_NAME"].ToString(), true) == 0);
             Assert.True(string.Compare("zip", reader["COLUMN_NAME"].ToString(), true) == 0);
             Assert.Equal((connection.DataTypeAlwaysString ? typeof(string) : connection.PreferredFloatingPointDataType.ToType()).FullName, reader["DATA_TYPE"]);
 
@@ -376,13 +366,12 @@ public static class DataReaderTests
         connection.Close();
     }
 
-    public static void Reader_ShouldReturnData_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_ShouldReturnData_WithFilter<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
         var connection = createFileConnection();
-        var locations = TableName.GetTableName(databaseName, "locations");
-        var command = connection.CreateCommand($"SELECT * FROM [{locations}] WHERE zip = 78132");
+        var command = connection.CreateCommand($"SELECT * FROM [locations] WHERE zip = 78132");
 
         // Act
         connection.Open();
@@ -438,7 +427,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.True(count > 0, "No records where returned in the INNER JOINs");
     }
 
-    public static void Reader_ShouldReadDataWithSelectedColumns<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_ShouldReadDataWithSelectedColumns<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -446,8 +435,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Open();
 
         // Act - Query two columns from the locations table
-        var locations = TableName.GetTableName(databaseName, "locations");
-        var command = connection.CreateCommand($"SELECT city, state FROM [{locations}]");
+        var command = connection.CreateCommand($"SELECT city, state FROM [locations]");
         var reader = command.ExecuteReader();
 
         // Assert
@@ -456,8 +444,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.Equal(2, fieldCount);
 
         // Act - Query two columns from the employees table
-        var employees = TableName.GetTableName(databaseName, "employees");
-        command = connection.CreateCommand($"SELECT name, salary FROM [{employees}]");
+        command = connection.CreateCommand($"SELECT name, salary FROM [employees]");
         reader = command.ExecuteReader();
 
         // Assert
@@ -469,7 +456,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
-    public static void Reader_NextResult_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_NextResult_ShouldReadData<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -477,9 +464,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Open();
 
         // Act - Query the locations table
-        var locations = TableName.GetTableName(databaseName, "locations");
-        var employees = TableName.GetTableName(databaseName, "employees");
-        var command = connection.CreateCommand($"SELECT * FROM [{locations}]; SELECT name, email FROM [{employees}]");
+        var command = connection.CreateCommand($"SELECT * FROM [locations]; SELECT name, email FROM [employees]");
         var reader = command.ExecuteReader();
 
         // Assert (on locations SELECT)
@@ -505,7 +490,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
-    public static void Reader_NextResult_UpdateReturningOne<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, string databaseName = "")
+    public static void Reader_NextResult_UpdateReturningOne<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         // Arrange
@@ -513,8 +498,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Open();
 
         // Act - Query the locations table
-        var locations = TableName.GetTableName(databaseName, "locations");
-        var command = connection.CreateCommand($"UPDATE [{locations}] SET city='Los Angeles' where id=2 RETURNING 1");
+        var command = connection.CreateCommand($"UPDATE [locations] SET city='Los Angeles' where id=2 RETURNING 1");
         var reader = command.ExecuteReader();
 
         // Assert
@@ -627,7 +611,7 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
 
         var connection = createFileConnection();
 
-        StreamedDataSource dataSourceProvider = new(tableName, unendingStream);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, unendingStream);
         connection.DataSourceProvider = dataSourceProvider;
 
         connection.Open();

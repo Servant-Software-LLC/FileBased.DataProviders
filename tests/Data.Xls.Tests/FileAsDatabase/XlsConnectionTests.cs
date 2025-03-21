@@ -38,10 +38,10 @@ public class XlsConnectionTests
     [Fact]
     public void GetSchema_Tables() =>
         ConnectionTests.GetSchema_Tables(() =>
-            new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
+            new XlsConnection(ConnectionStrings.Instance.FileAsDB));
 
     [Fact]
     public void GetSchema_Columns() =>
         ConnectionTests.GetSchema_Columns(() =>
-            new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
+            new XlsConnection(ConnectionStrings.Instance.FileAsDB));
 }

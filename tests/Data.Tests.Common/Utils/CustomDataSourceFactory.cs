@@ -27,7 +27,7 @@ public static class CustomDataSourceFactory
         var folderPath = largeFolder ? database.LargeFolder : database.Folder;
         var extension = connection.FileExtension;
 
-        var dataSourceProvider = new StreamedDataSource();
+        var dataSourceProvider = new TableStreamedDataSource("MyDatabase");
         AddTableToDataSource(folderPath, "employees", extension, dataSourceProvider);
         AddTableToDataSource(folderPath, "locations", extension, dataSourceProvider);
 
@@ -36,7 +36,7 @@ public static class CustomDataSourceFactory
         return connection;
     }
 
-    public static void AddTableToDataSource(string folderPath, string tableName, string fileExtension, StreamedDataSource dataSourceProvider)
+    public static void AddTableToDataSource(string folderPath, string tableName, string fileExtension, TableStreamedDataSource dataSourceProvider)
     {
         dataSourceProvider.AddTable(tableName, () =>
             {

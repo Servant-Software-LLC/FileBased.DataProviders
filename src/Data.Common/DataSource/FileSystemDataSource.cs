@@ -5,7 +5,6 @@
 /// </summary>
 public class FileSystemDataSource : IDataSourceProvider
 {
-    private readonly string path;
     private readonly string fileExtension;
     private FileSystemWatcher fileWatcher;
     private readonly IFileConnection fileConnection;
@@ -19,11 +18,16 @@ public class FileSystemDataSource : IDataSourceProvider
     /// <exception cref="ArgumentNullException">Thrown when the provided path is null or empty.</exception>
     public FileSystemDataSource(string path, DataSourceType dataSourceType, string fileExtension, IFileConnection fileConnection)
     {
-        this.path = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : path;
+        Database = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : path;
         DataSourceType = dataSourceType;
         this.fileExtension = fileExtension;
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
     }
+
+    /// <summary>
+    /// Name of the database
+    /// </summary>
+    public string Database { get; }
 
     /// <summary>
     /// Gets the type of the data source.
@@ -43,7 +47,7 @@ public class FileSystemDataSource : IDataSourceProvider
             case DataSourceType.Directory:
                 return File.Exists(GetTablePath(tableName));
             case DataSourceType.File:
-                return File.Exists(path);
+                return File.Exists(Database);
             default:
                 throw new InvalidOperationException($"Cannot check storage for a data source of type {DataSourceType}");
         }
@@ -96,7 +100,7 @@ public class FileSystemDataSource : IDataSourceProvider
     public string StorageIdentifier(string tableName) => DataSourceType switch
     {
         DataSourceType.Directory => GetTableFileName(tableName),
-        DataSourceType.File => Path.GetFileName(path),
+        DataSourceType.File => Path.GetFileName(Database),
         _ => throw new InvalidOperationException($"Cannot get a storage identifier for a data source of type {DataSourceType}")
     };
 
@@ -159,7 +163,7 @@ public class FileSystemDataSource : IDataSourceProvider
     private void FileWatcher_Changed(object sender, FileSystemEventArgs e) =>
         Changed?.Invoke(sender, new DataSourceEventArgs(Path.GetFileNameWithoutExtension(e.FullPath)));
 
-    private StreamReader GetTextReader_FileAsDB() => GetTextReaderFromFilePath(path);
+    private StreamReader GetTextReader_FileAsDB() => GetTextReaderFromFilePath(Database);
 
     private StreamReader GetTextReaderFromFilePath(string path)
     {
@@ -176,7 +180,7 @@ public class FileSystemDataSource : IDataSourceProvider
         return GetTextWriterFromFilePath(pathToTableFile);
     }
 
-    private TextWriter GetTextWriter_FileAsDB() => GetTextWriterFromFilePath(path);
+    private TextWriter GetTextWriter_FileAsDB() => GetTextWriterFromFilePath(Database);
     
     private TextWriter GetTextWriterFromFilePath(string path)
     {
@@ -199,7 +203,7 @@ public class FileSystemDataSource : IDataSourceProvider
         if (DataSourceType != DataSourceType.Directory)
             throw new InvalidOperationException($"Can only call the {nameof(GetTablePath)} method on a data source of type {nameof(DataSourceType.Directory)}. DataSourceType={DataSourceType}");
 
-        return Path.Combine(path, GetTableFileName(tableName));
+        return Path.Combine(Database, GetTableFileName(tableName));
     }
 
     private string GetTableFileName(string tableName) => $"{tableName}.{fileExtension}";

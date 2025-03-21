@@ -9,14 +9,14 @@ public static class FileConnectionExtensions
         if (fileConnection.DataSourceProvider != null)
             return fileConnection.DataSourceProvider.DataSourceType;
 
-        var database = fileConnection.Database;
-        if (IsAdmin(database))
+        var dataSource = fileConnection.DataSource;
+        if (IsAdmin(dataSource))
             return DataSourceType.Admin;
 
-        if (File.Exists(database))
+        if (File.Exists(dataSource))
             return DataSourceType.File;
         
-        if (Directory.Exists(database))
+        if (Directory.Exists(dataSource))
             return DataSourceType.Directory;
 
         return DataSourceType.None;

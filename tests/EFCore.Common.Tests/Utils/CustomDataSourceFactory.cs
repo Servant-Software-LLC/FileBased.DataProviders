@@ -10,7 +10,7 @@ public static class CustomDataSourceFactory
         var database = new DatabaseFullPaths(extension);
         var folderPath = database.gettingStartedFolderDataBase;
 
-        var dataSourceProvider = new StreamedDataSource();
+        var dataSourceProvider = new TableStreamedDataSource("MyDatabase");
         Data.Tests.Common.Utils.CustomDataSourceFactory.AddTableToDataSource(folderPath, "Blogs", extension, dataSourceProvider);
         Data.Tests.Common.Utils.CustomDataSourceFactory.AddTableToDataSource(folderPath, "Posts", extension, dataSourceProvider);
 
