@@ -67,7 +67,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets the name of the database.
     /// </summary>
-    public override string Database => connectionString.DataSource ?? string.Empty;
+    public override string Database => DataSourceProvider != null ? DataSourceProvider.Database : connectionString.DataSource ?? string.Empty;
 
     /// <summary>
     /// Gets the state of the connection.
@@ -126,7 +126,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Gets a value indicating whether the database is a folder.
     /// </summary>
-    public bool FolderAsDatabase => DataSourceType == DataSourceType.Directory;
+    public virtual bool FolderAsDatabase => DataSourceType == DataSourceType.Directory;
 
     /// <summary>
     /// Gets a value indicating whether the database is in admin mode.
@@ -233,18 +233,18 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
         {
             if (!CreateIfNotExist)
             {
-                ThrowHelper.ThrowIfInvalidPath(DataSourceType, Database);
+                ThrowHelper.ThrowIfInvalidPath(DataSourceType, DataSource);
             }
             else
             {
                 if (DataSourceType == DataSourceType.None)
-                    FileCreateDatabase<TFileParameter>.Execute(this, Database);
+                    FileCreateDatabase<TFileParameter>.Execute(this, DataSource);
             }
 
             var dataSourceType = DataSourceType;
             if (dataSourceType == DataSourceType.Directory || dataSourceType == DataSourceType.File)
             {
-                DataSourceProvider = new FileSystemDataSource(Database, dataSourceType, FileExtension, this);
+                DataSourceProvider = new FileSystemDataSource(DataSource, dataSourceType, FileExtension, this);
             }
         }
         else

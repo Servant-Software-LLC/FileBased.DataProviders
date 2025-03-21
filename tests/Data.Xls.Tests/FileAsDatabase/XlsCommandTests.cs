@@ -4,6 +4,9 @@ using Data.Tests.Common.Utils;
 using System.Data.XlsClient;
 using System.Reflection;
 using Xunit;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml;
 
 namespace Data.Xls.Tests.FileAsDatabase;
 
@@ -16,14 +19,14 @@ public class XlsCommandTests
     public void ExecuteScalar_ShouldReturnFirstRowFirstColumn()
     {
         CommandTests.ExecuteScalar_ShouldReturnFirstRowFirstColumn(
-          () => new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
+          () => new XlsConnection(ConnectionStrings.Instance.FileAsDB));
     }
 
     [Fact]
     public void ExecuteScalar_ShouldCountRecords()
     {
         CommandTests.ExecuteScalar_ShouldCountRecords(
-           () => new XlsConnection(ConnectionStrings.Instance.FileAsDB), ConnectionStrings.Instance.Database.DatabaseFileName);
+           () => new XlsConnection(ConnectionStrings.Instance.FileAsDB));
     }
 
     [Fact]
@@ -39,7 +42,7 @@ public class XlsCommandTests
     {
         var tempFolder = FileUtils.GetTempFolderName();
         var databaseName = Path.Combine(tempFolder, "MyDatabase.xls");
-        File.Create(databaseName);
+        CreateEmptyXlsx(databaseName);
 
         CommandTests.ExecuteNonQuery_Admin_CreateDatabase(getConnectionString =>
         {
@@ -96,4 +99,36 @@ public class XlsCommandTests
         CommandTests.ExecuteNonQuery_CreateTable(
           () => new XlsConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
+
+    private static void CreateEmptyXlsx(string filePath)
+    {
+        // Create a new SpreadsheetDocument (XLSX) in read/write mode.
+        using (SpreadsheetDocument document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook))
+        {
+            // Add a WorkbookPart to the document.
+            WorkbookPart workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
+
+            // Add a WorksheetPart to the WorkbookPart.
+            WorksheetPart worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            // Create an empty worksheet with a SheetData element.
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            // Create the Sheets collection and add it to the workbook.
+            Sheets sheets = document.WorkbookPart!.Workbook.AppendChild(new Sheets());
+
+            // Append a new Sheet to the Sheets collection.
+            Sheet sheet = new Sheet()
+            {
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "Sheet1"
+            };
+            sheets.Append(sheet);
+
+            // Save the workbook.
+            workbookPart.Workbook.Save();
+        }
+    }
+
 }

@@ -7,59 +7,25 @@ namespace Data.Common.DataSource;
 /// Provides a data source implementation that stores table data in memory using streams. 
 /// This is useful for scenarios where data is transient or does not need to be persisted to the file system.
 /// </summary>
-public class StreamedDataSource : IDataSourceProvider, IDisposable
+public abstract class StreamedDataSource : IDataSourceProvider, IDisposable
 {
-    private readonly StreamedTableManager tables = new();
+    protected readonly StreamedTableManager tables = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamedDataSource"/> class.
     /// </summary>
-    public StreamedDataSource() { }
+    protected StreamedDataSource(string database) =>
+        Database = !string.IsNullOrEmpty(database) ? database : throw new ArgumentNullException(nameof(database));
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamedDataSource"/> class.
+    /// Name of the database
     /// </summary>
-    /// <param name="tableName">The name of the initial table.</param>
-    /// <param name="utf8TableData">The stream containing UTF-8 encoded data for the initial table.</param>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown when either <paramref name="tableName"/> or <paramref name="utf8TableData"/> is null.
-    /// </exception>
-    public StreamedDataSource(string tableName, Stream stream) => AddTable(tableName, stream);
-
-    public StreamedDataSource(string tableName, string tableContent) => AddTable(tableName, tableContent);
-
-    public StreamedDataSource(string tableName, Func<Stream> streamCreationFunc) => AddTable(tableName, streamCreationFunc);
-
-    /// <summary>
-    /// Adds a new table and its associated data stream to the data source.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="utf8TableData">The stream containing UTF-8 encoded data for the table.</param>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown when either <paramref name="tableName"/> or <paramref name="utf8TableData"/> is null.
-    /// </exception>
-    public void AddTable(string tableName, Func<Stream> streamCreationFunc)
-    {
-        tables.AddTable(tableName, streamCreationFunc);
-        Changed?.Invoke(this, new DataSourceEventArgs(tableName));
-    }
-
-    public void AddTable(string tableName, Stream stream) => AddTable(tableName, ()=>stream);
-
-    public void AddTable(string tableName, string tableContent)
-    {
-        if (string.IsNullOrEmpty(tableContent))
-            throw new ArgumentNullException(nameof(tableContent));
-
-        byte[] fileBytes = Encoding.UTF8.GetBytes(tableContent);
-        MemoryStream fileStream = new MemoryStream(fileBytes);
-        AddTable(tableName, fileStream);
-    }
+    public string Database { get; private set; }
 
     /// <summary>
     /// Gets the type of the data source, which is <see cref="DataSourceType.Directory"/> for this implementation.
     /// </summary>
-    public DataSourceType DataSourceType => DataSourceType.Directory;
+    public virtual DataSourceType DataSourceType => DataSourceType.Directory;
 
     /// <summary>
     /// Checks if storage exists for the specified table.
@@ -120,6 +86,8 @@ public class StreamedDataSource : IDataSourceProvider, IDisposable
     /// Occurs when a table in the data source is changed. (Not applicable for in-memory streams.)
     /// </summary>
     public event DataSourceEventHandler Changed;
+
+    protected virtual void OnChanged(string tableName) => Changed?.Invoke(this, new DataSourceEventArgs(tableName));
 
     public void Dispose()
     {

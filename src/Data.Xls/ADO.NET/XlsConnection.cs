@@ -1,5 +1,9 @@
 ﻿using Data.Common.DataSource;
 using Data.Common.Utils.ConnectionString;
+using Data.Xls.DataSource;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml;
 
 namespace System.Data.XlsClient;
 
@@ -7,7 +11,7 @@ namespace System.Data.XlsClient;
 /// Represents a connection for XLS operations.
 /// </summary>
 /// <inheritdoc/>
-public class XlsConnection : FileConnection<XlsParameter>
+public class XlsConnection : FileConnection<XlsParameter>, IDisposable
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="XlsConnection"/> class.
@@ -26,7 +30,23 @@ public class XlsConnection : FileConnection<XlsParameter>
     /// </summary>
     /// <param name="connectionString">The connection string to use.</param>
     public XlsConnection(FileConnectionString connectionString)
-        : base(connectionString) { }
+        : base(connectionString) 
+    { 
+        //NOTE:  This is a bit of a workaround for now.  This provider has been built differently in regards to the File/FolderAsDatabase concept.
+        //       Until now, the stream data sources only supported the FolderAsDatabase concept.  When an XLS file path is provided, this code
+        //       here, splits it into streams/table to mimic a FolderAsDatabase approach for the streamed data source.  When/if this gets reworked
+        //       to properly support FileAsDatabase streamed data sources, then this workaround can go away.
+        if (DataSourceType == DataSourceType.File)
+        {
+            var databaseFile = DataSource;
+            var streamXlsFile = File.OpenRead(databaseFile);
+            var dataSourceProvider = new XlsStreamedDataSource(databaseFile, streamXlsFile);
+            DataSourceProvider = dataSourceProvider;
+
+            
+            ConnectionString = FileConnectionString.CustomDataSource;
+        }
+    }
 
     /// <inheritdoc />
     public override string FileExtension => "xls";
@@ -106,10 +126,48 @@ public class XlsConnection : FileConnection<XlsParameter>
     /// <inheritdoc/>
     protected override void CreateFileAsDatabase(string databaseFileName) =>
         //TODO: Maltby - Is this good enough?  Or must an XLS contain some basic content.
-        File.WriteAllText(databaseFileName, string.Empty);
+        CreateEmptyXlsx(databaseFileName);
 
     /// <inheritdoc/>
     protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => 
         throw new InvalidOperationException("The XLS provider does not support writing at this time.");
 
+    private static void CreateEmptyXlsx(string filePath)
+    {
+        // Create a new SpreadsheetDocument (XLSX) in read/write mode.
+        using (SpreadsheetDocument document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook))
+        {
+            // Add a WorkbookPart to the document.
+            WorkbookPart workbookPart = document.AddWorkbookPart();
+            workbookPart.Workbook = new Workbook();
+
+            // Add a WorksheetPart to the WorkbookPart.
+            WorksheetPart worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            // Create an empty worksheet with a SheetData element.
+            worksheetPart.Worksheet = new Worksheet(new SheetData());
+
+            // Create the Sheets collection and add it to the workbook.
+            Sheets sheets = document.WorkbookPart.Workbook.AppendChild(new Sheets());
+
+            // Append a new Sheet to the Sheets collection.
+            Sheet sheet = new Sheet()
+            {
+                Id = document.WorkbookPart.GetIdOfPart(worksheetPart),
+                SheetId = 1,
+                Name = "Sheet1"
+            };
+            sheets.Append(sheet);
+
+            // Save the workbook.
+            workbookPart.Workbook.Save();
+        }
+    }
+
+    void IDisposable.Dispose() 
+    {
+        if (DataSourceProvider != null && DataSourceProvider is IDisposable disposableDataSourceProvider)
+        {
+            disposableDataSourceProvider.Dispose();
+        }
+    }
 }

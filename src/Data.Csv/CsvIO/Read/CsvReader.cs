@@ -6,6 +6,8 @@ namespace Data.Csv.CsvIO.Read;
 
 internal class CsvReader : FileReader
 {
+    private const int pageSize = 4096;
+
     public CsvReader(CsvConnection connection) 
         : base(connection)
     {
@@ -58,7 +60,7 @@ internal class CsvReader : FileReader
     #endregion
 
     // Read the data from the folder to create a DataTable
-    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName, int pageSize = 1000)
+    private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName)
     {
         CsvConnection csvConnection = (CsvConnection)fileConnection;
         CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, csvConnection.GuessTypeRows, 

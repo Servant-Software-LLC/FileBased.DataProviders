@@ -15,7 +15,7 @@ internal static class CsvConnectionFactory
         byte[] fileBytes = Encoding.UTF8.GetBytes(csvContent);
         MemoryStream fileStream = new MemoryStream(fileBytes);
         var connection = new CsvConnection(FileConnectionString.CustomDataSource);
-        StreamedDataSource dataSourceProvider = new(tableName, fileStream);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, fileStream);
 
         connection.DataSourceProvider = dataSourceProvider;
 
