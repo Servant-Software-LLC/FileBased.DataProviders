@@ -104,6 +104,47 @@ public static class DataReaderTests
 
         connection.Close();
     }
+
+    public static void Reader_ShouldReadCellsWithCommaInItsValue<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [cellsWithComma]");
+        
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(2, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Dominic, Ahmed", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("30, 50", reader["Age"]);
+            
+            //second row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("\"Rahul\"", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("\"70\"", reader["Age"]);
+            
+            //third row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("\"Marius\",\"Elvyn\"", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("\"60\", 20", reader["Age"]);
+        }
+
+        connection.Close();
+    }
     
     public static void Reader_ShouldReadFormulasAsString<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()

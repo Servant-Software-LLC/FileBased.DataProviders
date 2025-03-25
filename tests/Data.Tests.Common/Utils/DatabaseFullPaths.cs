@@ -18,6 +18,7 @@ public class DatabaseFullPaths
     public string File => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"{DatabaseFileName}.{extension}");
     public string WithDateTime => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"withDateTime.{extension}");
     public string WithFormula => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"WithFormula.{extension}");
+    public string CellsWithComma => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"cellsWithComma.{extension}");
     public string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{extension}");
     public string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
     public string FolderEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "EmptyDatabase");
