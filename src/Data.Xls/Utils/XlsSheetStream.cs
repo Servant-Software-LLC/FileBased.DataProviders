@@ -56,7 +56,7 @@ public class XlsSheetStream : Stream, IDisposable
                         // In production, handle shared strings and cell formatting.
                         cells.Add(workbookPart.GetCellValue(cell));
                     }
-                    yield return string.Join(",", cells);
+                    yield return string.Join(",", cells.EscapeCsvValues());
                 }
             }
         }
