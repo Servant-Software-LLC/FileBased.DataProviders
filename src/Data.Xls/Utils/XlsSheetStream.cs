@@ -41,6 +41,7 @@ public class XlsSheetStream : Stream, IDisposable
         // Use OpenXmlReader for forward-only, low-memory parsing.
         using (var reader = OpenXmlReader.Create(wsPart))
         {
+            var maxColumnCount = 0;
             // Loop through the XML elements.
             while (reader.Read())
             {
@@ -66,6 +67,14 @@ public class XlsSheetStream : Stream, IDisposable
                         // Process the actual cell value
                         cells.Add(workbookPart.GetCellValue(cell));
                         expectedColumnIndex++;
+                    }
+                    
+                    maxColumnCount = Math.Max(maxColumnCount, expectedColumnIndex);
+                    
+                    // If the last columns were missing, fill them with empty values
+                    while (cells.Count < maxColumnCount)
+                    {
+                        cells.Add("");
                     }
 
                     yield return string.Join(",", cells.EscapeCsvValues());

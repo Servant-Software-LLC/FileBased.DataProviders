@@ -161,7 +161,7 @@ public static class DataReaderTests
         {
             // Assert
             Assert.NotNull(reader);
-            Assert.Equal(4, reader.FieldCount);
+            Assert.Equal(5, reader.FieldCount);
 
             var columns = reader.GetColumnSchema();
             var nameColumn = columns.First(col => col.ColumnName == "Name");
@@ -172,6 +172,8 @@ public static class DataReaderTests
             Assert.Equal(typeof(bool), marriedColumn.DataType);
             var cityColumn = columns.First(col => col.ColumnName == "City");
             Assert.Equal(typeof(string), cityColumn.DataType);
+            var birthDateColumn = columns.First(col => col.ColumnName == "BirthDate");
+            Assert.Equal(typeof(DateTime), birthDateColumn.DataType);
             
             //first row
             Assert.True(reader.Read());
@@ -183,6 +185,8 @@ public static class DataReaderTests
             Assert.Equal(true, reader["Married"]);
             Assert.IsType<string>(reader["City"]);
             Assert.Equal("Vienna", reader["City"]);
+            Assert.IsType<DateTime>(reader["BirthDate"]);
+            Assert.Equal(new DateTime(1993, 5, 11, 2, 38, 56), reader["BirthDate"]);
             
             //second row
             Assert.True(reader.Read());
@@ -194,6 +198,8 @@ public static class DataReaderTests
             Assert.Equal(DBNull.Value, reader["Married"]);
             Assert.IsType<string>(reader["City"]);
             Assert.Equal("Berlin", reader["City"]);
+            Assert.IsType<DBNull>(reader["BirthDate"]);
+            Assert.Equal(DBNull.Value, reader["BirthDate"]);
             
             //third row
             Assert.True(reader.Read());
@@ -205,6 +211,8 @@ public static class DataReaderTests
             Assert.Equal(false, reader["Married"]);
             Assert.IsType<string>(reader["City"]);
             Assert.Equal("", reader["City"]);
+            Assert.IsType<DateTime>(reader["BirthDate"]);
+            Assert.Equal(new DateTime(1993, 5, 11, 2, 38, 56), reader["BirthDate"]);
         }
 
         connection.Close();
