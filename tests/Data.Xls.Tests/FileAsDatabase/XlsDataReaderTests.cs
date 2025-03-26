@@ -59,6 +59,12 @@ public class XlsDataReaderTests
     }
 
     [Fact]
+    public void Reader_ShouldReadEmptyCells()
+    {
+        DataReaderTests.Reader_ShouldReadEmptyCells(() => new XlsConnection(ConnectionStrings.Instance.EmptyCellsAsDB));
+    }
+
+    [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>
