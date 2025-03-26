@@ -6,6 +6,7 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
+using FluentAssertions;
 using Xunit;
 
 namespace Data.Tests.Common.FileAsDatabase;
@@ -141,6 +142,69 @@ public static class DataReaderTests
             Assert.Equal("\"Marius\",\"Elvyn\"", reader["Name"]);
             Assert.IsType<string>(reader["Age"]);
             Assert.Equal("\"60\", 20", reader["Age"]);
+        }
+
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReadEmptyCells<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [emptyCells]");
+        
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(4, reader.FieldCount);
+
+            var columns = reader.GetColumnSchema();
+            var nameColumn = columns.First(col => col.ColumnName == "Name");
+            Assert.Equal(typeof(string), nameColumn.DataType);
+            var ageColumn = columns.First(col => col.ColumnName == "Age");
+            Assert.Equal(typeof(double), ageColumn.DataType);
+            var marriedColumn = columns.First(col => col.ColumnName == "Married");
+            Assert.Equal(typeof(bool), marriedColumn.DataType);
+            var cityColumn = columns.First(col => col.ColumnName == "City");
+            Assert.Equal(typeof(string), cityColumn.DataType);
+            
+            //first row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Dominic", reader["Name"]);
+            Assert.IsType<DBNull>(reader["Age"]);
+            Assert.Equal(DBNull.Value, reader["Age"]);
+            Assert.IsType<bool>(reader["Married"]);
+            Assert.Equal(true, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("Vienna", reader["City"]);
+            
+            //second row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("", reader["Name"]);
+            Assert.IsType<double>(reader["Age"]);
+            Assert.Equal(20.0, reader["Age"]);
+            Assert.IsType<DBNull>(reader["Married"]);
+            Assert.Equal(DBNull.Value, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("Berlin", reader["City"]);
+            
+            //third row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Carl", reader["Name"]);
+            Assert.IsType<DBNull>(reader["Age"]);
+            Assert.Equal(DBNull.Value, reader["Age"]);
+            Assert.IsType<bool>(reader["Married"]);
+            Assert.Equal(false, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("", reader["City"]);
         }
 
         connection.Close();
