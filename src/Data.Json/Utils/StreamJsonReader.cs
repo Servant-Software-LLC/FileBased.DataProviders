@@ -15,7 +15,8 @@ public class StreamJsonReader
     private bool isFinalBlock = false;
     private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
     {
-        AllowTrailingCommas = true
+        AllowTrailingCommas = true,
+        CommentHandling = JsonCommentHandling.Skip
     };
 
     /// <summary>
@@ -226,7 +227,7 @@ public class StreamJsonReader
 
         byte[] data = bytesConsumedList.ToArray();
         var dataStr = Encoding.UTF8.GetString(data, 0, bytesConsumedList.Count);
-        JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true };
+        JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
         return JsonDocument.Parse(data, jsonDocumentOptions);
     }
 
