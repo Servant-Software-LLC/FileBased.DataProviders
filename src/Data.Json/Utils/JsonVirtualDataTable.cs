@@ -154,13 +154,18 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         var existingColumnIndex = Columns.IndexOf(columnName);
         if (existingColumnIndex == -1)
         {
+            //This is a new column, which is the common scenario
+
             if (columnType == null)
             {
-                throw new ArgumentOutOfRangeException(nameof(columnType), $"Unable to AddColumn({columnName}) in JsonVirtualDataTable because {nameof(columnType)} is null");
+                // We don't know the column type, so be flexible.
+                Columns.Add(columnName);
+            }
+            else
+            {
+                Columns.Add(columnName, columnType);
             }
 
-            //This is a new column, which is the common scenario
-            Columns.Add(columnName, columnType);
             return;
         }
 
