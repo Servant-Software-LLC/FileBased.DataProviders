@@ -135,7 +135,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         //Keep in mind that JSON objects in an array can have different properties, therefore, we need to process them individually.
         foreach (var columnData in columnsOfData)
         {
-            Type columnType = GuessType(columnData.Value);
+            Type columnType = guessTypeFunction(columnData.Value);
 
             if (columnsType.ContainsKey(columnData.Key))
             {
@@ -147,18 +147,6 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         }
 
         return columnsType;
-    }
-
-    private Type GuessType(IList<JsonElement> columnOfData)
-    {
-        Type finalColumnTypeGuess = null;
-        foreach(var columnValue in columnOfData)
-        {
-            Type type = MapJsonValueKindToType(columnValue);
-            finalColumnTypeGuess = CompatibleType(finalColumnTypeGuess, type);
-        }
-
-        return finalColumnTypeGuess;
     }
 
     private void AddColumn(string columnName, Type columnType)
