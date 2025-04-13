@@ -64,7 +64,7 @@ public class CsvDataReaderTests
     }
 
     [Fact]
-    public void Reader_Fails_on_Id_Column()
+    public void Reader_Should_Handle_High_Precision_Id_Column()
     {
         const string filePath = "Sources/TdmTestData.csv";
         const string tableName = "Table";
@@ -82,11 +82,21 @@ public class CsvDataReaderTests
         command.CommandText = $"SELECT * FROM {tableName}";
 
         var reader = command.ExecuteReader();
+        
+        // The test should verify that the Id column is properly typed as double
+        var schemaTable = reader.GetSchemaTable();
+        Assert.NotNull(schemaTable);
+        var idColumn = schemaTable.Rows.Cast<DataRow>().FirstOrDefault(r => r["ColumnName"].ToString() == "Id");
+        Assert.NotNull(idColumn);
+        Assert.Equal(typeof(double), idColumn["DataType"]);
+
+        // Now verify we can read the data
         dataTable.Load(reader);
-
         Assert.Equal(50, dataTable.Rows.Count);
+        
+        // Verify the first Id value matches what we expect
+        Assert.Equal(0.24337823455494956, (double)dataTable.Rows[0]["Id"], 15); // Compare with 15 decimal places precision
     }
-
 
     [Fact]
     public void Reader_ShouldReadData_Different_DataTypes()
