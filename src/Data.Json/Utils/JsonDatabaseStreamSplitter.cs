@@ -5,7 +5,7 @@ namespace Data.Json.Utils;
 /// <summary>
 /// Splits a JSON document (whose root is an object mapping table names to arrays)
 /// into substreams—one for each table. Each substream reads only the portion of the underlying
-/// stream that represents that table’s JSON array.
+/// stream that represents that table's JSON array.
 /// 
 /// This class assumes that the underlying stream is seekable and that the JSON structure is
 /// well-formed.
@@ -43,7 +43,7 @@ public class JsonDatabaseStreamSplitter : IDisposable
         long arrayStart = 0;
 
         // We use a loop to read through the file in chunks.
-        var reader = new StreamJsonReader(baseStream);
+        var reader = new StreamJsonReader(baseStream, true);
         while (reader.Read())
         {
             if (!insideRoot)
@@ -108,6 +108,8 @@ public class JsonDatabaseStreamSplitter : IDisposable
 
     public void Dispose()
     {
-        baseStream.Dispose();
+        // Note: We don't dispose baseStream here because the SubStreams are still using it
+        // The baseStream should be disposed by the caller after all SubStreams are done
+        // baseStream.Dispose();
     }
 }

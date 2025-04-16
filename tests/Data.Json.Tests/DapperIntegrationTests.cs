@@ -7,7 +7,7 @@ namespace Data.Json.Tests;
 public class DapperIntegrationTests
 {
     
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Query_StronglyTyped()
     {
         // Arrange

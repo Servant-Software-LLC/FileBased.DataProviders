@@ -37,12 +37,27 @@ public class SubStream : Stream, IDisposable
         if (position >= length)
             return 0;
 
-        // Position the base stream at the appropriate offset.
-        baseStream.Seek(start + position, SeekOrigin.Begin);
-        int toRead = (int)Math.Min(count, length - position);
-        int read = baseStream.Read(buffer, offset, toRead);
-        position += read;
-        return read;
+        // lock on the baseStream instance
+        lock (baseStream)
+        {
+            // Save original position
+            long originalPosition = baseStream.Position;
+            
+            try
+            {
+                // Position the base stream at the appropriate offset.
+                baseStream.Seek(start + position, SeekOrigin.Begin);
+                int toRead = (int)Math.Min(count, length - position);
+                int read = baseStream.Read(buffer, offset, toRead);
+                position += read;
+                return read;
+            }
+            finally
+            {
+                // Restore original position
+                baseStream.Seek(originalPosition, SeekOrigin.Begin);
+            }
+        }
     }
 
     public override long Seek(long offset, SeekOrigin origin)
@@ -80,7 +95,7 @@ public class SubStream : Stream, IDisposable
         {
             if (disposing)
             {
-                baseStream.Dispose();
+                baseStream.Dispose();            
             }
             disposed = true;
         }

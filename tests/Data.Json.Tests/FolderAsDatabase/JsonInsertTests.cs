@@ -19,7 +19,7 @@ public class JsonInsertTests
         InsertTests.Insert_ShouldInsertData(() => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Insert_ShouldInsertData_CustomDataSource()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -36,7 +36,7 @@ public class JsonInsertTests
 
     //This is a special case.  In json, if a table does not have any rows in it, then we have no schema information on the columns or their data types.
     //Inserting the first row into this table will then determine the columns (along with their data types) in this table.
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Insert_ShouldInsertDataIntoEmptyTables()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -49,7 +49,7 @@ public class JsonInsertTests
         InsertTests.Insert_ShouldInsertDataIntoEmptyTables(() => new JsonConnection(sandboxConnectionString));
     }
 
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Insert_JsonShouldBeFormatted()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -64,7 +64,7 @@ public class JsonInsertTests
         //TODO: Without a single row, there is no way for the Json Provider to 'know' of an indentity column
     }
 
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Insert_IndentityColumn_LastRow()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";

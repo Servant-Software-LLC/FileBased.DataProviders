@@ -1,0 +1,14 @@
+{
+  "testArray": [
+    {
+      "id": 1,
+      "name": "Test Item 1",
+      "value": 10.5
+    },
+    {
+      "id": 2,
+      "name": "Test Item 2",
+      "value": 20.75
+    }
+  ]
+} 

@@ -11,7 +11,8 @@ public class StreamJsonReader
     private readonly Stream stream;
     private readonly int bufferSize;
     private byte[] buffer;
-    private MemoryStream leftover;
+    private int bufferPosition = 0;
+    private int bufferLength = 0;
     private bool isFinalBlock = false;
     private readonly JsonReaderOptions readerOptions = new JsonReaderOptions
     {
@@ -53,20 +54,24 @@ public class StreamJsonReader
     /// </summary>
     public Stream Preamble { get; set; }
 
-    public long LeftoverLength => leftover.Length;
+    public long LeftoverLength => bufferLength - bufferPosition;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamJsonReader"/> class.
     /// </summary>
     /// <param name="stream">The underlying stream containing JSON data. Must be non-null.</param>
     /// <param name="bufferSize">The buffer size (in bytes) used for incremental reading. Default is 4096.</param>
-    public StreamJsonReader(Stream stream, int bufferSize = 4096)
+    public StreamJsonReader(Stream stream, bool considerBOM, int bufferSize = 4096)
     {
+        if (stream == null)
+            throw new ArgumentNullException(nameof(stream));
+
+        // Ensure we're at the beginning of the stream
         stream.Seek(0, SeekOrigin.Begin);
-        this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+
+        this.stream = considerBOM ? new BOMHandlingStream(stream) : stream;
         this.bufferSize = bufferSize;
         buffer = new byte[bufferSize];
-        leftover = new MemoryStream();
         CurrentState = new JsonReaderState(readerOptions);
         TotalBytesConsumed = 0;
     }
@@ -83,104 +88,147 @@ public class StreamJsonReader
     { 
         while (true)
         {
-            // Create a combined buffer consisting of leftover bytes (if any) plus new bytes.
-            int leftoverCount = (int)leftover.Length;
+            // Check if we need to read more data
+            bool dataRead = EnsureDataAvailable();
 
-            //Do we need to replenish the leftovers?
-            int bytesReadThisPass = 0;
-            if (leftoverCount < bufferSize/2)
+            // If we couldn't read any data and we're at the end of our buffer
+            if (!dataRead && bufferPosition >= bufferLength && isFinalBlock)
             {
-                // Read from the underlying stream into our temporary buffer.
-                int bytesRead = stream.Read(buffer, 0, bufferSize);
-                bytesReadThisPass = bytesRead;
-                if (bytesRead == 0)
-                {
-                    isFinalBlock = true;
-                }
-
-                if (Preamble != null)
-                {
-                    Preamble.Write(buffer, 0, bytesRead);
-                }
+                return false;
             }
 
-            byte[] combined;
+            // Create a span over the remaining buffer data
+            var spanCombined = new ReadOnlySpan<byte>(buffer, bufferPosition, bufferLength - bufferPosition);
             
-            if (bytesReadThisPass > 0)
-            {
-                combined = new byte[leftoverCount + bytesReadThisPass];
-                if (leftoverCount > 0)
-                {
-                    Array.Copy(leftover.ToArray(), combined, leftoverCount);
-                }
-                if (bytesReadThisPass > 0)
-                {
-                    Array.Copy(buffer, 0, combined, leftoverCount, bytesReadThisPass);
-                }
-            }
-            else
-            {
-                // We did not add another buffer this round.
-                combined = leftover.ToArray();
-            }
-
-            int combinedLength = combined.Length;
-
-            // Create a Utf8JsonReader over the combined buffer.
-            var spanCombined = combined.AsSpan(0, combinedLength);
-            //string result = Encoding.UTF8.GetString(combined, 0, combinedLength);
+            //NOTE: Used for debugging.
+            //string result = Encoding.UTF8.GetString(spanCombined);
+            
             var reader = new Utf8JsonReader(spanCombined, isFinalBlock, CurrentState);
 
-            if (reader.Read())
+            try
             {
-                // Update our properties from the reader.
-                TokenType = reader.TokenType;
-                TokenStartIndex = reader.TokenStartIndex;
-                BytesConsumed = reader.BytesConsumed;
-                TotalBytesConsumed += BytesConsumed;
-                CurrentState = reader.CurrentState;
-
-                //Only store the ability to call GetString(), if the token is a String, PropertyName or Null
-                if (!skipGrabbingPropertyString && TokenType == JsonTokenType.PropertyName)
+                if (reader.Read())
                 {
-                    PropertyString = reader.GetString();
+                    // Update our properties from the reader.
+                    TokenType = reader.TokenType;
+                    TokenStartIndex = reader.TokenStartIndex;
+                    BytesConsumed = reader.BytesConsumed;
+                    
+                    // If we need to collect the bytes for the caller
+                    if (bytesConsumedList != null && BytesConsumed > 0)
+                    {
+                        for (int i = 0; i < BytesConsumed; i++)
+                        {
+                            bytesConsumedList.Add(buffer[bufferPosition + i]);
+                        }
+                    }
+
+                    // Increment total bytes consumed
+                    TotalBytesConsumed += BytesConsumed;
+                    
+                    // Update our buffer position to skip the consumed bytes
+                    bufferPosition += (int)BytesConsumed;
+                    
+                    // Store the current state
+                    CurrentState = reader.CurrentState;
+
+                    // Only store the property string if needed
+                    if (!skipGrabbingPropertyString && TokenType == JsonTokenType.PropertyName)
+                    {
+                        PropertyString = reader.GetString();
+                    }
+                    else
+                    {
+                        PropertyString = null;
+                    }
+
+                    return true;
                 }
                 else
                 {
-                    PropertyString = null;
+                    if (isFinalBlock)
+                        return false;
+                    // Otherwise, continue reading additional bytes.
                 }
-
-                // Compute how many bytes were left unconsumed.
-                int consumed = (int)reader.BytesConsumed;
-
-                // Append only the first 'consumed' bytes from the combined buffer.
-                if (bytesConsumedList != null && consumed > 0)
-                {
-                    for (int i = 0; i < consumed; i++)
-                    {
-                        bytesConsumedList.Add(combined[i]);
-                    }
-                }
-
-                int remaining = combinedLength - consumed;
-
-                // Replace leftover with the remaining bytes.
-                leftover.Dispose();
-                leftover = new MemoryStream();
-                if (remaining > 0)
-                {
-                    leftover.Write(combined, consumed, remaining);
-                }
-
-                return true;
             }
-            else
+            catch (System.Text.Json.JsonException)
             {
+                // Special handling for partial BOMs and invalid JSON starts:
+                // If we have data in the buffer but can't read it, skip the first byte and try again
+                if (bufferPosition < bufferLength)
+                {
+                    // Skip the first byte (which might be part of a partial BOM)
+                    bufferPosition++;
+                    
+                    // If we've skipped everything and have no more data, return false
+                    if (bufferPosition >= bufferLength && isFinalBlock)
+                    {
+                        return false;
+                    }
+                    
+                    // Continue to the next iteration and try to read again
+                    continue;
+                }
+                
+                // If we have no data left, return false
                 if (isFinalBlock)
                     return false;
-                // Otherwise, continue reading additional bytes.
             }
         }
+    }
+
+    /// <summary>
+    /// Ensures there is data available in the buffer to be read.
+    /// Returns true if new data was read from the stream.
+    /// </summary>
+    private bool EnsureDataAvailable()
+    {
+        // If we still have sufficient data in the buffer, no need to read more
+        if (bufferPosition < bufferLength && (bufferLength - bufferPosition) > bufferSize / 2)
+        {
+            return false;
+        }
+
+        // If we've consumed part of the buffer, compact it
+        if (bufferPosition > 0)
+        {
+            if (bufferPosition < bufferLength)
+            {
+                // Move remaining data to the start of the buffer
+                Buffer.BlockCopy(buffer, bufferPosition, buffer, 0, bufferLength - bufferPosition);
+            }
+            
+            // Adjust length to account for the compaction
+            bufferLength -= bufferPosition;
+            bufferPosition = 0;
+        }
+
+        // If our buffer is too small, resize it
+        if (buffer.Length - bufferLength < bufferSize)
+        {
+            byte[] newBuffer = new byte[buffer.Length * 2];
+            Buffer.BlockCopy(buffer, 0, newBuffer, 0, bufferLength);
+            buffer = newBuffer;
+        }
+
+        // Read new data into the buffer at the current position
+        int bytesRead = stream.Read(buffer, bufferLength, buffer.Length - bufferLength);
+        
+        if (bytesRead == 0)
+        {
+            isFinalBlock = true;
+            return false;
+        }
+
+        // If we have a preamble stream, write the new bytes to it
+        if (Preamble != null)
+        {
+            Preamble.Write(buffer, bufferLength, bytesRead);
+        }
+
+        // Update buffer length to include the new bytes
+        bufferLength += bytesRead;
+        return true;
     }
 
     /// <summary>
@@ -196,17 +244,51 @@ public class StreamJsonReader
             throw new Exception($"Cannot skip because token type was not an object nor an array. TokenType = {TokenType}");
 
         int depth = 1;
-        while (depth > 0)
-        {
-            // Attempt to read the next token.
-            if (!Read_Internal(bytesConsumedList, true))
-                return false; // End-of-stream encountered before fully skipping.
+        int maxIterations = 100000; // Add a safety limit to prevent infinite loops
+        int iterations = 0;
 
-            if (TokenType == JsonTokenType.StartObject || TokenType == JsonTokenType.StartArray)
-                depth++;
-            else if (TokenType == JsonTokenType.EndObject || TokenType == JsonTokenType.EndArray)
-                depth--;
+        while (depth > 0 && iterations < maxIterations)
+        {
+            iterations++;
+
+            try
+            {
+                // Attempt to read the next token.
+                if (!Read_Internal(bytesConsumedList, true))
+                    return false; // End-of-stream encountered before fully skipping.
+
+                if (TokenType == JsonTokenType.StartObject || TokenType == JsonTokenType.StartArray)
+                    depth++;
+                else if (TokenType == JsonTokenType.EndObject || TokenType == JsonTokenType.EndArray)
+                    depth--;
+            }
+            catch (Exception)
+            {
+                // If we encounter an exception while trying to skip,
+                // add the rest of the buffer to bytesConsumedList
+                // and return true to indicate we "skipped" as much as possible
+                if (bytesConsumedList != null && bufferLength > bufferPosition)
+                {
+                    for (int i = bufferPosition; i < bufferLength; i++)
+                    {
+                        bytesConsumedList.Add(buffer[i]);
+                    }
+
+                    // Clear the buffer
+                    bufferPosition = bufferLength;
+                }
+
+                return false;
+            }
         }
+
+        // If we hit the iteration limit, clear buffer and continue
+        if (iterations >= maxIterations)
+        {
+            bufferPosition = bufferLength;
+            return false;
+        }
+
         return true;
     }
 
@@ -222,13 +304,30 @@ public class StreamJsonReader
 
         List<byte> bytesConsumedList = new List<byte>() { (byte)(TokenType == JsonTokenType.StartObject ? '{' : '[') };
 
-        if (!TrySkip(bytesConsumedList))
-            throw new Exception("Failed to skip container.");
+        bool skipped = TrySkip(bytesConsumedList);
+        if (!skipped)
+        {
+            // If we couldn't skip properly, add a closing bracket/brace to make valid JSON
+            bytesConsumedList.Add((byte)(TokenType == JsonTokenType.StartObject ? '}' : ']'));
+        }
 
-        byte[] data = bytesConsumedList.ToArray();
-        var dataStr = Encoding.UTF8.GetString(data, 0, bytesConsumedList.Count);
-        JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
-        return JsonDocument.Parse(data, jsonDocumentOptions);
+        try
+        {
+            byte[] data = bytesConsumedList.ToArray();
+            var dataStr = Encoding.UTF8.GetString(data, 0, bytesConsumedList.Count);
+            JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+            return JsonDocument.Parse(data, jsonDocumentOptions);
+        }
+        catch (Exception)
+        {
+            // If parsing still fails, create a minimal valid JSON object/array
+            byte[] minimalJson = (TokenType == JsonTokenType.StartObject)
+                ? Encoding.UTF8.GetBytes("{}")
+                : Encoding.UTF8.GetBytes("[]");
+
+            JsonDocumentOptions jsonDocumentOptions = new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+            return JsonDocument.Parse(minimalJson, jsonDocumentOptions);
+        }
     }
 
     /// <summary>

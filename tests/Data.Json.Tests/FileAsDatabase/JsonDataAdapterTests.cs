@@ -32,7 +32,7 @@ namespace Data.Json.Tests.FileAsDatabase
                        FileAsDB));
         }
 
-        [Fact(Skip = "Temp: Not needed for current goal")]
+        [Fact]
         public void Fill_ShouldPopulateDatasetWithInnerJoinFileAsDB()
         {
             DataAdapterTests.Fill_ShouldPopulateDatasetWithInnerJoinFileAsDB(
