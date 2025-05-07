@@ -14,7 +14,7 @@ namespace Data.Csv.Utils;
 public class CsvVirtualDataTable : VirtualDataTable, IDisposable
 {
     private readonly int _pageSize;
-    private readonly int _guessRows;
+    private readonly int _guessTypeRows;
     private readonly FloatingPointDataType _preferredFloatingPointDataType;
     private readonly Func<IEnumerable<string>, Type> _guessTypeFunction;
 
@@ -36,44 +36,46 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     /// <param name="pageSize">
     /// The number of rows to load per page.
     /// </param>
-    /// <param name="guessRows">
+    /// <param name="guessTypeRows">
     /// The number of rows to use when guessing data types.
     /// </param>
     /// <param name="preferredFloatingPointDataType">
     /// The preferred floating point data type for numeric columns.
     /// </param>
     public CsvVirtualDataTable(
-        StreamReader streamReader,
-        string tableName,
-        int pageSize,
-        int guessRows,
-        FloatingPointDataType preferredFloatingPointDataType,
-        Func<IEnumerable<string>, Type> guessTypeFunction)
+            StreamReader streamReader,
+            string tableName,
+            int pageSize,
+            int guessTypeRows,
+            FloatingPointDataType preferredFloatingPointDataType,
+            Func<IEnumerable<string>, Type> guessTypeFunction,
+            char separator
+        )
         : base(tableName)
     {
         _pageSize = pageSize;
-        _guessRows = guessRows > 0 ? guessRows : throw new ArgumentOutOfRangeException(nameof(guessRows), $"Guess row must be greater than 0.  GuessRows: {guessRows}");
+        _guessTypeRows = guessTypeRows > 0 ? guessTypeRows : throw new ArgumentOutOfRangeException(nameof(guessTypeRows), $"Guess type row must be greater than 0.  GuessRows: {guessTypeRows}");
         _preferredFloatingPointDataType = preferredFloatingPointDataType;
         _guessTypeFunction = guessTypeFunction;
 
         // Instead of using "using", store the reader and transform stream for later use.
         _baseReader = streamReader ?? throw new ArgumentNullException(nameof(streamReader));
-        _transformStream = new CsvTransformStream(_baseReader);
+        _transformStream = new CsvTransformStream(_baseReader, separator);
         _transformReader = new StreamReader(_transformStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
 
         // Determine the schema and column data types using the first page.
-        DetermineColumns();
+        DetermineColumns(separator);
 
         // Set the Rows property to a lazy iterator that pages in DataRows on demand.
-        Rows = GetRowsIterator();
+        Rows = GetRowsIterator(separator);
     }
 
-    private void DetermineColumns()
+    private void DetermineColumns(char separator)
     {
         // Load the first page of data (which also reads the header).  Note:  Using the _transformStream on this LoadCsv, because we do want a Seek to
         // origin on the stream.  Since we're not using the data, limit numberOfRowsToRead to _guessRows.
-        DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _guessRows, guessRows: _guessRows,
-                                                guessTypeFunction: _guessTypeFunction);
+        DataFrame firstPage = DataFrame.LoadCsv(_transformStream, numberOfRowsToRead: _guessTypeRows, guessRows: _guessTypeRows,
+                                                guessTypeFunction: _guessTypeFunction, separator: separator);
 
         Columns.Clear();
         if (firstPage.Columns.Count > 0)
@@ -89,7 +91,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         else if (!string.IsNullOrEmpty(_transformStream.HeaderLine))
         {
             // Fallback: if DataFrame didn't yield columns, use the header line with string type.
-            var columnNamesFromStream = _transformStream.HeaderLine.Split(',');
+            var columnNamesFromStream = _transformStream.HeaderLine.Split(separator);
             foreach (var name in columnNamesFromStream)
             {
                 Columns.Add(new DataColumn(name.Trim(), typeof(string)));
@@ -101,7 +103,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     /// Returns an iterator that lazily loads rows from the CSV file in pages using the predetermined column types.
     /// </summary>
     /// <returns>An enumerable sequence of <see cref="DataRow"/>.</returns>
-    private IEnumerable<DataRow> GetRowsIterator()
+    private IEnumerable<DataRow> GetRowsIterator(char separator)
     {
         bool firstPage = true;
         _transformStream.Seek(0, SeekOrigin.Begin);
@@ -119,7 +121,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
                 yield break;
             }
 
-            DataFrame page = DataFrame.LoadCsvFromString(pageData, header: firstPage, columnNames: columnNames, dataTypes: columnTypes);
+            DataFrame page = DataFrame.LoadCsvFromString(pageData, header: firstPage, columnNames: columnNames, dataTypes: columnTypes, separator: separator);
             firstPage = false;
             if (page.Rows.Count == 0)
                 yield break;

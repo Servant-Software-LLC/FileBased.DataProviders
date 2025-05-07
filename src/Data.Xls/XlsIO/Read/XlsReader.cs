@@ -54,8 +54,10 @@ internal class XlsReader : FileReader
     private VirtualDataTable PrepareDataTable(StreamReader streamReader, string tableName)
     {
         XlsConnection xlsConnection = (XlsConnection)fileConnection;
+        char separator = ',';  //Since the XlsSheetStream composed the stream as comma separated, we are ensured that the separator is a comma and don't need to detect it.
         CsvVirtualDataTable virtualDataTable = new(streamReader, tableName, pageSize, xlsConnection.GuessTypeRows,
-                                                   fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction);
+                                                   fileConnection.PreferredFloatingPointDataType, xlsConnection.GuessTypeFunction,
+                                                   separator);
 
         return virtualDataTable;
     }

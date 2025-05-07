@@ -310,4 +310,128 @@ public class CsvDataReaderTests
         Assert.True(dt.Columns.Contains("Id"));
         Assert.Equal(typeof(string), dt.Columns["Id"]!.DataType);
     }
+
+    [Fact]
+    public void Reader_CsvContent_WithPipeSeparator()
+    {
+        const string filePath = "Sources/Separators/pipe_separator.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(12, dataTable.Columns.Count);
+        Assert.NotEmpty(dataTable.Rows);
+
+        //Test some of the values from the first row
+        var firstRow = dataTable.Rows[0];
+        Assert.Equal(1d, firstRow["Index"]);
+        Assert.Equal("dE014d010c7ab0c", firstRow["Customer Id"]);
+        Assert.Equal("Andrew", firstRow["First Name"]);
+    }
+
+    [Fact]
+    public void Reader_CsvContent_WithSemicolonSeparator()
+    {
+        const string filePath = "Sources/Separators/semicolon_separator.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(12, dataTable.Columns.Count);
+        Assert.NotEmpty(dataTable.Rows);
+
+        //Test some of the values from the first row
+        var firstRow = dataTable.Rows[0];
+        Assert.Equal(1d, firstRow["Index"]);
+        Assert.Equal("dE014d010c7ab0c", firstRow["Customer Id"]);
+        Assert.Equal("Andrew", firstRow["First Name"]);
+    }
+
+    [Fact]
+    public void Reader_CsvContent_WithCombinationSeparators()
+    {
+        const string filePath = "Sources/Separators/separators_combination.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(3, dataTable.Columns.Count);
+        Assert.NotEmpty(dataTable.Rows);
+
+        //Test some of the values from the first row
+        var firstRow = dataTable.Rows[0];
+        Assert.Equal("Domi,nic", firstRow["Name"]);
+        Assert.Equal("3  0", firstRow["Age"]);
+        Assert.Equal("Manila|City", firstRow["City"]);
+    }
+
+    [Fact]
+    public void Reader_CsvContent_WithTabSeparator()
+    {
+        const string filePath = "Sources/Separators/tab_separator.csv";
+        const string tableName = "Table";
+        DataTable dataTable = new DataTable() { TableName = tableName };
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        MemoryStream fileStream = new MemoryStream(fileBytes);
+        var connection = new CsvConnection(FileConnectionString.CustomDataSource);
+        TableStreamedDataSource dataSourceProvider = new("MyDatabase", tableName, fileStream);
+
+        connection.DataSourceProvider = dataSourceProvider;
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM {tableName}";
+
+        var reader = command.ExecuteReader();
+        dataTable.Load(reader);
+
+        Assert.Equal(3, dataTable.Columns.Count);
+        Assert.NotEmpty(dataTable.Rows);
+
+        //Test some of the values from the first row
+        var firstRow = dataTable.Rows[0];
+        Assert.Equal(1d, firstRow["ID"]);
+        Assert.Equal("Tammy Lee", firstRow["Name"]);
+        Assert.Equal("latoyahicks@taylor.com", firstRow["Email"]);
+    }
 }
