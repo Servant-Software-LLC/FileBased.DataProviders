@@ -144,6 +144,34 @@ public class JsonDataReaderTests
             new JsonConnection(ConnectionStrings.Instance.FolderAsDB), unendingStream);
     }
 
+    [Fact]
+    public void Reader_OrderBy_Ascending()
+    {
+        DataReaderTests.Reader_OrderBy_Ascending(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_Descending()
+    {
+        DataReaderTests.Reader_OrderBy_Descending(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_WithLimit()
+    {
+        DataReaderTests.Reader_OrderBy_WithLimit(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_TableAlias()
+    {
+        DataReaderTests.Reader_TableAlias(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
     //
     //Json specific tests
     //

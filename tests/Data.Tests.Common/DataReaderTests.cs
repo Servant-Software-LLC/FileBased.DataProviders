@@ -700,6 +700,88 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
+    public static void Reader_OrderBy_Ascending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in ascending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_Descending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name DESC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name DESC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in descending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_WithLimit<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC LIMIT 2
+        // ORDER BY must be applied before LIMIT so we get the first 2 alphabetically.
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC LIMIT 2");
+        var reader = command.ExecuteReader();
+
+        // Assert — only first two rows after sorting: Bob, Jim
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
     public static void Reader_TableAlias<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
@@ -707,14 +789,17 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var connection = createFileConnection();
         connection.Open();
 
-        // Act - Query the locations table
-
+        // Act - Query the locations table with a table alias and ORDER BY + LIMIT
         var command = connection.CreateCommand("SELECT \"l\".\"id\", \"l\".\"city\"\r\n    FROM \"locations\" AS \"l\"\r\n    ORDER BY \"l\".\"id\"\r\n    LIMIT 1");
         var reader = command.ExecuteReader();
 
-        // Assert
+        // Assert — first row by id ascending (id=1, city=Houston)
+        Assert.True(reader.Read());
+        Assert.Equal("Houston", reader["city"]);
 
-        //TODO
+        Assert.False(reader.Read());
+
+        connection.Close();
     }
 
     public static void Reader_Supports_Large_Data_Files<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, UnendingStream unendingStream)

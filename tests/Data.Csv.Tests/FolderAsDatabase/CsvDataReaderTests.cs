@@ -310,4 +310,25 @@ public class CsvDataReaderTests
         Assert.True(dt.Columns.Contains("Id"));
         Assert.Equal(typeof(string), dt.Columns["Id"]!.DataType);
     }
+
+    [Fact]
+    public void Reader_OrderBy_Ascending()
+    {
+        DataReaderTests.Reader_OrderBy_Ascending(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_Descending()
+    {
+        DataReaderTests.Reader_OrderBy_Descending(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_WithLimit()
+    {
+        DataReaderTests.Reader_OrderBy_WithLimit(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
 }

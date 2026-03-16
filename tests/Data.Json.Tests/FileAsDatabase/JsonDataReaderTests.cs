@@ -101,4 +101,25 @@ public class JsonDataReaderTests
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
             new JsonConnection(ConnectionStrings.Instance.FileAsDB.Sandbox("Sandbox", sandboxId)));
     }
+
+    [Fact]
+    public void Reader_OrderBy_Ascending()
+    {
+        DataReaderTests.Reader_OrderBy_Ascending(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_Descending()
+    {
+        DataReaderTests.Reader_OrderBy_Descending(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_WithLimit()
+    {
+        DataReaderTests.Reader_OrderBy_WithLimit(() =>
+            new JsonConnection(ConnectionStrings.Instance.FileAsDB));
+    }
 }
