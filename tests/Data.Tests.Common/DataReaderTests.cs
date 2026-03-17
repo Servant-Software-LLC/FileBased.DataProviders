@@ -1,5 +1,6 @@
 ﻿using Data.Common.DataSource;
 using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
 using Data.Tests.Common.Extensions;
 using Data.Tests.Common.POCOs;
 using Data.Tests.Common.Utils;
@@ -72,6 +73,28 @@ public static class DataReaderTests
         Assert.True(reader.Read());
         fieldCount = reader.FieldCount;
         Assert.Equal(4, fieldCount);
+
+        // Close the connection
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReadData_WithEmbeddedRelativePath<TFileParameter>(Func<string, FileConnection<TFileParameter>> connectionFactory, string folderPath)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange - build a path with embedded relative segments, e.g. /path/to/Folder/../Folder
+        var folderName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var pathWithRelativeSegments = Path.Combine(folderPath, "..", folderName);
+
+        var connectionString = new FileConnectionString() { DataSource = pathWithRelativeSegments }.ConnectionString;
+        var connection = connectionFactory(connectionString);
+        connection.Open();
+
+        // Act
+        var command = connection.CreateCommand("SELECT * FROM employees");
+        var reader = command.ExecuteReader();
+
+        // Assert
+        Assert.True(reader.Read(), "Expected at least one row from employees table via path with embedded relative segments");
 
         // Close the connection
         connection.Close();

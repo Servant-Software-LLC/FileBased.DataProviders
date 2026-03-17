@@ -18,7 +18,7 @@ public class FileSystemDataSource : IDataSourceProvider
     /// <exception cref="ArgumentNullException">Thrown when the provided path is null or empty.</exception>
     public FileSystemDataSource(string path, DataSourceType dataSourceType, string fileExtension, IFileConnection fileConnection)
     {
-        Database = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : path;
+        Database = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : Path.GetFullPath(path);
         DataSourceType = dataSourceType;
         this.fileExtension = fileExtension;
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
