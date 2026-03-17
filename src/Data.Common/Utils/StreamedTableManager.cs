@@ -2,7 +2,7 @@
 
 public class StreamedTableManager : IDisposable
 {
-    private const int streamResetsAllowed = 4;
+    private const int streamResetsAllowed = 6;
     private readonly Dictionary<string, StreamHolder> tables = new();
 
     public void AddTable(string tableName, Func<Stream> streamCreationFunc)
