@@ -172,6 +172,14 @@ public class JsonDataReaderTests
             new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
     }
 
+    [Fact]
+    public void Reader_ShouldReadData_WithEmbeddedRelativePath()
+    {
+        DataReaderTests.Reader_ShouldReadData_WithEmbeddedRelativePath(
+            (connectionString) => new JsonConnection(connectionString),
+            ConnectionStrings.Instance.FolderAsDB.DataSource);
+    }
+
     //
     //Json specific tests
     //

@@ -34,7 +34,7 @@ public static class InsertTests
             Assert.True(1 == count, $"SELECTing COUNT(*) for id = {id} didn't yield 1 row.  Rows = {count}");
 
             // Act - Insert a new record into the employees table
-            command = connection.CreateCommand("INSERT INTO employees (name, email, salary, married) VALUES ('Jim Convis', 'johndoe@example.com', 100000, 'true')");
+            command = connection.CreateCommand("INSERT INTO employees (name, email, salary, married) VALUES ('Jim Convis', 'johndoe@example.com', 100000, true)");
             rowsAffected = command.ExecuteNonQuery();
 
             // Assert
@@ -133,10 +133,7 @@ public static class InsertTests
             var marriedColumn = employeesTable.Columns["married"];
             Assert.NotNull(marriedColumn);
 
-            //NOTE:  When https://github.com/Servant-Software-LLC/ADO.NET.FileBased.DataProviders/issues/22 is solved, then 
-            //       this assert will fail, because it needs to have an expectation of:
-            // Assert.Equal(typeof(boolean), marriedColumn.DataType);
-            Assert.Equal(typeof(string), marriedColumn.DataType);
+            Assert.Equal(typeof(bool), marriedColumn.DataType);
         }
 
     }
