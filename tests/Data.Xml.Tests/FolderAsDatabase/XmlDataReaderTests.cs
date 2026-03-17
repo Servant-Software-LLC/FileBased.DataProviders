@@ -112,4 +112,25 @@ public class XmlDataReaderTests
         DataReaderTests.Reader_NextResult_WithFunctions(() =>
         new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
+
+    [Fact]
+    public void Reader_OrderBy_Ascending()
+    {
+        DataReaderTests.Reader_OrderBy_Ascending(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_Descending()
+    {
+        DataReaderTests.Reader_OrderBy_Descending(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Reader_OrderBy_WithLimit()
+    {
+        DataReaderTests.Reader_OrderBy_WithLimit(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
 }
