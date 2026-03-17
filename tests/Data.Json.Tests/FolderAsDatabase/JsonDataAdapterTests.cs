@@ -33,7 +33,7 @@ public partial class JsonDataAdapterTests
                        FolderAsDB));
     }
 
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void Adapter_ShouldFillDatasetWithInnerJoinFromFolderAsDB()
     {
         DataAdapterTests.Adapter_ShouldFillDatasetWithInnerJoin(

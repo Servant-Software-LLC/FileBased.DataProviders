@@ -43,7 +43,7 @@ internal class JsonReader : FileReader
     private VirtualDataTable PrepareDataTable(Stream stream, string tableName, int pageSize = 1000)
     {
         JsonConnection jsonConnection = (JsonConnection)fileConnection;
-        JsonVirtualDataTable virtualDataTable = new(stream, tableName, jsonConnection.GuessTypeRows, jsonConnection.GuessTypeFunction, bufferSize);
+        JsonVirtualDataTable virtualDataTable = new(stream, true, tableName, jsonConnection.GuessTypeRows, jsonConnection.GuessTypeFunction, bufferSize);
 
         return virtualDataTable;
     }
@@ -54,7 +54,7 @@ internal class JsonReader : FileReader
 
     protected override void ReadFromFile()
     {
-        StreamReader streamReaderTable = Read(string.Empty);
+        StreamReader streamReaderTable = Read(string.Empty);        
         JsonDatabaseStreamSplitter jsonDatabaseStreamSplitter = new(streamReaderTable.BaseStream);
 
         //Gather the previous table schemas, because a JSON dataset without data does not have a schema stored in the JSON content.
@@ -71,7 +71,10 @@ internal class JsonReader : FileReader
     protected override void UpdateFromFile()
     {
         StreamReader streamReaderTable = Read(string.Empty);
-        JsonDatabaseStreamSplitter jsonDatabaseStreamSplitter = new(streamReaderTable.BaseStream);
+        
+        // Ensure the stream is wrapped with BOMHandlingStream to handle UTF-8 BOMs
+        var bomHandlingStream = new BOMHandlingStream(streamReaderTable.BaseStream);
+        JsonDatabaseStreamSplitter jsonDatabaseStreamSplitter = new(bomHandlingStream);
 
         //Gather the previous table schemas, because a JSON dataset without data does not have a schema stored in the JSON content.
         //Instead, the schema may have been added by the consumer of this library by using CREATE TABLE and ALTER TABLE statements.

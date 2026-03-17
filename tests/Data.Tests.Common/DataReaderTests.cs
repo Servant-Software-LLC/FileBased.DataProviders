@@ -6,6 +6,7 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
+using FluentAssertions;
 using Xunit;
 
 namespace Data.Tests.Common.FileAsDatabase;
@@ -100,6 +101,118 @@ public static class DataReaderTests
             Assert.True(reader.Read());
             Assert.IsType<DateTime>(reader["birthDate"]);
             Assert.Equal(new DateTime(1995, 6, 12), reader["birthDate"]);
+        }
+
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReadCellsWithCommaInItsValue<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [cellsWithComma]");
+        
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(2, reader.FieldCount);
+
+            //first Row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Dominic, Ahmed", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("30, 50", reader["Age"]);
+            
+            //second row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("\"Rahul\"", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("\"70\"", reader["Age"]);
+            
+            //third row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("\"Marius\",\"Elvyn\"", reader["Name"]);
+            Assert.IsType<string>(reader["Age"]);
+            Assert.Equal("\"60\", 20", reader["Age"]);
+        }
+
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReadEmptyCells<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [emptyCells]");
+        
+        // Act
+        connection.Open();
+        using (var reader = command.ExecuteReader())
+        {
+            // Assert
+            Assert.NotNull(reader);
+            Assert.Equal(5, reader.FieldCount);
+
+            var columns = reader.GetColumnSchema();
+            var nameColumn = columns.First(col => col.ColumnName == "Name");
+            Assert.Equal(typeof(string), nameColumn.DataType);
+            var ageColumn = columns.First(col => col.ColumnName == "Age");
+            Assert.Equal(typeof(double), ageColumn.DataType);
+            var marriedColumn = columns.First(col => col.ColumnName == "Married");
+            Assert.Equal(typeof(bool), marriedColumn.DataType);
+            var cityColumn = columns.First(col => col.ColumnName == "City");
+            Assert.Equal(typeof(string), cityColumn.DataType);
+            var birthDateColumn = columns.First(col => col.ColumnName == "BirthDate");
+            Assert.Equal(typeof(DateTime), birthDateColumn.DataType);
+            
+            //first row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Dominic", reader["Name"]);
+            Assert.IsType<DBNull>(reader["Age"]);
+            Assert.Equal(DBNull.Value, reader["Age"]);
+            Assert.IsType<bool>(reader["Married"]);
+            Assert.Equal(true, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("Vienna", reader["City"]);
+            Assert.IsType<DateTime>(reader["BirthDate"]);
+            Assert.Equal(new DateTime(1993, 5, 11, 2, 38, 56), reader["BirthDate"]);
+            
+            //second row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("", reader["Name"]);
+            Assert.IsType<double>(reader["Age"]);
+            Assert.Equal(20.0, reader["Age"]);
+            Assert.IsType<DBNull>(reader["Married"]);
+            Assert.Equal(DBNull.Value, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("Berlin", reader["City"]);
+            Assert.IsType<DBNull>(reader["BirthDate"]);
+            Assert.Equal(DBNull.Value, reader["BirthDate"]);
+            
+            //third row
+            Assert.True(reader.Read());
+            Assert.IsType<string>(reader["Name"]);
+            Assert.Equal("Carl", reader["Name"]);
+            Assert.IsType<DBNull>(reader["Age"]);
+            Assert.Equal(DBNull.Value, reader["Age"]);
+            Assert.IsType<bool>(reader["Married"]);
+            Assert.Equal(false, reader["Married"]);
+            Assert.IsType<string>(reader["City"]);
+            Assert.Equal("", reader["City"]);
+            Assert.IsType<DateTime>(reader["BirthDate"]);
+            Assert.Equal(new DateTime(1993, 5, 11, 2, 38, 56), reader["BirthDate"]);
         }
 
         connection.Close();
@@ -587,6 +700,88 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
+    public static void Reader_OrderBy_Ascending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in ascending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_Descending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name DESC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name DESC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in descending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_WithLimit<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC LIMIT 2
+        // ORDER BY must be applied before LIMIT so we get the first 2 alphabetically.
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC LIMIT 2");
+        var reader = command.ExecuteReader();
+
+        // Assert — only first two rows after sorting: Bob, Jim
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
     public static void Reader_TableAlias<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
@@ -594,14 +789,17 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var connection = createFileConnection();
         connection.Open();
 
-        // Act - Query the locations table
-
+        // Act - Query the locations table with a table alias and ORDER BY + LIMIT
         var command = connection.CreateCommand("SELECT \"l\".\"id\", \"l\".\"city\"\r\n    FROM \"locations\" AS \"l\"\r\n    ORDER BY \"l\".\"id\"\r\n    LIMIT 1");
         var reader = command.ExecuteReader();
 
-        // Assert
+        // Assert — first row by id ascending (id=1, city=Houston)
+        Assert.True(reader.Read());
+        Assert.Equal("Houston", reader["city"]);
 
-        //TODO
+        Assert.False(reader.Read());
+
+        connection.Close();
     }
 
     public static void Reader_Supports_Large_Data_Files<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, UnendingStream unendingStream)

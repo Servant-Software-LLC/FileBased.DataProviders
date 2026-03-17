@@ -1,13 +1,14 @@
 ﻿namespace Data.Common.Utils;
 
 /// <summary>
-/// A stream that reads from a first stream until it’s exhausted, then continues reading from a second stream.
+/// A stream that reads from a first stream until it's exhausted, then continues reading from a second stream.
 /// Disposing the ConcatStream disposes both inner streams.
 /// </summary>
 public class ConcatStream : Stream, IDisposable
 {
     private readonly Stream first;
     private readonly Stream second;
+    private readonly long secondInitialPosition;
     private bool firstExhausted = false;
     private bool disposed = false;
 
@@ -18,6 +19,9 @@ public class ConcatStream : Stream, IDisposable
 
         if (!first.CanRead || !second.CanRead)
             throw new ArgumentException("Both streams must be readable.");
+            
+        // Save the initial position of the second stream
+        this.secondInitialPosition = second.CanSeek ? second.Position : 0;
     }
 
     public override bool CanRead => first.CanRead && second.CanRead;
@@ -30,7 +34,7 @@ public class ConcatStream : Stream, IDisposable
         {
             if (!CanSeek)
                 throw new NotSupportedException("Cannot get length of non-seekable streams.");
-            return first.Length + second.Length;
+            return first.Length + (second.Length - secondInitialPosition);
         }
     }
 
@@ -40,7 +44,7 @@ public class ConcatStream : Stream, IDisposable
         {
             if (!CanSeek)
                 throw new NotSupportedException("Cannot get position of non-seekable streams.");
-            return firstExhausted ? first.Length + second.Position : first.Position;
+            return firstExhausted ? first.Length + (second.Position - secondInitialPosition) : first.Position;
         }
         set
         {
@@ -58,6 +62,11 @@ public class ConcatStream : Stream, IDisposable
             if (n < count)
             {
                 firstExhausted = true;
+                
+                // Position the second stream at its initial position before we start reading from it
+                if (second.CanSeek && second.Position != secondInitialPosition)
+                    second.Position = secondInitialPosition;
+                    
                 int m = second.Read(buffer, offset + n, count - n);
                 return n + m;
             }
@@ -97,7 +106,8 @@ public class ConcatStream : Stream, IDisposable
         }
         else
         {
-            second.Position = targetPosition - first.Length;
+            // When seeking into the second stream, adjust by its initial position
+            second.Position = secondInitialPosition + (targetPosition - first.Length);
             firstExhausted = true;
         }
 

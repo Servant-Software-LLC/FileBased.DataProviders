@@ -49,7 +49,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
         
         //Act:  Columns are determined in the ctor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 10, null, 4096);
 
         //Assert
         Assert.NotNull(table.Columns);
@@ -86,7 +86,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
 
         //Act:  Columns are determined in the ctor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 1, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 1, null, 4096);
 
         //Assert
         Assert.NotNull(table.Columns);
@@ -130,7 +130,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
 
         //Act:  Columns are determined in the ctor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 10, null, 4096);
 
         //Assert
         Assert.NotNull(table.Columns);
@@ -160,7 +160,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
 
         // Act: Columns are determined in the constructor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 10, null, 4096);
 
         // Assert
         Assert.NotNull(table.Columns);
@@ -191,7 +191,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
 
         // Act: Columns are determined in the constructor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 10, null, 4096);
 
         // Assert
         Assert.NotNull(table.Columns);
@@ -228,7 +228,7 @@ public class JsonVirtualDataTableTests
         var stream = GetStream(jsonContent);
 
         //Act:  Columns are determined in the ctor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 1, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 1, null, 4096);
 
         //Assert
         Assert.NotNull(table.Columns);
@@ -260,7 +260,7 @@ public class JsonVirtualDataTableTests
         var stopwatch = Stopwatch.StartNew();
 
         //Act:  Columns are determined in the ctor.
-        JsonVirtualDataTable table = new(stream, "MyTable", 10, null, 4096);
+        JsonVirtualDataTable table = new(stream, true, "MyTable", 10, null, 4096);
 
         const int maxRows = 100000;
         int rows = 0;

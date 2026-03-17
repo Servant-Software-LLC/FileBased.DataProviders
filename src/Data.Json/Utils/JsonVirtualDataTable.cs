@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Data.Common.Utils;
 using SqlBuildingBlocks.POCOs;
 
@@ -13,6 +14,7 @@ namespace Data.Json.Utils;
 public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
 {
     private Stream stream;
+    private readonly bool considerBOM;
     private readonly int bufferSize;
     private readonly int guessRows;
     private readonly Func<IEnumerable<JsonElement>, Type> guessTypeFunction;
@@ -29,10 +31,12 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// <param name="bufferSize">
     /// The buffer size to use when reading from the stream.
     /// </param>
-    public JsonVirtualDataTable(Stream stream, string tableName, int guessRows, Func<IEnumerable<JsonElement>, Type> guessTypeFunction, int bufferSize)
+    public JsonVirtualDataTable(Stream stream, bool considerBOM, string tableName, int guessRows, Func<IEnumerable<JsonElement>, Type> guessTypeFunction, int bufferSize)
         : base(tableName)
     {
+        Debug.WriteLine($"JsonVirtualDataTable '{tableName}' ctor");
         this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+        this.considerBOM = considerBOM;
         this.guessRows = guessRows > 0 ? guessRows : throw new ArgumentOutOfRangeException(nameof(guessRows), $"Guess rows must be 1 or greater.  Value: {guessRows}");
         this.guessTypeFunction = guessTypeFunction ?? DefaultGuessTypeFunction;
         this.bufferSize = bufferSize;
@@ -51,8 +55,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// </summary>
     private void DetermineColumns()
     {
-
-        var reader = new StreamJsonReader(stream, bufferSize);
+        var reader = new StreamJsonReader(stream, considerBOM, bufferSize);
         reader.Preamble = new MemoryStream();
 
         var columnsOfData = GatherGuessingRows(reader);
@@ -135,7 +138,7 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         //Keep in mind that JSON objects in an array can have different properties, therefore, we need to process them individually.
         foreach (var columnData in columnsOfData)
         {
-            Type columnType = GuessType(columnData.Value);
+            Type columnType = guessTypeFunction(columnData.Value);
 
             if (columnsType.ContainsKey(columnData.Key))
             {
@@ -149,25 +152,23 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
         return columnsType;
     }
 
-    private Type GuessType(IList<JsonElement> columnOfData)
-    {
-        Type finalColumnTypeGuess = null;
-        foreach(var columnValue in columnOfData)
-        {
-            Type type = MapJsonValueKindToType(columnValue);
-            finalColumnTypeGuess = CompatibleType(finalColumnTypeGuess, type);
-        }
-
-        return finalColumnTypeGuess;
-    }
-
     private void AddColumn(string columnName, Type columnType)
     {
         var existingColumnIndex = Columns.IndexOf(columnName);
         if (existingColumnIndex == -1)
         {
             //This is a new column, which is the common scenario
-            Columns.Add(columnName, columnType);
+
+            if (columnType == null)
+            {
+                // We don't know the column type, so be flexible.
+                Columns.Add(columnName);
+            }
+            else
+            {
+                Columns.Add(columnName, columnType);
+            }
+
             return;
         }
 
@@ -258,8 +259,10 @@ public class JsonVirtualDataTable : VirtualDataTable, IDisposable, IFreeStreams
     /// </summary>
     private IEnumerable<DataRow> EnumerateRows()
     {
+        Debug.WriteLine($"Begin EnumerateRows():  Table: {TableName}");
+
         bool insideArray = false;
-        var reader = new StreamJsonReader(stream, bufferSize);
+        var reader = new StreamJsonReader(stream, considerBOM, bufferSize);
         while (reader.Read())
         {
             if (!insideArray) 

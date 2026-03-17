@@ -29,7 +29,7 @@ public class JsonDatabaseVirtualDataSet : VirtualDataSet, IDisposable, IFreeStre
         foreach (var kvp in tableStreams)
         {
             // Create a virtual table for each table stream.
-            var virtualTable = new JsonVirtualDataTable(kvp.Value, kvp.Key, guessRows, guessTypeFunction, bufferSize);
+            var virtualTable = new JsonVirtualDataTable(kvp.Value, false, kvp.Key, guessRows, guessTypeFunction, bufferSize);
 
             //If this virtual data table has no columns, then the JSON content was an empty array.  In this
             //case, we need to copy the schema from the previous table.

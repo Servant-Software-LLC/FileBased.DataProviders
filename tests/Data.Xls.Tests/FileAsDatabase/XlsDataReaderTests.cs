@@ -45,10 +45,23 @@ public class XlsDataReaderTests
     }
 
     [Fact]
+    public void Reader_ShouldReadCellsWithCommaInItsValue()
+    {
+        DataReaderTests.Reader_ShouldReadCellsWithCommaInItsValue( () => 
+            new XlsConnection(ConnectionStrings.Instance.CellsWithCommaAsDB));
+    }
+
+    [Fact]
     public void Reader_ShouldReadFormulasAsString()
     {
         DataReaderTests.Reader_ShouldReadFormulasAsString(() =>
             new XlsConnection(ConnectionStrings.Instance.WithFormulaFileAsDB));
+    }
+
+    [Fact]
+    public void Reader_ShouldReadEmptyCells()
+    {
+        DataReaderTests.Reader_ShouldReadEmptyCells(() => new XlsConnection(ConnectionStrings.Instance.EmptyCellsAsDB));
     }
 
     [Fact]

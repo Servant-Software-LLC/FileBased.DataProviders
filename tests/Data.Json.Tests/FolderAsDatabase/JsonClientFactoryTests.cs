@@ -6,7 +6,7 @@ namespace Data.Json.Tests.FolderAsDatabase;
 
 public class JsonClientFactoryTests
 {
-    [Fact(Skip = "Temp: Not needed for current goal")]
+    [Fact]
     public void CreateCommand_ReadsData()
     {
         ClientFactoryTests.CreateCommand_ReadsData(JsonClientFactory.Instance);

@@ -41,6 +41,7 @@ public class XlsSheetStream : Stream, IDisposable
         // Use OpenXmlReader for forward-only, low-memory parsing.
         using (var reader = OpenXmlReader.Create(wsPart))
         {
+            var maxColumnCount = 0;
             // Loop through the XML elements.
             while (reader.Read())
             {
@@ -50,13 +51,33 @@ public class XlsSheetStream : Stream, IDisposable
                     Row row = (Row)reader.LoadCurrentElement();
                     // Build a CSV line by iterating through cells.
                     List<string> cells = new List<string>();
+
+                    var expectedColumnIndex = 0; // Track expected column index
                     foreach (Cell cell in row.Elements<Cell>())
                     {
-                        // For simplicity, use cell.InnerText.
-                        // In production, handle shared strings and cell formatting.
+                        var currentColumnIndex = cell.GetColumnIndex(); // Convert A1 notation to index
+
+                        // Fill in missing columns with empty strings
+                        while (expectedColumnIndex < currentColumnIndex)
+                        {
+                            cells.Add("");
+                            expectedColumnIndex++;
+                        }
+
+                        // Process the actual cell value
                         cells.Add(workbookPart.GetCellValue(cell));
+                        expectedColumnIndex++;
                     }
-                    yield return string.Join(",", cells);
+                    
+                    maxColumnCount = Math.Max(maxColumnCount, expectedColumnIndex);
+                    
+                    // If the last columns were missing, fill them with empty values
+                    while (cells.Count < maxColumnCount)
+                    {
+                        cells.Add("");
+                    }
+
+                    yield return string.Join(",", cells.EscapeCsvValues());
                 }
             }
         }
@@ -100,6 +121,7 @@ public class XlsSheetStream : Stream, IDisposable
                 }
             }
         }
+
         return totalRead;
     }
 
@@ -107,19 +129,28 @@ public class XlsSheetStream : Stream, IDisposable
     public override bool CanSeek => false;
     public override bool CanWrite => false;
     public override long Length => throw new NotSupportedException();
-    public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-    public override void Flush() { }
+
+    public override long Position
+    {
+        get => throw new NotSupportedException();
+        set => throw new NotSupportedException();
+    }
+
+    public override void Flush()
+    {
+    }
 
     public override long Seek(long offset, SeekOrigin origin)
     {
         if (origin != SeekOrigin.Begin && offset != 0)
             throw new NotSupportedException();
-        
+
         _stream.Seek(0, origin);
         currentBuffer = new MemoryStream();
         csvLineEnumerator = CreateCsvLineEnumerator(worksheetPart);
         return 0;
     }
+
     public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
