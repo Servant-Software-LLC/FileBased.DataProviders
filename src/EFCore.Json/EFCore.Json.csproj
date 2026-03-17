@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>$(NetTFM)</TargetFramework>
     <PackageId>ServantSoftware.EFCore.Json</PackageId>
     <Title>ServantSoftware.EFCore.Json</Title>
     <Product>EFCore Json Data Provider</Product>

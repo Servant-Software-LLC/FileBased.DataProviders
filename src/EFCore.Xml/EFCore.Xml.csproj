@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>$(NetTFM)</TargetFramework>
     <PackageId>ServantSoftware.EFCore.Xml</PackageId>
     <Title>ServantSoftware.EFCore.Xml</Title>
     <Product>EFCore Xml Data Provider</Product>

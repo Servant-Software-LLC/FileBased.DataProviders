@@ -28,9 +28,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
 
     - name: Set version number
       run:  '& ${{github.workspace}}/.github/workflows/UpdateVersion.ps1 ${{github.run_number}}'
