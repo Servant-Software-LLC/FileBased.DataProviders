@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Xls.Utils;
+using System.Data.Common;
 
 namespace System.Data.XlsClient;
 
@@ -19,12 +20,7 @@ public sealed class XlsClientFactory : DbProviderFactory
 
     public override DbConnection CreateConnection() => new XlsConnection();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/74
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => throw new NotSupportedException("ConnectionStringBuilder is not implemented for this provider.");
+    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new XlsConnectionStringBuilder();
 
     public override DbDataAdapter CreateDataAdapter() => throw new InvalidOperationException("The XSL provider does not support adapters.");
 
