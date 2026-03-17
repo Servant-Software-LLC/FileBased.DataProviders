@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Csv.Utils;
+using System.Data.Common;
 
 namespace System.Data.CsvClient;
 
@@ -19,12 +20,7 @@ public sealed class CsvClientFactory : DbProviderFactory
 
     public override DbConnection CreateConnection() => new CsvConnection();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/74
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => throw new NotSupportedException("ConnectionStringBuilder is not implemented for this provider.");
+    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new CsvConnectionStringBuilder();
 
     public override DbDataAdapter CreateDataAdapter() => new CsvDataAdapter();
 
