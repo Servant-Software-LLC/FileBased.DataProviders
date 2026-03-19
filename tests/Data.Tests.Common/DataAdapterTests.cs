@@ -1,5 +1,6 @@
 using Data.Tests.Common.Extensions;
 using System.Data;
+using System.Data.Common;
 using System.Data.FileClient;
 using System.Diagnostics;
 using Xunit;
@@ -255,13 +256,14 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
             Assert.Equal(DataRowState.Unchanged, row.RowState);
         }
 
-        // Fill the employees table
+        // Fill the employees table into a fresh DataSet
         adapter.SelectCommand!.CommandText = "SELECT * FROM employees";
-        adapter.Fill(dataSet);
+        var dataSet2 = new DataSet();
+        adapter.Fill(dataSet2);
 
         // Assert
-        Assert.True(dataSet.Tables[0].Rows.Count > 0);
-        Assert.Equal(4, dataSet.Tables[0].Columns.Count);
+        Assert.True(dataSet2.Tables[0].Rows.Count > 0);
+        Assert.Equal(4, dataSet2.Tables[0].Columns.Count);
 
         // Close the connection
         connection.Close();
@@ -349,10 +351,11 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         // Act - Query two columns from the employees table
         command = connection.CreateCommand("SELECT name, salary FROM employees");
         adapter.SelectCommand = command;
-        adapter.Fill(dataSet);
+        var dataSet2 = new DataSet();
+        adapter.Fill(dataSet2);
 
         // Assert
-        dataTable = dataSet.Tables[0];
+        dataTable = dataSet2.Tables[0];
         Assert.NotNull(dataTable);
         Assert.True(dataTable.Rows.Count > 0);
         Assert.Equal(2, dataTable.Columns.Count);
@@ -469,5 +472,154 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         // Assert
         Assert.NotNull(parameters);
         Assert.Empty(parameters);
+    }
+
+    public static void Fill_WithTableMapping_ShouldMapTableName<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var adapter = connection.CreateDataAdapter("SELECT * FROM locations");
+        adapter.TableMappings.Add("Table", "MyLocations");
+
+        // Act
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+
+        // Assert
+        Assert.True(dataSet.Tables.Contains("MyLocations"), "DataSet should contain table named 'MyLocations'");
+        Assert.True(dataSet.Tables["MyLocations"]!.Rows.Count > 0);
+        Assert.Equal(4, dataSet.Tables["MyLocations"]!.Columns.Count);
+
+        connection.Close();
+    }
+
+    public static void Fill_WithColumnMapping_ShouldMapColumnNames<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var adapter = connection.CreateDataAdapter("SELECT * FROM locations");
+        var tableMapping = adapter.TableMappings.Add("Table", "Locations");
+        tableMapping.ColumnMappings.Add("city", "CityName");
+        tableMapping.ColumnMappings.Add("state", "StateName");
+
+        // Act
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+
+        // Assert
+        var table = dataSet.Tables["Locations"]!;
+        Assert.NotNull(table);
+        Assert.True(table.Rows.Count > 0);
+        Assert.True(table.Columns.Contains("CityName"), "Table should contain mapped column 'CityName'");
+        Assert.True(table.Columns.Contains("StateName"), "Table should contain mapped column 'StateName'");
+        Assert.False(table.Columns.Contains("city"), "Table should NOT contain source column 'city'");
+        Assert.False(table.Columns.Contains("state"), "Table should NOT contain source column 'state'");
+
+        // Verify data is accessible via mapped column names
+        var firstRow = table.Rows[0];
+        Assert.NotNull(firstRow["CityName"]);
+        Assert.NotNull(firstRow["StateName"]);
+
+        connection.Close();
+    }
+
+    public static void Fill_WithMultipleResultSets_ShouldCreateMultipleTables<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM locations; SELECT * FROM employees");
+        var adapter = command.CreateAdapter();
+
+        // Act
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+
+        // Assert - should have two tables: "Table" and "Table1"
+        Assert.True(dataSet.Tables.Count >= 2, $"Expected at least 2 tables but got {dataSet.Tables.Count}");
+        Assert.True(dataSet.Tables["Table"]!.Rows.Count > 0, "First result set should have rows");
+        Assert.True(dataSet.Tables["Table1"]!.Rows.Count > 0, "Second result set should have rows");
+
+        // Verify first table has locations columns and second has employees columns
+        Assert.Equal(4, dataSet.Tables["Table"]!.Columns.Count);
+        Assert.Equal(4, dataSet.Tables["Table1"]!.Columns.Count);
+
+        connection.Close();
+    }
+
+    public static void Fill_WithMultipleResultSets_AndTableMappings_ShouldMapTableNames<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM locations; SELECT * FROM employees");
+        var adapter = command.CreateAdapter();
+        adapter.TableMappings.Add("Table", "LocationData");
+        adapter.TableMappings.Add("Table1", "EmployeeData");
+
+        // Act
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+
+        // Assert
+        Assert.True(dataSet.Tables.Contains("LocationData"), "DataSet should contain 'LocationData'");
+        Assert.True(dataSet.Tables.Contains("EmployeeData"), "DataSet should contain 'EmployeeData'");
+        Assert.True(dataSet.Tables["LocationData"]!.Rows.Count > 0);
+        Assert.True(dataSet.Tables["EmployeeData"]!.Rows.Count > 0);
+
+        connection.Close();
+    }
+
+    public static void Update_WithTableMapping_ShouldUseCorrectTable<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Insert a row to update later
+        var insertCommand = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Denver', 'CO', 80201)");
+        insertCommand.ExecuteNonQuery();
+
+        // Fill with table mapping
+        var selectCommand = connection.CreateCommand("SELECT city, zip FROM locations WHERE city = 'Denver'");
+        var adapter = selectCommand.CreateAdapter();
+        adapter.TableMappings.Add("Table", "MappedLocations");
+
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+
+        Assert.True(dataSet.Tables.Contains("MappedLocations"), "DataSet should contain 'MappedLocations'");
+        Assert.Equal(1, dataSet.Tables["MappedLocations"]!.Rows.Count);
+
+        // Act - modify the row and update
+        var row = dataSet.Tables["MappedLocations"]!.Rows[0];
+        row["zip"] = 80202;
+
+        var updateCommand = connection.CreateCommand("UPDATE locations SET zip = @zip WHERE city = @city");
+        var cityParam = updateCommand.CreateParameter("city", DbType.String);
+        cityParam.SourceColumn = "city";
+        updateCommand.Parameters.Add(cityParam);
+        var zipParam = updateCommand.CreateParameter("zip", DbType.Int32);
+        zipParam.SourceColumn = "zip";
+        updateCommand.Parameters.Add(zipParam);
+        adapter.UpdateCommand = updateCommand;
+        int rowsUpdated = adapter.Update(dataSet);
+
+        // Assert
+        Assert.Equal(1, rowsUpdated);
+
+        // Verify the update was applied
+        var verifyDataSet = new DataSet();
+        var verifyCommand = connection.CreateCommand("SELECT city, zip FROM locations WHERE city = 'Denver'");
+        var verifyAdapter = verifyCommand.CreateAdapter();
+        verifyAdapter.Fill(verifyDataSet);
+
+        Assert.Equal(1, verifyDataSet.Tables[0].Rows.Count);
+        Assert.Equal(connection.GetProperlyTypedValue(80202), verifyDataSet.Tables[0].Rows[0]["zip"]);
+
+        connection.Close();
     }
 }
