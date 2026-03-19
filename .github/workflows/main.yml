@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   BuildConfiguration: Release
   DataCommonPackageId: ServantSoftware.Data.Common
   DataJsonPackageId: ServantSoftware.Data.Json
@@ -98,7 +99,7 @@ jobs:
         fail_ci_if_error: false
 
     - name: Add Coverage PR Comment
-      uses: marocchino/sticky-pull-request-comment@v2
+      uses: marocchino/sticky-pull-request-comment@v3
       if: github.event_name == 'pull_request'
       with:
         recreate: true
