@@ -13,6 +13,7 @@
     <DefaultArtifactsFileMatch>*.nupkg *.snupkg</DefaultArtifactsFileMatch>
     <DelaySign>false</DelaySign>
     <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' == 'true'">
