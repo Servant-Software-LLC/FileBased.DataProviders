@@ -107,7 +107,7 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        return AutoOpenCloseConnection(dataSet, Fill_Inner);
+        return AutoOpenCloseConnection(() => base.Fill(dataSet));
     }
 
     public new int Fill(DataTable dataTable)
@@ -224,7 +224,17 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
 
         log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
 
-        var dataTable = dataSet.Tables[0];
+        DataTable dataTable;
+        if (TableMappings.Count > 0 && TableMappings.Contains("Table"))
+        {
+            var mapping = TableMappings["Table"];
+            dataTable = dataSet.Tables[mapping.DataSetTable]
+                ?? throw new InvalidOperationException($"DataSet does not contain a table named '{mapping.DataSetTable}'.");
+        }
+        else
+        {
+            dataTable = dataSet.Tables[0];
+        }
         var changedDataRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Modified).ToList();
         int rowsAffected = 0;
         foreach (DataRow changedDataRow in changedDataRows)
@@ -309,18 +319,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         }
 
         return new DataTable[] { dataTable };
-    }
-
-    private int Fill_Inner(DataSet dataSet)
-    {
-        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
-
-        DataTable dataTable = ExecuteSelectCommand();
-
-        dataTable.TableName = "Table";
-        dataSet.Tables.Clear();
-        dataSet.Tables.Add(dataTable);
-        return dataTable.Rows.Count;
     }
 
     private DataTable ExecuteSelectCommand()
