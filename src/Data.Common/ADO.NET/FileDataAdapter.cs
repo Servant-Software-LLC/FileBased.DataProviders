@@ -107,7 +107,22 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        return AutoOpenCloseConnection(() => base.Fill(dataSet));
+        return AutoOpenCloseConnection(() =>
+        {
+            int result = base.Fill(dataSet);
+
+            // base.Fill may not create a table when the query returns 0 rows.
+            // Ensure the DataSet always has at least one table with the correct schema.
+            if (result == 0 && dataSet.Tables.Count == 0)
+            {
+                var schemaTable = ExecuteSelectCommand();
+                schemaTable.TableName = "Table";
+                schemaTable.Clear();
+                dataSet.Tables.Add(schemaTable);
+            }
+
+            return result;
+        });
     }
 
     public new int Fill(DataTable dataTable)
