@@ -108,9 +108,10 @@ namespace Data.Json.Tests.Utils
             var buffer = new byte[5];
 
             // Act
-            bomStream.Read(buffer, 0, buffer.Length);
+            int bytesRead = bomStream.Read(buffer, 0, buffer.Length);
 
             // Assert
+            Assert.Equal(5, bytesRead);
             Assert.Equal(5, bomStream.Position);
         }
 
