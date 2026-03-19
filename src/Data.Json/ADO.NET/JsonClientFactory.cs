@@ -11,12 +11,7 @@ public sealed class JsonClientFactory : DbProviderFactory
 
     public override DbCommand CreateCommand() => new JsonCommand();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/75
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbCommandBuilder CreateCommandBuilder() => throw new NotSupportedException("CommandBuilder is not implemented for this provider.");
+    public override DbCommandBuilder CreateCommandBuilder() => new JsonCommandBuilder();
 
     public override DbConnection CreateConnection() => new JsonConnection();
 

@@ -94,6 +94,9 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
 
     private static DbType InferType(object value)
     {
+        if (value == null)
+            return DbType.Object;
+
         var typeCode = Type.GetTypeCode(value.GetType());
         switch (typeCode)
         {
