@@ -152,6 +152,30 @@ namespace Data.Csv.Tests.FolderAsDatabase
         }
 
         [Fact]
+        public void Update_DataAdapter_Should_Insert_Added_Row()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Insert_Added_Row(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
+        public void Update_DataAdapter_Should_Delete_Deleted_Row()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Delete_Deleted_Row(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
+        public void Update_DataAdapter_Should_Handle_Mixed_RowStates()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Handle_Mixed_RowStates(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
         public void Update_WithTableMapping_ShouldUseCorrectTable()
         {
             var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";

@@ -32,12 +32,10 @@ public class CsvDataAdapter : FileDataAdapter<CsvParameter>
     /// <inheritdoc/>
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
-        //TODO: Is it a bug that for the deleteStatement, the UpdateCommand is used instead of the DeleteCommand? (both to get the connection and the FileCommand)
         global::Data.Common.FileStatements.FileDelete deleteStatement =>
-            new CsvDelete(deleteStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
-        //TODO: Is it a bug that for the insertStatement, the UpdateCommand is used instead of the DeleteCommand? (both to get the connection and the FileCommand)
+            new CsvDelete(deleteStatement, (CsvConnection)DeleteCommand!.Connection!, (FileCommand<CsvParameter>)DeleteCommand),
         global::Data.Common.FileStatements.FileInsert insertStatement =>
-            new CsvInsert(insertStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
+            new CsvInsert(insertStatement, (CsvConnection)InsertCommand!.Connection!, (FileCommand<CsvParameter>)InsertCommand),
         global::Data.Common.FileStatements.FileUpdate updateStatement =>
             new CsvUpdate(updateStatement, (CsvConnection)UpdateCommand!.Connection!, (FileCommand<CsvParameter>)UpdateCommand),
 
