@@ -1,6 +1,8 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.LogicalEntities;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -299,6 +301,45 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         return result;
     }
+
+    /// <inheritdoc/>
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ExecuteDbDataReader(behavior);
+    }
+
+    /// <inheritdoc/>
+    public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ExecuteNonQuery();
+    }
+
+    /// <inheritdoc/>
+    public override async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ExecuteScalar();
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task PrepareAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Prepare();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        ((IDisposable)this).Dispose();
+        return default;
+    }
+#endif
 
     /// <summary>
     /// Provides column name hints for the specified file statements.

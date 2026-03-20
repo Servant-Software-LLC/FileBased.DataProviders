@@ -1,5 +1,7 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -670,6 +672,44 @@ public abstract class FileDataReader : DbDataReader
 
         return (T)Convert.ChangeType(result.CurrentDataRow![index], typeof(T))!;
     }
+
+    /// <inheritdoc/>
+    public override Task<bool> ReadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Read());
+    }
+
+    /// <inheritdoc/>
+    public override Task<bool> NextResultAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(NextResult());
+    }
+
+    /// <inheritdoc/>
+    public override Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(IsDBNull(ordinal));
+    }
+
+    /// <inheritdoc/>
+    public override Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(GetFieldValue<T>(ordinal));
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
 
     /// <summary>
     /// Disposes of the resources used by this instance.

@@ -1,5 +1,7 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -86,6 +88,32 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
 
         log.LogInformation($"{GetType()}.{nameof(Rollback)}() called.");
     }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Commit();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Rollback();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
 
     /// <inheritdoc/>
     protected new void Dispose()
