@@ -7,6 +7,13 @@ public sealed class CsvClientFactory : DbProviderFactory
 {
     public static readonly CsvClientFactory Instance = new CsvClientFactory();
 
+#if NET7_0_OR_GREATER
+    static CsvClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.CsvClient", Instance);
+    }
+#endif
+
     private CsvClientFactory() { }
 
     public override DbCommand CreateCommand() => new CsvCommand();

@@ -7,6 +7,13 @@ public sealed class JsonClientFactory : DbProviderFactory
 {
     public static readonly JsonClientFactory Instance = new JsonClientFactory();
 
+#if NET7_0_OR_GREATER
+    static JsonClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.JsonClient", Instance);
+    }
+#endif
+
     private JsonClientFactory() { }
 
     public override DbCommand CreateCommand() => new JsonCommand();

@@ -129,7 +129,10 @@ public class XlsConnection : FileConnection<XlsParameter>, IDisposable
         CreateEmptyXlsx(databaseFileName);
 
     /// <inheritdoc/>
-    protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => 
+    protected override Common.DbProviderFactory DbProviderFactory => XlsClientFactory.Instance;
+
+    /// <inheritdoc/>
+    protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter =>
         throw new InvalidOperationException("The XLS provider does not support writing at this time.");
 
     private static void CreateEmptyXlsx(string filePath)

@@ -7,6 +7,13 @@ public sealed class XmlClientFactory : DbProviderFactory
 {
     public static readonly XmlClientFactory Instance = new XmlClientFactory();
 
+#if NET7_0_OR_GREATER
+    static XmlClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.XmlClient", Instance);
+    }
+#endif
+
     private XmlClientFactory() { }
 
     public override DbCommand CreateCommand() => new XmlCommand();

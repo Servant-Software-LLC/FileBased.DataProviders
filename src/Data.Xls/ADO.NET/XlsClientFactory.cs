@@ -7,6 +7,13 @@ public sealed class XlsClientFactory : DbProviderFactory
 {
     public static readonly XlsClientFactory Instance = new XlsClientFactory();
 
+#if NET7_0_OR_GREATER
+    static XlsClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.XlsClient", Instance);
+    }
+#endif
+
     private XlsClientFactory() { }
 
     public override DbCommand CreateCommand() => new XlsCommand();

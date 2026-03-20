@@ -111,5 +111,8 @@ public class CsvConnection : FileConnection<CsvParameter>
         File.WriteAllText(databaseFileName, string.Empty);
 
     /// <inheritdoc/>
+    protected override Common.DbProviderFactory DbProviderFactory => CsvClientFactory.Instance;
+
+    /// <inheritdoc/>
     protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new CsvDataSetWriter(this, fileStatement);
 }
