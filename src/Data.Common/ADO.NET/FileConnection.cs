@@ -291,6 +291,31 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     }
 
 
+    /// <inheritdoc/>
+    public override Task OpenAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Open();
+        return Task.CompletedTask;
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task CloseAsync()
+    {
+        Close();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
+
     /// <summary>
     /// Disposes the connection.
     /// </summary>

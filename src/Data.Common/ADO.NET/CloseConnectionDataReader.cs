@@ -58,6 +58,27 @@ internal class CloseConnectionDataReader : DbDataReader
         _connection.Close();
     }
 
+    public override async Task<bool> ReadAsync(CancellationToken cancellationToken) =>
+        await _innerReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+
+    public override async Task<bool> NextResultAsync(CancellationToken cancellationToken) =>
+        await _innerReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
+
+    public override async Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken) =>
+        await _innerReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false);
+
+    public override async Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken) =>
+        await _innerReader.GetFieldValueAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
+
+
+#if !NETSTANDARD2_0
+    public override async ValueTask DisposeAsync()
+    {
+        await _innerReader.DisposeAsync().ConfigureAwait(false);
+        _connection.Close();
+    }
+#endif
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
