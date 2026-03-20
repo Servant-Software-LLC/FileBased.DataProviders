@@ -105,6 +105,24 @@ public class FileSystemDataSource : IDataSourceProvider
     };
 
     /// <summary>
+    /// Deletes the file for the specified table.
+    /// </summary>
+    /// <param name="tableName">The name of the table to delete.</param>
+    public void DeleteStorage(string tableName)
+    {
+        switch (DataSourceType)
+        {
+            case DataSourceType.Directory:
+                var path = GetTablePath(tableName);
+                if (File.Exists(path))
+                    File.Delete(path);
+                break;
+            default:
+                throw new InvalidOperationException($"Cannot delete storage for a data source of type {DataSourceType}. DROP TABLE is only supported for folder-as-database.");
+        }
+    }
+
+    /// <summary>
     /// Starts watching the file system for changes in the data source.
     /// </summary>
     public void StartWatching()

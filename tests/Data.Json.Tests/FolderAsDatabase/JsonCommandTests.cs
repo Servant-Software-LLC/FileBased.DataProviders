@@ -138,4 +138,26 @@ public class JsonCommandTests
           () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
     }
 
+    [Fact]
+    public void ExecuteNonQuery_DropTable()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        CommandTests.ExecuteNonQuery_DropTable(
+          () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
+    public void ExecuteReader_CommandBehaviorCloseConnection()
+    {
+        CommandTests.ExecuteReader_CommandBehaviorCloseConnection(
+           () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void GetDataTypeName_ShouldReturnColumnType()
+    {
+        CommandTests.GetDataTypeName_ShouldReturnColumnType(
+           () => new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using Data.Common.Utils;
+﻿using Data.Common.FileIO.SchemaAltering;
+using Data.Common.Utils;
 using Data.Csv.CsvIO.SchemaAltering;
 
 namespace System.Data.CsvClient;
@@ -57,6 +58,7 @@ public class CsvCommand : FileCommand<CsvParameter>
         FileUpdate updateStatement => new CsvUpdate(updateStatement, (CsvConnection)Connection!, this),
         FileCreateTable createTableStatement => new CsvCreateTable(createTableStatement, (CsvConnection)Connection!, this),
         FileDropColumn dropTableStatement => new CsvDropColumn(dropTableStatement, (CsvConnection)Connection!, this),
+        FileDropTable dropTable => new CsvDropTable(dropTable, (CsvConnection)Connection!, this),
         FileAddColumn addColumnStatement => new CsvAddColumn(addColumnStatement, (CsvConnection)Connection!, this),
 
         _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")

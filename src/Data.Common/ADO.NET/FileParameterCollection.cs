@@ -267,7 +267,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
     }
 
     /// <inheritdoc />
-    public override object SyncRoot => throw new NotImplementedException();
+    public override object SyncRoot => ((ICollection)InternalList).SyncRoot;
 
     private int CultureAwareCompare(string strA, string strB)
         => CultureInfo.CurrentCulture.CompareInfo.Compare(strA, strB, CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase);

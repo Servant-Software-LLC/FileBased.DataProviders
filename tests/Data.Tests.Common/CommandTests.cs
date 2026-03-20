@@ -1,5 +1,6 @@
 ﻿using Data.Common.Utils.ConnectionString;
 using Data.Tests.Common.Utils;
+using System.Data;
 using System.Data.FileClient;
 using Xunit;
 
@@ -194,6 +195,75 @@ CREATE TABLE ""SomeSetting"" (
         Assert.Equal(tableCount + 1, newTableCount);
 
         // Close the connection
+        connection.Close();
+    }
+
+    public static void ExecuteNonQuery_DropTable<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection();
+        connection.Open();
+
+        // Count tables before
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES";
+        var tableCountBefore = (int)command.ExecuteScalar()!;
+
+        // Act - Drop one of the tables
+        command.CommandText = "DROP TABLE [locations]";
+        var result = command.ExecuteNonQuery();
+
+        // Assert
+        Assert.Equal(-1, result);  // DDL returns -1
+
+        command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES";
+        var tableCountAfter = (int)command.ExecuteScalar()!;
+        Assert.Equal(tableCountBefore - 1, tableCountAfter);
+
+        connection.Close();
+    }
+
+    public static void ExecuteReader_CommandBehaviorCloseConnection<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection();
+        connection.Open();
+        Assert.Equal(ConnectionState.Open, connection.State);
+
+        // Act - Execute with CloseConnection behavior
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT city, state FROM [locations]";
+        using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection))
+        {
+            Assert.True(reader.Read());
+            var city = reader.GetString(0);
+            Assert.False(string.IsNullOrEmpty(city));
+        }
+
+        // Assert - Connection should be closed after reader is disposed
+        Assert.Equal(ConnectionState.Closed, connection.State);
+    }
+
+    public static void GetDataTypeName_ShouldReturnColumnType<TFileParameter>(Func<FileConnection<TFileParameter>> createConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createConnection();
+        connection.Open();
+
+        // Act
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT salary FROM [employees]";
+        using var reader = command.ExecuteReader();
+        Assert.True(reader.Read());
+
+        var typeName = reader.GetDataTypeName(0);
+
+        // Assert - salary is numeric, so the type name should reflect the column type, not "String"
+        Assert.NotEqual("String", typeName);
+
         connection.Close();
     }
 

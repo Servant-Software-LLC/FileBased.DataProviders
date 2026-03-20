@@ -25,6 +25,18 @@ public class StreamedTableManager : IDisposable
 
     public IEnumerable<string> GetTableNames() => tables.Keys;
 
+    public void Remove(string tableName)
+    {
+        if (tables.TryGetValue(tableName, out StreamHolder streamHolder))
+        {
+            streamHolder.LatestReadStream?.Close();
+            streamHolder.LatestReadStream?.Dispose();
+            streamHolder.LatestWriteStream?.Close();
+            streamHolder.LatestWriteStream?.Dispose();
+            tables.Remove(tableName);
+        }
+    }
+
     public BufferedResetStream GetReadingStream(string tableName)
     {
         if (tables.TryGetValue(tableName, out StreamHolder streamHolder))

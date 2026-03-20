@@ -10,16 +10,7 @@ public class FileSelect : FileStatement
     {
         SqlSelect = sqlSelectDefinition;
         IsCountQuery = sqlSelectDefinition.Columns.Any(col =>
-        {
-            if (col is SqlAggregate sqlAggregate && sqlAggregate.AggregateName == "COUNT")
-            {
-                if (sqlAggregate.Argument != null)
-                    ThrowHelper.ThrowIfNotAsterik();
-                return true;
-            }
-
-            return false;
-        });
+            col is SqlAggregate sqlAggregate && string.Equals(sqlAggregate.AggregateName, "COUNT", StringComparison.OrdinalIgnoreCase));
 
         Tables = sqlSelectDefinition.Table == null ? null : new SqlTable[] { sqlSelectDefinition.Table };
 
@@ -38,5 +29,5 @@ public class FileSelect : FileStatement
     /// Is a column a COUNT(*)?
     /// </summary>
     public bool IsCountQuery { get; }
-    
+
 }

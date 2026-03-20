@@ -95,11 +95,25 @@ internal class FileStatementCreator
     }
 
 
+    private static readonly System.Text.RegularExpressions.Regex DropTableRegex = new(
+        @"^\s*DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:\[?""?(\w+)""?\]?|'([^']+)')\s*;?\s*$",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private static IEnumerable<FileStatement> CreateFromCommand(string commandText, IFileConnection fileConnection, DbParameterCollection parameters, ILogger log)
     {
         log.LogDebug($"FileStatementCreator.{nameof(CreateFromCommand)}() called.  CommandText = {commandText}");
 
-        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log); 
+        // Handle DROP TABLE before passing to SqlBuildingBlocks (which doesn't support it)
+        var dropTableMatch = DropTableRegex.Match(commandText);
+        if (dropTableMatch.Success)
+        {
+            var tableName = dropTableMatch.Groups[1].Success ? dropTableMatch.Groups[1].Value : dropTableMatch.Groups[2].Value;
+            log.LogDebug($"Parsed DROP TABLE statement for table: {tableName}");
+            yield return new FileDropTable(tableName, commandText);
+            yield break;
+        }
+
+        var sqlDefinitions = CreateDefinitionsFromCommand(commandText, fileConnection, parameters, log);
         foreach (SqlDefinition sqlDefinition in sqlDefinitions)
         {
             sqlDefinition.ResolveParameters(parameters);

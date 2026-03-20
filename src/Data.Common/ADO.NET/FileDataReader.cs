@@ -455,7 +455,11 @@ public abstract class FileDataReader : DbDataReader
     public override string GetDataTypeName(int i)
     {
         log.LogDebug($"{GetType()}.{nameof(GetDataTypeName)}() called.");
-        return GetValueAsType<string>(i).GetType().Name;
+
+        if (result.WorkingResultSet == null)
+            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+
+        return result.FileEnumerator.GetFieldType(i).Name;
     }
 
     /// <summary>
