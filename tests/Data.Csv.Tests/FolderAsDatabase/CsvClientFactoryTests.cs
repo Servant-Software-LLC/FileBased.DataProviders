@@ -11,4 +11,11 @@ public class CsvClientFactoryTests
     {
         ClientFactoryTests.CreateCommand_ReadsData(CsvClientFactory.Instance);
     }
+
+    [Fact]
+    public void GetFactory_FromConnection_ReturnsCsvClientFactory()
+    {
+        using var connection = new CsvConnection();
+        ClientFactoryTests.GetFactory_FromConnection_ReturnsSameInstance(connection, CsvClientFactory.Instance);
+    }
 }

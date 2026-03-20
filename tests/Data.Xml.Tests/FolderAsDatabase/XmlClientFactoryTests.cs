@@ -12,4 +12,10 @@ public class XmlClientFactoryTests
         ClientFactoryTests.CreateCommand_ReadsData(XmlClientFactory.Instance);
     }
 
+    [Fact]
+    public void GetFactory_FromConnection_ReturnsXmlClientFactory()
+    {
+        using var connection = new XmlConnection();
+        ClientFactoryTests.GetFactory_FromConnection_ReturnsSameInstance(connection, XmlClientFactory.Instance);
+    }
 }
