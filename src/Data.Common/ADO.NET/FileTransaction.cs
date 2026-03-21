@@ -120,6 +120,9 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
     {
         log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
 
+        if (!TransactionDone)
+            Rollback();
+
         base.Dispose();
         Writers.Clear();
     }
