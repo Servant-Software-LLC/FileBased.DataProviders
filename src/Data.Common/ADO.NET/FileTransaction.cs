@@ -61,7 +61,8 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
 
         log.LogInformation($"{GetType()}.{nameof(Commit)}() called.");
 
-        FileWriter.readerWriterLock.EnterWriteLock();
+        var rwLock = FileWriter.GetLock(connection.Database);
+        rwLock.EnterWriteLock();
         try
         {
             Writers.ForEach(writer =>
@@ -71,7 +72,7 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         }
         finally
         {
-            FileWriter.readerWriterLock.ExitWriteLock();
+            rwLock.ExitWriteLock();
         }
 
     }

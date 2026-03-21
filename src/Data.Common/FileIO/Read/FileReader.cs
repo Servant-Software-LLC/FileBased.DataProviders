@@ -79,7 +79,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         VirtualDataTable returnValue;
 
         if (shouldLock)
-            FileWriter.readerWriterLock.EnterReadLock();
+            FileWriter.GetLock(fileConnection.Database).EnterReadLock();
 
         try
         {
@@ -132,7 +132,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         finally
         {
             if (shouldLock)
-                FileWriter.readerWriterLock.ExitReadLock();
+                FileWriter.GetLock(fileConnection.Database).ExitReadLock();
         }
 
         return returnValue;
@@ -140,7 +140,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
 
     public bool TableExists(string tableName)
     {
-        FileWriter.readerWriterLock.EnterReadLock();
+        FileWriter.GetLock(fileConnection.Database).EnterReadLock();
 
         try
         {
@@ -163,13 +163,13 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter.readerWriterLock.ExitReadLock();
+            FileWriter.GetLock(fileConnection.Database).ExitReadLock();
         }
     }
 
     public int? ColumnsOnTable(string tableName)
     {
-        FileWriter.readerWriterLock.EnterReadLock();
+        FileWriter.GetLock(fileConnection.Database).EnterReadLock();
 
         try
         {
@@ -205,7 +205,7 @@ public abstract class FileReader : ITableSchemaProvider, IDisposable
         }
         finally
         {
-            FileWriter.readerWriterLock.ExitReadLock();
+            FileWriter.GetLock(fileConnection.Database).ExitReadLock();
         }
     }
 
