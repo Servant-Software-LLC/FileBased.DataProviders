@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <EFCoreVersion>6.0.36</EFCoreVersion>
-        <SqlBuildingBlocks>1.0.0.132</SqlBuildingBlocks>
+        <SqlBuildingBlocks>1.0.0.239</SqlBuildingBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,14 +13,14 @@
     <PackageReference Update="SqlBuildingBlocks.Grammars.SQLServer" Version="$(SqlBuildingBlocks)" />
       
     <!-- Data.Csv -->
-    <PackageReference Update="CsvHelper" Version="33.0.1" />
-    <PackageReference Update="Microsoft.Data.Analysis" Version="0.22.2" />
+    <PackageReference Update="CsvHelper" Version="33.1.0" />
+    <PackageReference Update="Microsoft.Data.Analysis" Version="0.23.0" />
 
     <!-- Data.Json -->
     <PackageReference Update="System.Text.Json" Version="8.0.5" />
         
     <!-- Data.Xls -->
-    <PackageReference Update="DocumentFormat.OpenXml" Version="3.3.0"/>
+    <PackageReference Update="DocumentFormat.OpenXml" Version="3.5.1"/>
         
     <!-- EF Core Providers -->
     <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
@@ -30,12 +30,12 @@
     <PackageReference Update="FluentAssertions" Version="6.0.0" />
     <PackageReference Update="Moq" Version="4.20.72" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageReference Update="xunit" Version="2.9.2" />
+    <PackageReference Update="xunit" Version="2.9.3" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Update="coverlet.collector" Version="3.0.2" />
     <PackageReference Update="coverlet.msbuild" Version="3.0.2" />
     <PackageReference Update="XunitXml.TestLogger" Version="4.1.0" />
-    <PackageReference Update="Dapper" Version="2.0.123" />
+    <PackageReference Update="Dapper" Version="2.1.72" />
     <PackageReference Update="BenchmarkDotNet" Version="0.13.4" />
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />

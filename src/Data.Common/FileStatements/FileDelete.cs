@@ -19,7 +19,7 @@ public class FileDelete : FileStatement, IContainsReturning
         }
     }
 
-    public SqlBinaryExpression Filter { get; }
+    public SqlExpression Filter { get; }
 
     public override IEnumerable<SqlTable> Tables { get; }
 

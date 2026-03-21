@@ -13,12 +13,16 @@ public class FileInsert : FileStatement
         if (sqlInsertDefinition == null)
             throw new ArgumentNullException(nameof(sqlInsertDefinition));
 
-        if (sqlInsertDefinition.Columns.Count != sqlInsertDefinition.Values.Count)
-            throw new ArgumentException($"In the INSERT, the number of columns is {sqlInsertDefinition.Columns.Count}, but the number of VALUES is {sqlInsertDefinition.Values.Count}. Their counts must be the same.");
+        if (sqlInsertDefinition.Values.Count == 0)
+            throw new ArgumentException("INSERT statement must have at least one row of values.");
+
+        var firstRow = sqlInsertDefinition.Values[0];
+        if (sqlInsertDefinition.Columns.Count != firstRow.Count)
+            throw new ArgumentException($"In the INSERT, the number of columns is {sqlInsertDefinition.Columns.Count}, but the number of VALUES is {firstRow.Count}. Their counts must be the same.");
 
         Tables = new SqlTable[] { sqlInsertDefinition.Table };
         columns = sqlInsertDefinition.Columns.Cast<ISqlColumn>().ToList();
-        SetValues(sqlInsertDefinition.Values);
+        SetValues(firstRow);
     }
 
     public override IEnumerable<SqlTable> Tables { get; }

@@ -115,7 +115,7 @@ public class XlsCommandTests
             worksheetPart.Worksheet = new Worksheet(new SheetData());
 
             // Create the Sheets collection and add it to the workbook.
-            Sheets sheets = document.WorkbookPart!.Workbook.AppendChild(new Sheets());
+            Sheets sheets = document.WorkbookPart!.Workbook!.AppendChild(new Sheets());
 
             // Append a new Sheet to the Sheets collection.
             Sheet sheet = new Sheet()
