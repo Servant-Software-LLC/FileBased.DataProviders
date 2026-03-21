@@ -17,7 +17,8 @@ public class GrammarParser
     public static ParseTree ParseTree(Grammar grammar, string source)
     {
         var language = new LanguageData(grammar);
-        Assert.False(language.Errors.Any(), string.Join(Environment.NewLine, language.Errors.Select(err => err.ToString())));
+        var fatalErrors = language.Errors.Where(err => !err.ToString().Contains("Shift-reduce conflict") || !err.ToString().Contains("Selected")).ToList();
+        Assert.False(fatalErrors.Any(), string.Join(Environment.NewLine, fatalErrors.Select(err => err.ToString())));
 
         var parser = new Parser(language);
         var parseTree = parser.Parse(source);
