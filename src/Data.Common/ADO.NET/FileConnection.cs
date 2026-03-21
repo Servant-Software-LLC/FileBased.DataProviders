@@ -199,7 +199,11 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Closes the connection.
     /// </summary>
-    public override void Close() => state = ConnectionState.Closed;
+    public override void Close()
+    {
+        (DataSourceProvider as IDisposable)?.Dispose();
+        state = ConnectionState.Closed;
+    }
 
     /// <summary>
     /// Creates a new command.
@@ -321,6 +325,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     protected new void Dispose()
     {
+        (DataSourceProvider as IDisposable)?.Dispose();
         base.Dispose();
         state = ConnectionState.Closed;
     }

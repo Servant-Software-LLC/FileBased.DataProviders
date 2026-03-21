@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides a data source implementation for file system-based storage.
 /// </summary>
-public class FileSystemDataSource : IDataSourceProvider
+public class FileSystemDataSource : IDataSourceProvider, IDisposable
 {
     private readonly string fileExtension;
     private FileSystemWatcher fileWatcher;
@@ -234,4 +234,14 @@ public class FileSystemDataSource : IDataSourceProvider
 
     private string GetTableFileName(string tableName) => $"{tableName}.{fileExtension}";
 
+    public void Dispose()
+    {
+        if (fileWatcher != null)
+        {
+            fileWatcher.Changed -= FileWatcher_Changed;
+            fileWatcher.EnableRaisingEvents = false;
+            fileWatcher.Dispose();
+            fileWatcher = null;
+        }
+    }
 }
