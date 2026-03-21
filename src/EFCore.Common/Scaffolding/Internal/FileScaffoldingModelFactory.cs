@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -21,7 +20,6 @@ public class FileScaffoldingModelFactory : RelationalScaffoldingModelFactory
     /// <param name="pluralizer">The pluralizer.</param>
     /// <param name="cSharpUtilities">The C# utilities.</param>
     /// <param name="scaffoldingTypeMapper">The scaffolding type mapper.</param>
-    /// <param name="loggingDefinitions">The logging definitions.</param>
     /// <param name="modelRuntimeInitializer">The model runtime initializer.</param>
     public FileScaffoldingModelFactory(
         IOperationReporter operationReporter,
@@ -29,9 +27,8 @@ public class FileScaffoldingModelFactory : RelationalScaffoldingModelFactory
         IPluralizer pluralizer,
         ICSharpUtilities cSharpUtilities,
         IScaffoldingTypeMapper scaffoldingTypeMapper,
-        LoggingDefinitions loggingDefinitions,
         IModelRuntimeInitializer modelRuntimeInitializer)
-        : base(operationReporter, candidateNamingService, pluralizer, cSharpUtilities, scaffoldingTypeMapper, loggingDefinitions, modelRuntimeInitializer)
+        : base(operationReporter, candidateNamingService, pluralizer, cSharpUtilities, scaffoldingTypeMapper, modelRuntimeInitializer)
     {
     }
 
