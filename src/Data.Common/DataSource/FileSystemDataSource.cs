@@ -221,7 +221,15 @@ public class FileSystemDataSource : IDataSourceProvider
         if (DataSourceType != DataSourceType.Directory)
             throw new InvalidOperationException($"Can only call the {nameof(GetTablePath)} method on a data source of type {nameof(DataSourceType.Directory)}. DataSourceType={DataSourceType}");
 
-        return Path.Combine(Database, GetTableFileName(tableName));
+        var fullPath = Path.GetFullPath(Path.Combine(Database, GetTableFileName(tableName)));
+        var sep = Path.DirectorySeparatorChar.ToString();
+        var databaseDir = Database.EndsWith(sep, StringComparison.Ordinal)
+            ? Database
+            : Database + sep;
+        if (!fullPath.StartsWith(databaseDir, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"Table name '{tableName}' contains invalid path characters.");
+
+        return fullPath;
     }
 
     private string GetTableFileName(string tableName) => $"{tableName}.{fileExtension}";
