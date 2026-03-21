@@ -21,7 +21,7 @@ public abstract class FileDeleteWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var virtualDataTable = fileReader.ReadFile(query, fileTransaction?.TransactionScopedRows);
+            var virtualDataTable = fileReader.ReadFile(query, fileTransaction?.TransactionScopedRows, shouldLock: IsTransactedLater);
 
             //Remember here, that the whole data table is going to reside in-memory at this point.
             var dataTable = virtualDataTable.ToDataTable();

@@ -35,8 +35,9 @@ public abstract class FileInsertWriter : FileWriter
         {
             fileTransaction!.Writers.Add(this);
 
-            //Call PrepareRow() in order to determine the identity value
-            var results = PrepareRow(fileInsertStatement);
+            //Call PrepareRow() in order to determine the identity value.
+            //Acquire a read lock to prevent reading while another connection's Commit is writing the file.
+            var results = PrepareRow(fileInsertStatement, shouldLock: true);
             TransactionScopedRow = (results.Table.TableName, results.Row);
 
             return 1;
@@ -74,9 +75,9 @@ public abstract class FileInsertWriter : FileWriter
         return 1;
     }
 
-    private (VirtualDataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
+    private (VirtualDataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement, bool shouldLock = false)
     {
-        var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
+        var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows, shouldLock);
 
         //Check if we need to add columns on the first INSERT of data into this table.
         if (SchemaUnknownWithoutData && !virtualDataTable.Rows.Any())
