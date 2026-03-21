@@ -202,7 +202,13 @@ public abstract class FileInsertWriter : FileWriter
                 finally
                 {
                     if (handled)
+                    {
+                        // Convert identity value to match column DataType
+                        if (newRow[columnName] != DBNull.Value && newRow[columnName].GetType() != dataColumn.DataType)
+                            newRow[columnName] = Convert.ChangeType(newRow[columnName], dataColumn.DataType);
+
                         LastInsertIdentity = newRow[columnName];
+                    }
                 }
             }
 
