@@ -8,8 +8,6 @@ namespace EFCore.Csv.Tests.FolderAsDatabase;
 
 /// <summary>
 /// Tests verifying LINQ query translators work correctly with the CSV EF Core provider.
-/// Some tests are skipped due to SqlBuildingBlocks parser limitations (IS NOT NULL,
-/// SQL functions like UPPER/LOWER/LENGTH, and aggregate functions like MAX/MIN).
 /// </summary>
 public class CsvLinqTranslatorTests
 {
@@ -21,7 +19,7 @@ public class CsvLinqTranslatorTests
         LinqTests.StringContains_FiltersCorrectly(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks parser does not support IS NOT NULL syntax")]
+    [Fact]
     public void StringStartsWith_FiltersCorrectly()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -29,7 +27,7 @@ public class CsvLinqTranslatorTests
         LinqTests.StringStartsWith_FiltersCorrectly(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks parser does not support IS NOT NULL syntax")]
+    [Fact]
     public void StringEndsWith_FiltersCorrectly()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -37,7 +35,7 @@ public class CsvLinqTranslatorTests
         LinqTests.StringEndsWith_FiltersCorrectly(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks query engine does not handle UPPER() function")]
+    [Fact(Skip = "SqlBuildingBlocks #112: built-in function table projection mapping bug causes CurrentSourceRow column lookup to fail")]
     public void StringToUpper_TranslatesCorrectly()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -45,7 +43,7 @@ public class CsvLinqTranslatorTests
         LinqTests.StringToUpper_TranslatesCorrectly(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks query engine does not handle LOWER() function")]
+    [Fact(Skip = "SqlBuildingBlocks #112: built-in function table projection mapping bug causes CurrentSourceRow column lookup to fail")]
     public void StringToLower_TranslatesCorrectly()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -61,7 +59,7 @@ public class CsvLinqTranslatorTests
         LinqTests.EFLike_FiltersCorrectly(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks query engine does not handle LENGTH() function")]
+    [Fact(Skip = "SqlBuildingBlocks #112: functions in WHERE clause expressions are not resolved by built-in function mechanism")]
     public void StringLength_FiltersCorrectly()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -85,7 +83,7 @@ public class CsvLinqTranslatorTests
         LinqTests.CountWithPredicate_Aggregate_Works(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks parser does not support aggregate functions in SELECT")]
+    [Fact(Skip = "SqlBuildingBlocks #112: EvaluateAggregates result format mismatches EF Core expectations (Nullable object must have a value)")]
     public void Max_Aggregate_Works()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
@@ -93,7 +91,7 @@ public class CsvLinqTranslatorTests
         LinqTests.Max_Aggregate_Works(cs);
     }
 
-    [Fact(Skip = "SqlBuildingBlocks parser does not support aggregate functions in SELECT")]
+    [Fact(Skip = "SqlBuildingBlocks #112: EvaluateAggregates result format mismatches EF Core expectations (Nullable object must have a value)")]
     public void Min_Aggregate_Works()
     {
         var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
