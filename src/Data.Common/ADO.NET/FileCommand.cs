@@ -303,24 +303,24 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     }
 
     /// <inheritdoc/>
-    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return ExecuteDbDataReader(behavior);
+        return Task.Run(() => (DbDataReader)ExecuteDbDataReader(behavior), cancellationToken);
     }
 
     /// <inheritdoc/>
-    public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+    public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return ExecuteNonQuery();
+        return Task.Run(() => ExecuteNonQuery(), cancellationToken);
     }
 
     /// <inheritdoc/>
-    public override async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+    public override Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return ExecuteScalar();
+        return Task.Run(() => ExecuteScalar(), cancellationToken);
     }
 
 

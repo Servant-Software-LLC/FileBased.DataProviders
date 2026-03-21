@@ -299,8 +299,7 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     public override Task OpenAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        Open();
-        return Task.CompletedTask;
+        return Task.Run(() => Open(), cancellationToken);
     }
 
 
