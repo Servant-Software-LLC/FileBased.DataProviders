@@ -21,9 +21,14 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
             throw new Exception($"Expected {nameof(fileStatement)} to be a {nameof(FileInsert)}");
 
         // Infer schema from the insert values when no XSD schema is available.
+        // Unlike JSON which re-infers types on read, XML persists column types in XSD,
+        // so numeric types must use the preferred floating point type for consistency.
+        var preferredNumericType = fileConnection.PreferredFloatingPointDataType.ToType();
         foreach (var val in fileInsertStatement.GetValues())
         {
             var dataColumnType = GetDataColumnType(val.Value);
+            if (dataColumnType == typeof(decimal))
+                dataColumnType = preferredNumericType;
             dataTable.Columns.Add(val.Key, dataColumnType);
         }
 

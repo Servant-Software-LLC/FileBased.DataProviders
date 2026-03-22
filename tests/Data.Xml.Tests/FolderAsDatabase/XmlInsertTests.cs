@@ -43,6 +43,21 @@ public class XmlInsertTests
         InsertTests.Insert_ShouldBeFormatted(() => new XmlConnection(sandboxConnectionString));
     }
 
+    //This is a special case.  In XML without an XSD, if a table does not have any rows in it, then we have no schema information on the columns or their data types.
+    //Inserting the first row into this table will then determine the columns (along with their data types) in this table.
+    [Fact]
+    public void Insert_ShouldInsertDataIntoEmptyTables()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        var sandboxConnectionString = ConnectionStrings.Instance.EmptyWithTablesFolderAsDB.Sandbox("Sandbox", sandboxId);
+
+        //Setup the tables by inserting the first row into them.
+        InsertTests.Insert_ShouldInsertData(() => new XmlConnection(sandboxConnectionString));
+
+        //Assert by reading from the tables.
+        InsertTests.Insert_ShouldInsertDataIntoEmptyTables(() => new XmlConnection(sandboxConnectionString));
+    }
+
     [Fact]
     public void Insert_IndentityColumn_NoLastRow()
     {
