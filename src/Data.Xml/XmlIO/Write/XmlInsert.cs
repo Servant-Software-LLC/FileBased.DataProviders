@@ -9,8 +9,7 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
     {
     }
 
-    //TODO:  So far our support is for XML with the xsd definitions.  Later, this value may become a "it depends on whether xsd was included in the file"
-    public override bool SchemaUnknownWithoutData => false;
+    public override bool SchemaUnknownWithoutData => true;
 
     protected override void RealizeSchema(DataTable dataTable)
     {
