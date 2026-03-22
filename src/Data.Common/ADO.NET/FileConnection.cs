@@ -201,7 +201,6 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Close()
     {
-        (DataSourceProvider as IDisposable)?.Dispose();
         state = ConnectionState.Closed;
     }
 
@@ -233,6 +232,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Open()
     {
+        if (State == ConnectionState.Open)
+            throw new InvalidOperationException("Connection is already open.");
+
         if (DataSourceProvider is null)
         {
             if (!CreateIfNotExist)
@@ -322,11 +324,15 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Disposes the connection.
     /// </summary>
-    protected new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        (DataSourceProvider as IDisposable)?.Dispose();
-        base.Dispose();
-        state = ConnectionState.Closed;
+        if (disposing)
+        {
+            (DataSourceProvider as IDisposable)?.Dispose();
+            DataSourceProvider = null;
+            state = ConnectionState.Closed;
+        }
+        base.Dispose(disposing);
     }
 
     private DataTable GetTablesSchema()

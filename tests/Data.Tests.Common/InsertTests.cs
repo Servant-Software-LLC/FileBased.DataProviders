@@ -24,6 +24,7 @@ public static class InsertTests
 
             // Assert
             Assert.Equal(1, rowsAffected);
+            connection.Close();
             connection.Open();
 
             // Act - Verify the inserted record exists in the locations table
@@ -61,6 +62,7 @@ public static class InsertTests
 
             // Assert
             Assert.Equal(1, rowsAffected);
+            connection.Close();
             connection.Open();
 
             // Act - Verify the inserted record exists in the locations table

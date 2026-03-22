@@ -115,15 +115,18 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
 #endif
 
     /// <inheritdoc/>
-    protected new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
+        if (disposing)
+        {
+            log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
 
-        if (!TransactionDone)
-            Rollback();
+            if (!TransactionDone)
+                Rollback();
 
-        base.Dispose();
-        Writers.Clear();
+            Writers.Clear();
+        }
+        base.Dispose(disposing);
     }
 
     /// <inheritdoc/>

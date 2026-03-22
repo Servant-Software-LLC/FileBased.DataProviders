@@ -85,7 +85,11 @@ public abstract class FileDataReader : DbDataReader
     /// </summary>
     public override bool HasRows => result.HasRows;
 
-    public override void Close() => Dispose();
+    public override void Close()
+    {
+        log.LogDebug($"{GetType()}.{nameof(Close)}() called.");
+        fileReader.Dispose();
+    }
 
     /// <summary>
     /// Advances to the next result, when reading the results of batch SQL statements.
@@ -714,10 +718,9 @@ public abstract class FileDataReader : DbDataReader
     /// <summary>
     /// Disposes of the resources used by this instance.
     /// </summary>
-    protected new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
-        fileReader.Dispose();
+        base.Dispose(disposing);
     }
 
     /// <summary>
