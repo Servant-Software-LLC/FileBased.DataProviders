@@ -133,4 +133,11 @@ public class XmlDataReaderTests
         DataReaderTests.Reader_OrderBy_WithLimit(() =>
             new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Reader_DisposeShouldNotBreakConnectionReuse()
+    {
+        DataReaderTests.Reader_DisposeShouldNotBreakConnectionReuse(() =>
+            new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
 }

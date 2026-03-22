@@ -455,4 +455,11 @@ public class CsvDataReaderTests
         DataReaderTests.Reader_OrderBy_WithLimit(() =>
             new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
     }
+
+    [Fact]
+    public void Reader_DisposeShouldNotBreakConnectionReuse()
+    {
+        DataReaderTests.Reader_DisposeShouldNotBreakConnectionReuse(() =>
+            new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
 }

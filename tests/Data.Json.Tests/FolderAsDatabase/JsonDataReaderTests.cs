@@ -199,4 +199,11 @@ public class JsonDataReaderTests
 
     }
 
+    [Fact]
+    public void Reader_DisposeShouldNotBreakConnectionReuse()
+    {
+        DataReaderTests.Reader_DisposeShouldNotBreakConnectionReuse(() =>
+            new JsonConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
 }

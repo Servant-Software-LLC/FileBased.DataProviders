@@ -88,7 +88,10 @@ public abstract class FileDataReader : DbDataReader
     public override void Close()
     {
         log.LogDebug($"{GetType()}.{nameof(Close)}() called.");
-        fileReader.Dispose();
+        // Do not dispose the shared FileReader — it is owned by FileConnection
+        // and must remain valid for subsequent queries on the same connection.
+        // Disposing it here would call MarkDataSetToUpdate(), invalidating
+        // the cached dataset and forcing a full re-read from disk.
     }
 
     /// <summary>

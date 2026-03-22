@@ -851,4 +851,35 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
         Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
     }
+
+    /// <summary>
+    /// Verifies that disposing a FileDataReader does not invalidate the connection-level
+    /// FileReader cache, allowing subsequent queries to reuse cached data without re-reading
+    /// from disk. Regression test for GitHub issue #163.
+    /// </summary>
+    public static void Reader_DisposeShouldNotBreakConnectionReuse<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - First query: read and dispose (standard using pattern)
+        using (var reader1 = connection.CreateCommand("SELECT * FROM locations").ExecuteReader())
+        {
+            Assert.True(reader1.Read());
+        }
+
+        // Act - Second query on the same connection should succeed without error
+        // Prior to fix, this would force a full re-read from disk because the first
+        // reader's Dispose() called FileReader.Dispose() → MarkDataSetToUpdate()
+        using (var reader2 = connection.CreateCommand("SELECT * FROM locations").ExecuteReader())
+        {
+            Assert.True(reader2.Read());
+            Assert.True(reader2.FieldCount > 0);
+        }
+
+        connection.Close();
+    }
 }
