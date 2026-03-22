@@ -117,10 +117,9 @@ public static class ConcurrencyTests
     }
 
     /// <summary>
-    /// Multiple concurrent transactions against the same table should not deadlock.
-    /// Each transaction inserts, commits, and completes without hanging. IO errors
-    /// from concurrent file access are tolerated (known limitation of file-based
-    /// storage), but deadlocks (timeout) are not.
+    /// Multiple concurrent transactions against the same table should not deadlock
+    /// or corrupt data. Each transaction inserts, commits, and completes without
+    /// hanging. All transactions should succeed and their data should be preserved.
     /// </summary>
     public static void ConcurrentTransactions_ShouldNotDeadlock<TFileParameter>(
         FileConnectionString connectionString,
@@ -128,8 +127,7 @@ public static class ConcurrencyTests
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
         const int concurrency = 5;
-        var ioErrors = new List<Exception>();
-        var nonIoErrors = new List<Exception>();
+        var exceptions = new List<Exception>();
         var barrier = new Barrier(concurrency);
         var completedCount = 0;
 
@@ -148,45 +146,20 @@ public static class ConcurrencyTests
                 transaction.Commit();
                 Interlocked.Increment(ref completedCount);
             }
-            catch (Exception ex) when (IsFileAccessError(ex))
-            {
-                // IO errors from concurrent file access are a known limitation,
-                // not a deadlock. Track but don't fail the test for these.
-                lock (ioErrors) { ioErrors.Add(ex); }
-            }
             catch (Exception ex)
             {
-                lock (nonIoErrors) { nonIoErrors.Add(ex); }
+                lock (exceptions) { exceptions.Add(ex); }
             }
         })).ToArray();
 
         var completed = Task.WaitAll(tasks, TimeSpan.FromSeconds(60));
         Assert.True(completed, "Concurrent transactions should complete without deadlock within 60s");
 
-        if (nonIoErrors.Count > 0)
-            throw new AggregateException("Concurrent transaction failures (non-IO)", nonIoErrors);
+        if (exceptions.Count > 0)
+            throw new AggregateException("Concurrent transaction failures", exceptions);
 
-        // At least one transaction should succeed
-        Assert.True(completedCount > 0,
-            $"At least one transaction should commit successfully. IO errors: {ioErrors.Count}");
-    }
-
-    private static bool IsFileAccessError(Exception ex)
-    {
-        if (ex is IOException || ex is System.Xml.XmlException)
-            return true;
-
-        // Check inner exceptions for IO/XML errors (often wrapped)
-        var inner = ex.InnerException;
-        while (inner != null)
-        {
-            if (inner is IOException || inner is System.Xml.XmlException)
-                return true;
-            inner = inner.InnerException;
-        }
-
-        // Check for TableNotFoundException wrapping an IO error
-        return ex.GetType().Name == "TableNotFoundException" && ex.InnerException != null && IsFileAccessError(ex.InnerException);
+        // All transactions should succeed
+        Assert.Equal(concurrency, completedCount);
     }
 
     /// <summary>

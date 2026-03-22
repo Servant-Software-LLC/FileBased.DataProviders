@@ -259,4 +259,50 @@ public static class InsertTests
         //TODO
     }
 
+    /// <summary>
+    /// After deleting the last row, inserting a new row should use MAX(id)+1,
+    /// not lastRow+1, to avoid identity collisions.
+    /// </summary>
+    public static void Insert_IdentityColumn_AfterDelete_UsesMaxValue<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        using (var connection = createFileConnection())
+        {
+            connection.Open();
+
+            // Setup: locations table has rows with ids 1, 2.
+            // Delete the row with the highest id (2).
+            var command = connection.CreateCommand("DELETE FROM locations WHERE id = 2");
+            var rowsAffected = command.ExecuteNonQuery();
+            Assert.Equal(1, rowsAffected);
+
+            // Act: Insert a new row. The new id should be 3 (MAX(1)+1=2 would collide
+            // with the just-deleted row in concurrent scenarios; correct is MAX(1)+1=2
+            // but more importantly, after inserting id=2 and deleting it, the next should
+            // still be > any existing id).
+            command = connection.CreateCommand("INSERT INTO locations (city, state, zip) VALUES ('Portland', 'Oregon', 97201)");
+            rowsAffected = command.ExecuteNonQuery();
+            Assert.Equal(1, rowsAffected);
+
+            // Verify the new row got an id that doesn't collide with row id=1
+            command = connection.CreateCommand("SELECT * FROM locations ORDER BY id");
+            using (var reader = command.ExecuteReader())
+            {
+                // First row: id=1 (original)
+                Assert.True(reader.Read());
+                Assert.Equal(connection.GetProperlyTypedValue(1), reader["id"]);
+
+                // Second row: the new insert should have id=2 (MAX(1)+1)
+                Assert.True(reader.Read());
+                var newId = reader["id"];
+                Assert.Equal(connection.GetProperlyTypedValue(2), newId);
+                Assert.Equal("Portland", reader["city"]);
+
+                Assert.False(reader.Read());
+            }
+
+            connection.Close();
+        }
+    }
+
 }

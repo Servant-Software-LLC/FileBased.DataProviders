@@ -65,6 +65,10 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         rwLock.EnterWriteLock();
         try
         {
+            // Stop file watching to prevent mid-write file watcher events from
+            // triggering stale re-reads during the commit.
+            connection.FileReader?.StopWatching();
+
             Writers.ForEach(writer =>
             {
                 writer.Execute();
@@ -72,6 +76,7 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         }
         finally
         {
+            connection.FileReader?.StartWatching();
             rwLock.ExitWriteLock();
         }
 
