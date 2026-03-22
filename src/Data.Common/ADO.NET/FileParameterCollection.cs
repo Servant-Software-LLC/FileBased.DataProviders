@@ -207,7 +207,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(string parameterName) =>
-        InternalList.First(p => p.ParameterName == parameterName);
+        InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+        ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(int index)
@@ -217,7 +218,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     /// <inheritdoc />
     protected override DbParameter GetParameter(string parameterName) =>
-        InternalList.First(p => p.ParameterName == parameterName);
+        InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+        ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
 
     /// <inheritdoc />
     protected override DbParameter GetParameter(int index)
@@ -228,7 +230,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     protected void SetParameter(string parameterName, TFileParameter value)
     {
-        var parameter = InternalList.First(p => p.ParameterName == parameterName);
+        var parameter = InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+            ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
         parameter.Value = value.Value;
     }
 

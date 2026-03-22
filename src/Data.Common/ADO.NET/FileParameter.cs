@@ -110,12 +110,19 @@ public abstract class FileParameter<TFileParameter> : DbParameter, IDbDataParame
                 return DbType.Object;  //We have no indication of type, so default to Object.
 
             case TypeCode.Char:
+                return DbType.StringFixedLength;
+
             case TypeCode.SByte:
+                return DbType.SByte;
+
             case TypeCode.UInt16:
+                return DbType.UInt16;
+
             case TypeCode.UInt32:
+                return DbType.UInt32;
+
             case TypeCode.UInt64:
-                // Throw a SystemException for unsupported data types.
-                throw new SystemException($"Invalid data type for type code {typeCode}");
+                return DbType.UInt64;
 
             case TypeCode.Boolean:
                 return DbType.Boolean;
