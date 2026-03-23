@@ -85,7 +85,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
         => RemoveAt(IndexOf(parameterName ?? throw new ArgumentNullException(nameof(parameterName))));
 
     /// <summary>
-    /// Removes the specified <see cref="NpgsqlParameter"/> from the collection using a specific index.
+    /// Removes the specified <see cref="TFileParameter"/> from the collection using a specific index.
     /// </summary>
     /// <param name="index">The zero-based index of the parameter.</param>
     public override void RemoveAt(int index)

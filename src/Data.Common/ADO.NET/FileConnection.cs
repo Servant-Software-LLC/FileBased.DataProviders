@@ -201,7 +201,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Close()
     {
+        var previousState = state;
         state = ConnectionState.Closed;
+        OnStateChange(new StateChangeEventArgs(previousState, state));
     }
 
     /// <summary>
@@ -259,7 +261,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
             ConnectionString = FileConnectionString.CustomDataSource;
         }
 
+        var previousState = state;
         state = ConnectionState.Open;
+        OnStateChange(new StateChangeEventArgs(previousState, state));
     }
 
     /// <summary>
