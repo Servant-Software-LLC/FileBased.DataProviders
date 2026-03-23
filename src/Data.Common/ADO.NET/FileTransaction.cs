@@ -101,14 +101,16 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
     public override Task CommitAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => Commit(), cancellationToken);
+        Commit();
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     public override Task RollbackAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => Rollback(), cancellationToken);
+        Rollback();
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>

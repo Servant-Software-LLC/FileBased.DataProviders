@@ -306,21 +306,21 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => (DbDataReader)ExecuteDbDataReader(behavior), cancellationToken);
+        return Task.FromResult((DbDataReader)ExecuteDbDataReader(behavior));
     }
 
     /// <inheritdoc/>
     public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteNonQuery(), cancellationToken);
+        return Task.FromResult(ExecuteNonQuery());
     }
 
     /// <inheritdoc/>
     public override Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteScalar(), cancellationToken);
+        return Task.FromResult(ExecuteScalar());
     }
 
 
