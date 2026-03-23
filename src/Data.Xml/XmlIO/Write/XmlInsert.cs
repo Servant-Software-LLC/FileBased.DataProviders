@@ -9,6 +9,9 @@ internal class XmlInsert : Common.FileIO.Write.FileInsertWriter
     {
     }
 
+    // Always true: XML schema may or may not come from an XSD file, but the property
+    // doesn't have table context to check. RealizeSchema handles this by returning early
+    // when columns are already defined (e.g. from XSD or CREATE TABLE).
     public override bool SchemaUnknownWithoutData => true;
 
     protected override void RealizeSchema(DataTable dataTable)
