@@ -16,5 +16,9 @@ packages
 *.metaproj
 *.metaproj.tmp
 
+# Ignore .claude but track skills and agents
+.claude/*
+!.claude/skills/
+!.claude/agents/
 
 /.vscode
