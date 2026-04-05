@@ -107,7 +107,22 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         if (string.IsNullOrEmpty(SelectCommand.CommandText))
             throw new InvalidOperationException($"{nameof(SelectCommand.CommandText)} property on {nameof(SelectCommand)} is not set.");
 
-        return AutoOpenCloseConnection(dataSet, Fill_Inner);
+        return AutoOpenCloseConnection(() =>
+        {
+            int result = base.Fill(dataSet);
+
+            // base.Fill may not create a table when the query returns 0 rows.
+            // Ensure the DataSet always has at least one table with the correct schema.
+            if (result == 0 && dataSet.Tables.Count == 0)
+            {
+                var schemaTable = ExecuteSelectCommand();
+                schemaTable.TableName = "Table";
+                schemaTable.Clear();
+                dataSet.Tables.Add(schemaTable);
+            }
+
+            return result;
+        });
     }
 
     public new int Fill(DataTable dataTable)
@@ -210,51 +225,121 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         if (dataSet.Tables.Count == 0)
             throw new InvalidOperationException($"{nameof(dataSet)} does not contain any tables.");
 
-        if (UpdateCommand == null)
-            throw new InvalidOperationException($"Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
-
-        if (UpdateCommand.Connection == null)
-            throw new InvalidOperationException($"Update requires the UpdateCommand to have a connection object. The Connection property of the UpdateCommand has not been initialized.");
-
-        if (string.IsNullOrEmpty(UpdateCommand.CommandText))
-            throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
-
         if (Connection.AdminMode)
             throw new ArgumentException($"The {GetType()} cannot be used with an admin connection.");
 
-        log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
-
-        var dataTable = dataSet.Tables[0];
-        var changedDataRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Modified).ToList();
-        int rowsAffected = 0;
-        foreach (DataRow changedDataRow in changedDataRows)
+        DataTable dataTable;
+        if (TableMappings.Count > 0 && TableMappings.Contains("Table"))
         {
-            //check if source column is set and has parameters
-            if (UpdateCommand.Parameters.Count > 0)
+            var mapping = TableMappings["Table"];
+            dataTable = dataSet.Tables[mapping.DataSetTable]
+                ?? throw new InvalidOperationException($"DataSet does not contain a table named '{mapping.DataSetTable}'.");
+        }
+        else
+        {
+            dataTable = dataSet.Tables[0];
+        }
+
+        int rowsAffected = 0;
+
+        // Handle Added rows via InsertCommand
+        var addedRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Added).ToList();
+        if (addedRows.Count > 0)
+        {
+            if (InsertCommand == null)
+                throw new InvalidOperationException("Update requires a valid InsertCommand when passed DataRow collection with added rows.");
+            if (InsertCommand.Connection == null)
+                throw new InvalidOperationException("Update requires the InsertCommand to have a connection object. The Connection property of the InsertCommand has not been initialized.");
+            if (string.IsNullOrEmpty(InsertCommand.CommandText))
+                throw new InvalidOperationException($"{nameof(InsertCommand.CommandText)} property on {nameof(InsertCommand)} is not set.");
+
+            log.LogInformation($"{GetType()}.{nameof(Update)}() called.  InsertCommand.CommandText = {InsertCommand.CommandText}");
+
+            foreach (DataRow addedRow in addedRows)
             {
-                foreach (IDbDataParameter parameter in UpdateCommand.Parameters)
-                {
-                    if (!string.IsNullOrEmpty(parameter.SourceColumn))
-                    {
-                        if (!dataTable.Columns.Contains(parameter.SourceColumn))
-                            throw new InvalidOperationException($"The source column '{parameter.SourceColumn}' does not exist in the DataTable passed into the Update method.");
+                SetParameterValues(InsertCommand, dataTable, addedRow);
 
-                        parameter.Value = changedDataRow[parameter.SourceColumn];
-                    }
-                }
+                var query = FileStatementCreator.Create((FileCommand<TFileParameter>)InsertCommand, log);
+                if (query is not FileInsert)
+                    throw new QueryNotSupportedException("InsertCommand did not produce a valid INSERT statement.");
+
+                var writer = CreateWriter(query);
+                rowsAffected += writer.Execute();
             }
+        }
 
-            var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
-            if (query is not FileUpdate updateStatement)
+        // Handle Modified rows via UpdateCommand
+        var modifiedRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Modified).ToList();
+        if (modifiedRows.Count > 0)
+        {
+            if (UpdateCommand == null)
+                throw new InvalidOperationException("Update requires a valid UpdateCommand when passed DataRow collection with modified rows.");
+            if (UpdateCommand.Connection == null)
+                throw new InvalidOperationException("Update requires the UpdateCommand to have a connection object. The Connection property of the UpdateCommand has not been initialized.");
+            if (string.IsNullOrEmpty(UpdateCommand.CommandText))
+                throw new InvalidOperationException($"{nameof(UpdateCommand.CommandText)} property on {nameof(UpdateCommand)} is not set.");
+
+            log.LogInformation($"{GetType()}.{nameof(Update)}() called.  UpdateCommand.CommandText = {UpdateCommand.CommandText}");
+
+            foreach (DataRow modifiedRow in modifiedRows)
             {
-                throw new QueryNotSupportedException("This query is not yet supported via DataAdapter");
-            }
+                SetParameterValues(UpdateCommand, dataTable, modifiedRow);
 
-            var updater = CreateWriter(query);
-            rowsAffected += updater.Execute();
+                var query = FileStatementCreator.Create((FileCommand<TFileParameter>)UpdateCommand, log);
+                if (query is not FileUpdate)
+                    throw new QueryNotSupportedException("UpdateCommand did not produce a valid UPDATE statement.");
+
+                var writer = CreateWriter(query);
+                rowsAffected += writer.Execute();
+            }
+        }
+
+        // Handle Deleted rows via DeleteCommand
+        var deletedRows = dataTable.Rows.Cast<DataRow>().Where(row => row.RowState == DataRowState.Deleted).ToList();
+        if (deletedRows.Count > 0)
+        {
+            if (DeleteCommand == null)
+                throw new InvalidOperationException("Update requires a valid DeleteCommand when passed DataRow collection with deleted rows.");
+            if (DeleteCommand.Connection == null)
+                throw new InvalidOperationException("Update requires the DeleteCommand to have a connection object. The Connection property of the DeleteCommand has not been initialized.");
+            if (string.IsNullOrEmpty(DeleteCommand.CommandText))
+                throw new InvalidOperationException($"{nameof(DeleteCommand.CommandText)} property on {nameof(DeleteCommand)} is not set.");
+
+            log.LogInformation($"{GetType()}.{nameof(Update)}() called.  DeleteCommand.CommandText = {DeleteCommand.CommandText}");
+
+            foreach (DataRow deletedRow in deletedRows)
+            {
+                SetParameterValues(DeleteCommand, dataTable, deletedRow, useOriginalVersion: true);
+
+                var query = FileStatementCreator.Create((FileCommand<TFileParameter>)DeleteCommand, log);
+                if (query is not FileDelete)
+                    throw new QueryNotSupportedException("DeleteCommand did not produce a valid DELETE statement.");
+
+                var writer = CreateWriter(query);
+                rowsAffected += writer.Execute();
+            }
         }
 
         return rowsAffected;
+    }
+
+    private static void SetParameterValues(DbCommand command, DataTable dataTable, DataRow row, bool useOriginalVersion = false)
+    {
+        if (command.Parameters.Count == 0)
+            return;
+
+        foreach (IDbDataParameter parameter in command.Parameters)
+        {
+            if (!string.IsNullOrEmpty(parameter.SourceColumn))
+            {
+                if (!dataTable.Columns.Contains(parameter.SourceColumn))
+                    throw new InvalidOperationException($"The source column '{parameter.SourceColumn}' does not exist in the DataTable passed into the Update method.");
+
+                parameter.Value = useOriginalVersion
+                    ? row[parameter.SourceColumn, DataRowVersion.Original]
+                    : row[parameter.SourceColumn];
+            }
+        }
     }
 
     /// <summary>
@@ -309,18 +394,6 @@ public abstract class FileDataAdapter<TFileParameter> : DbDataAdapter, IFileData
         }
 
         return new DataTable[] { dataTable };
-    }
-
-    private int Fill_Inner(DataSet dataSet)
-    {
-        log.LogInformation($"{GetType()}.{nameof(Fill)}() called.  SelectCommand.CommandText = {SelectCommand.CommandText}");
-
-        DataTable dataTable = ExecuteSelectCommand();
-
-        dataTable.TableName = "Table";
-        dataSet.Tables.Clear();
-        dataSet.Tables.Add(dataTable);
-        return dataTable.Rows.Count;
     }
 
     private DataTable ExecuteSelectCommand()

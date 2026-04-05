@@ -35,8 +35,9 @@ public abstract class FileInsertWriter : FileWriter
         {
             fileTransaction!.Writers.Add(this);
 
-            //Call PrepareRow() in order to determine the identity value
-            var results = PrepareRow(fileInsertStatement);
+            //Call PrepareRow() in order to determine the identity value.
+            //Acquire a read lock to prevent reading while another connection's Commit is writing the file.
+            var results = PrepareRow(fileInsertStatement, shouldLock: true);
             TransactionScopedRow = (results.Table.TableName, results.Row);
 
             return 1;
@@ -55,7 +56,13 @@ public abstract class FileInsertWriter : FileWriter
             else
             {
                 var transactionScopedRow = TransactionScopedRow.Value;
-                var table = fileReader.DataSet.Tables[transactionScopedRow.TableName];
+
+                // Force re-read from disk to get latest data (e.g., from other committed
+                // transactions). Without this, the in-memory DataSet may be stale and Save()
+                // would overwrite changes from other connections.
+                // shouldLock: false because the write lock is already held by FileTransaction.Commit().
+                fileReader.MarkTableToUpdate(transactionScopedRow.TableName);
+                var table = fileReader.ReadFile(fileInsertStatement, null, shouldLock: false);
 
                 table.AppendRow(transactionScopedRow.Row);
             }
@@ -74,9 +81,9 @@ public abstract class FileInsertWriter : FileWriter
         return 1;
     }
 
-    private (VirtualDataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement)
+    private (VirtualDataTable Table, DataRow Row) PrepareRow(FileInsert fileStatement, bool shouldLock = false)
     {
-        var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows);
+        var virtualDataTable = fileReader.ReadFile(fileStatement, fileTransaction?.TransactionScopedRows, shouldLock);
 
         //Check if we need to add columns on the first INSERT of data into this table.
         if (SchemaUnknownWithoutData && !virtualDataTable.Rows.Any())
@@ -164,8 +171,9 @@ public abstract class FileInsertWriter : FileWriter
             // Look for missing identity values
             if (!columnValueSet && ColumnNameIndicatesIdentity(columnName))
             {
-                // This could be an expensive operation depending on number of rows here.
-                var lastRow = virtualDataTable.Rows.Cast<DataRow>().LastOrDefault();
+                // Find the row with the maximum identity column value (not just the last row)
+                // to prevent identity collisions after row deletions.
+                var lastRow = FindRowWithMaxIdentity(virtualDataTable.Rows.Cast<DataRow>(), columnName, dataColumn.DataType);
 
                 //Since we don't have a datatype for values in a CSV, we need to determine if the last
                 //row 'looks' like a datatype that can be an identity (i.e. Guid or integer).
@@ -202,7 +210,13 @@ public abstract class FileInsertWriter : FileWriter
                 finally
                 {
                     if (handled)
+                    {
+                        // Convert identity value to match column DataType
+                        if (newRow[columnName] != DBNull.Value && newRow[columnName].GetType() != dataColumn.DataType)
+                            newRow[columnName] = Convert.ChangeType(newRow[columnName], dataColumn.DataType);
+
                         LastInsertIdentity = newRow[columnName];
+                    }
                 }
             }
 
@@ -215,6 +229,35 @@ public abstract class FileInsertWriter : FileWriter
         }
     }
 
+
+    /// <summary>
+    /// Finds the row with the maximum value for the specified identity column.
+    /// Uses MAX instead of last-row to avoid identity collisions after row deletions.
+    /// </summary>
+    private static DataRow FindRowWithMaxIdentity(IEnumerable<DataRow> rows, string columnName, Type dataType)
+    {
+        if (dataType == typeof(float) || dataType == typeof(double) || dataType == typeof(decimal))
+        {
+            DataRow maxRow = null;
+            decimal maxVal = decimal.MinValue;
+            foreach (var row in rows)
+            {
+                var val = row[columnName];
+                if (val == DBNull.Value) continue;
+
+                var decVal = Convert.ToDecimal(val);
+                if (maxRow == null || decVal > maxVal)
+                {
+                    maxVal = decVal;
+                    maxRow = row;
+                }
+            }
+            return maxRow;
+        }
+
+        // For non-numeric types (GUID, etc.), any row works for type detection
+        return rows.LastOrDefault();
+    }
 
     protected static bool ColumnNameIndicatesIdentity(string columnName) =>
         string.Compare(columnName, "Id", true) == 0 || columnName.EndsWith("Id", StringComparison.InvariantCultureIgnoreCase);

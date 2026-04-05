@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Json.Utils;
+using System.Data.Common;
 
 namespace System.Data.JsonClient;
 
@@ -6,25 +7,22 @@ public sealed class JsonClientFactory : DbProviderFactory
 {
     public static readonly JsonClientFactory Instance = new JsonClientFactory();
 
+#if NET7_0_OR_GREATER
+    static JsonClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.JsonClient", Instance);
+    }
+#endif
+
     private JsonClientFactory() { }
 
     public override DbCommand CreateCommand() => new JsonCommand();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/75
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbCommandBuilder CreateCommandBuilder() => throw new NotSupportedException("CommandBuilder is not implemented for this provider.");
+    public override DbCommandBuilder CreateCommandBuilder() => new JsonCommandBuilder();
 
     public override DbConnection CreateConnection() => new JsonConnection();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/74
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => throw new NotSupportedException("ConnectionStringBuilder is not implemented for this provider.");
+    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new JsonConnectionStringBuilder();
 
     public override DbDataAdapter CreateDataAdapter() => new JsonDataAdapter();
 

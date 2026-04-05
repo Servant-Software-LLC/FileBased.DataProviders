@@ -27,8 +27,8 @@ public class JsonDataAdapter : FileDataAdapter<JsonParameter>
     /// <inheritdoc/>
     protected override FileWriter CreateWriter(FileStatement fileStatement) => fileStatement switch
     {
-        global::Data.Common.FileStatements.FileDelete deleteStatement => new JsonDelete(deleteStatement, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
-        FileInsert insertStatement => new JsonInsert(insertStatement, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
+        global::Data.Common.FileStatements.FileDelete deleteStatement => new JsonDelete(deleteStatement, (JsonConnection)DeleteCommand!.Connection!, (FileCommand<JsonParameter>)DeleteCommand),
+        FileInsert insertStatement => new JsonInsert(insertStatement, (JsonConnection)InsertCommand!.Connection!, (FileCommand<JsonParameter>)InsertCommand),
         FileUpdate updateStatement => new JsonUpdate(updateStatement, (JsonConnection)UpdateCommand!.Connection!, (FileCommand<JsonParameter>)UpdateCommand),
 
         _ => throw new InvalidOperationException("query not supported")

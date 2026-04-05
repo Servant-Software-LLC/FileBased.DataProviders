@@ -66,6 +66,42 @@ public partial class XmlDataAdapterTests
     }
 
     [Fact]
+    public void Fill_WithTableMapping_ShouldMapTableName()
+    {
+        DataAdapterTests.Fill_WithTableMapping_ShouldMapTableName(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Fill_WithColumnMapping_ShouldMapColumnNames()
+    {
+        DataAdapterTests.Fill_WithColumnMapping_ShouldMapColumnNames(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Fill_WithMultipleResultSets_ShouldCreateMultipleTables()
+    {
+        DataAdapterTests.Fill_WithMultipleResultSets_ShouldCreateMultipleTables(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Fill_WithMultipleResultSets_AndTableMappings_ShouldMapTableNames()
+    {
+        DataAdapterTests.Fill_WithMultipleResultSets_AndTableMappings_ShouldMapTableNames(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB));
+    }
+
+    [Fact]
+    public void Update_WithTableMapping_ShouldUseCorrectTable()
+    {
+        var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+        DataAdapterTests.Update_WithTableMapping_ShouldUseCorrectTable(
+            () => new XmlConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+    }
+
+    [Fact]
     public void FillSchema_ShouldReturnDataTableWithAllColumns()
     {
         DataAdapterTests.FillSchema_ShouldReturnDataTableWithAllColumns(

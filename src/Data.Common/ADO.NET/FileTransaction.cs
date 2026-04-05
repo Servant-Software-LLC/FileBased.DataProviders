@@ -1,5 +1,7 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -59,9 +61,14 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
 
         log.LogInformation($"{GetType()}.{nameof(Commit)}() called.");
 
-        FileWriter.readerWriterLock.EnterWriteLock();
+        var rwLock = FileWriter.GetLock(connection.Database);
+        rwLock.EnterWriteLock();
         try
         {
+            // Stop file watching to prevent mid-write file watcher events from
+            // triggering stale re-reads during the commit.
+            connection.FileReader?.StopWatching();
+
             Writers.ForEach(writer =>
             {
                 writer.Execute();
@@ -69,7 +76,8 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         }
         finally
         {
-            FileWriter.readerWriterLock.ExitWriteLock();
+            connection.FileReader?.StartWatching();
+            rwLock.ExitWriteLock();
         }
 
     }
@@ -87,13 +95,45 @@ public abstract class FileTransaction<TFileParameter> : DbTransaction, IFileTran
         log.LogInformation($"{GetType()}.{nameof(Rollback)}() called.");
     }
 
-    /// <inheritdoc/>
-    protected new void Dispose()
-    {
-        log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
 
-        base.Dispose();
-        Writers.Clear();
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Commit();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Rollback();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
+
+            if (!TransactionDone)
+                Rollback();
+
+            Writers.Clear();
+        }
+        base.Dispose(disposing);
     }
 
     /// <inheritdoc/>

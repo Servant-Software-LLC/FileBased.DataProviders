@@ -1,6 +1,8 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
 using SqlBuildingBlocks.LogicalEntities;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -211,7 +213,7 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
     /// <inheritdoc/>
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
-        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}");
+        log.LogInformation($"{GetType()}.{nameof(ExecuteDbDataReader)}() called.  CommandText = {CommandText}  CommandBehavior = {behavior}");
 
         ThrowOnInvalidExecutionState();
 
@@ -222,6 +224,17 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
         //multiple commands separated by semicolons
         var fileStatements = FileStatementCreator.CreateMultiCommandSupport(this, log);
 
+        // SchemaOnly: Return reader with schema but no data rows
+        if (behavior.HasFlag(CommandBehavior.SchemaOnly))
+        {
+            // Filter to only SELECT statements for schema discovery
+            var selectStatements = fileStatements.Where(s => s is FileSelect).ToList();
+            if (selectStatements.Count == 0)
+                selectStatements = fileStatements.ToList();
+
+            fileStatements = selectStatements;
+        }
+
         ProvideColumnNameHints(fileStatements);
 
         if (FileConnection!.State != ConnectionState.Open)
@@ -229,7 +242,15 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
             throw new InvalidOperationException("Connection should be opened before executing a command.");
         }
 
-        return CreateDataReader(fileStatements, FileConnection.LoggerServices);
+        var reader = CreateDataReader(fileStatements, FileConnection.LoggerServices);
+
+        // CloseConnection: Auto-close connection when reader is closed
+        if (behavior.HasFlag(CommandBehavior.CloseConnection))
+        {
+            return new CloseConnectionDataReader(reader, FileConnection);
+        }
+
+        return reader;
     }
 
     /// <inheritdoc/>
@@ -280,6 +301,45 @@ public abstract class FileCommand<TFileParameter> : DbCommand, IFileCommand
 
         return result;
     }
+
+    /// <inheritdoc/>
+    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult((DbDataReader)ExecuteDbDataReader(behavior));
+    }
+
+    /// <inheritdoc/>
+    public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(ExecuteNonQuery());
+    }
+
+    /// <inheritdoc/>
+    public override Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(ExecuteScalar());
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task PrepareAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Prepare();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        ((IDisposable)this).Dispose();
+        return default;
+    }
+#endif
 
     /// <summary>
     /// Provides column name hints for the specified file statements.

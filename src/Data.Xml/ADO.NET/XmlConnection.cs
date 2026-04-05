@@ -127,6 +127,9 @@ public class XmlConnection : FileConnection<XmlParameter>
         doc.Save(databaseFileName);
     }
 
+    /// <inheritdoc/>
+    protected override Common.DbProviderFactory DbProviderFactory => XmlClientFactory.Instance;
+
     /// <summary>
     /// Creates a new data set writer.
     /// </summary>

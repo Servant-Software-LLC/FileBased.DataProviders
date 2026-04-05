@@ -47,6 +47,7 @@ public class XlsCommand : FileCommand<XlsParameter>
         FileUpdate updateStatement => throw new InvalidOperationException("The XSL provider does not support updates."),
         FileCreateTable createTableStatement => throw new InvalidOperationException("The XSL provider does not support table creates."),
         FileDropColumn dropTableStatement => throw new InvalidOperationException("The XSL provider does not support table drops."),
+        FileDropTable dropTable => throw new InvalidOperationException("The XLS provider does not support table drops."),
         FileAddColumn addColumnStatement => throw new InvalidOperationException("The XSL provider does not support colunm adds."),
 
         _ => throw new InvalidOperationException($"Cannot create writer for query {fileStatement.GetType()}.")

@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using Data.Xml.Utils;
+using System.Data.Common;
 
 namespace System.Data.XmlClient;
 
@@ -6,25 +7,22 @@ public sealed class XmlClientFactory : DbProviderFactory
 {
     public static readonly XmlClientFactory Instance = new XmlClientFactory();
 
+#if NET7_0_OR_GREATER
+    static XmlClientFactory()
+    {
+        DbProviderFactories.RegisterFactory("System.Data.XmlClient", Instance);
+    }
+#endif
+
     private XmlClientFactory() { }
 
     public override DbCommand CreateCommand() => new XmlCommand();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/75
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbCommandBuilder CreateCommandBuilder() => throw new NotSupportedException("CommandBuilder is not implemented for this provider.");
+    public override DbCommandBuilder CreateCommandBuilder() => new XmlCommandBuilder();
 
     public override DbConnection CreateConnection() => new XmlConnection();
 
-    /// <summary>
-    /// Intendes to be addressed in future versions.  REF: https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/74
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => throw new NotSupportedException("ConnectionStringBuilder is not implemented for this provider.");
+    public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new XmlConnectionStringBuilder();
 
     public override DbDataAdapter CreateDataAdapter() => new XmlDataAdapter();
 

@@ -85,7 +85,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
         => RemoveAt(IndexOf(parameterName ?? throw new ArgumentNullException(nameof(parameterName))));
 
     /// <summary>
-    /// Removes the specified <see cref="NpgsqlParameter"/> from the collection using a specific index.
+    /// Removes the specified <see cref="TFileParameter"/> from the collection using a specific index.
     /// </summary>
     /// <param name="index">The zero-based index of the parameter.</param>
     public override void RemoveAt(int index)
@@ -207,7 +207,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(string parameterName) =>
-        InternalList.First(p => p.ParameterName == parameterName);
+        InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+        ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
 
     /// <inheritdoc />
     protected override TFileParameter GetParameter(int index)
@@ -217,7 +218,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     /// <inheritdoc />
     protected override DbParameter GetParameter(string parameterName) =>
-        InternalList.First(p => p.ParameterName == parameterName);
+        InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+        ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
 
     /// <inheritdoc />
     protected override DbParameter GetParameter(int index)
@@ -228,7 +230,8 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
 
     protected void SetParameter(string parameterName, TFileParameter value)
     {
-        var parameter = InternalList.First(p => p.ParameterName == parameterName);
+        var parameter = InternalList.FirstOrDefault(p => p.ParameterName == parameterName)
+            ?? throw new IndexOutOfRangeException($"Parameter '{parameterName}' not found.");
         parameter.Value = value.Value;
     }
 
@@ -267,7 +270,7 @@ public class FileParameterCollection<TFileParameter> : DbParameterCollection, IF
     }
 
     /// <inheritdoc />
-    public override object SyncRoot => throw new NotImplementedException();
+    public override object SyncRoot => ((ICollection)InternalList).SyncRoot;
 
     private int CultureAwareCompare(string strA, string strB)
         => CultureInfo.CurrentCulture.CompareInfo.Compare(strA, strB, CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase);

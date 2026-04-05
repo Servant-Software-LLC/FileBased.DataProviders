@@ -11,6 +11,7 @@ using EFCore.Csv.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Csv.Query.Internal;
 using EFCore.Csv.Diagnostics.Internal;
+using EFCore.Common.Query.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +32,8 @@ public static class CsvServiceCollectionExtensions
             .TryAdd<IProviderConventionSetBuilder, CsvConventionSetBuilder>()
 
             .TryAdd<IQuerySqlGeneratorFactory, CsvQuerySqlGeneratorFactory>()
+            .TryAdd<IMethodCallTranslatorProvider, FileMethodCallTranslatorProvider>()
+            .TryAdd<IMemberTranslatorProvider, FileMemberTranslatorProvider>()
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<ICsvRelationalConnection, CsvRelationalConnection>()

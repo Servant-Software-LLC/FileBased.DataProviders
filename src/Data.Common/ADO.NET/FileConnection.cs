@@ -199,7 +199,12 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// <summary>
     /// Closes the connection.
     /// </summary>
-    public override void Close() => state = ConnectionState.Closed;
+    public override void Close()
+    {
+        var previousState = state;
+        state = ConnectionState.Closed;
+        OnStateChange(new StateChangeEventArgs(previousState, state));
+    }
 
     /// <summary>
     /// Creates a new command.
@@ -229,6 +234,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     /// </summary>
     public override void Open()
     {
+        if (State == ConnectionState.Open)
+            throw new InvalidOperationException("Connection is already open.");
+
         if (DataSourceProvider is null)
         {
             if (!CreateIfNotExist)
@@ -253,7 +261,9 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
             ConnectionString = FileConnectionString.CustomDataSource;
         }
 
+        var previousState = state;
         state = ConnectionState.Open;
+        OnStateChange(new StateChangeEventArgs(previousState, state));
     }
 
     /// <summary>
@@ -291,13 +301,43 @@ public abstract class FileConnection<TFileParameter> : DbConnection, IFileConnec
     }
 
 
+    /// <inheritdoc/>
+    public override Task OpenAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Open();
+        return Task.CompletedTask;
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override Task CloseAsync()
+    {
+        Close();
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
+
     /// <summary>
     /// Disposes the connection.
     /// </summary>
-    protected new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        base.Dispose();
-        state = ConnectionState.Closed;
+        if (disposing)
+        {
+            (DataSourceProvider as IDisposable)?.Dispose();
+            DataSourceProvider = null;
+            state = ConnectionState.Closed;
+        }
+        base.Dispose(disposing);
     }
 
     private DataTable GetTablesSchema()

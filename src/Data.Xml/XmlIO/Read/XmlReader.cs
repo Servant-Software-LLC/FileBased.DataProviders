@@ -14,12 +14,23 @@ internal class XmlReader : FileReader
     {
         using (var textReader = fileConnection.DataSourceProvider.GetTextReader(tableName))
         using (var tempDataSet = new DataSet())
-        {            
+        {
             tempDataSet.ReadXml(textReader);
-            tempDataSet.Tables[0].TableName = tableName;
 
-            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
-            VirtualDataTable virtualDataTable = new(tempDataSet.Tables[0]);
+            DataTable dataTable;
+            if (tempDataSet.Tables.Count > 0)
+            {
+                dataTable = tempDataSet.Tables[0];
+                dataTable.TableName = tableName;
+            }
+            else
+            {
+                // Empty XML with no schema and no data — create an empty table.
+                dataTable = new DataTable(tableName);
+            }
+
+            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83)
+            VirtualDataTable virtualDataTable = new(dataTable);
             DataSet!.Tables.Add(virtualDataTable);
         }
     }
@@ -30,12 +41,21 @@ internal class XmlReader : FileReader
         using (var tempDataSet = new DataSet())
         {
             tempDataSet.ReadXml(textReader);
-            var newDataTable = tempDataSet.Tables[0];
+
+            DataTable newDataTable;
+            if (tempDataSet.Tables.Count > 0)
+            {
+                newDataTable = tempDataSet.Tables[0];
+            }
+            else
+            {
+                newDataTable = new DataTable(tableName);
+            }
 
             //If the table is already in the VirtualDataSet, then remove it.
             DataSet!.RemoveWithDisposal(tableName);
 
-            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83) 
+            //TODO:  Need to support large data files (https://github.com/Servant-Software-LLC/FileBased.DataProviders/issues/83)
             VirtualDataTable virtualDataTable = new(newDataTable);
             DataSet!.Tables.Add(virtualDataTable);
         }

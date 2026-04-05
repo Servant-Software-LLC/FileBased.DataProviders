@@ -2,7 +2,7 @@
 
 public class StreamedTableManager : IDisposable
 {
-    private const int streamResetsAllowed = 4;
+    private const int streamResetsAllowed = 6;
     private readonly Dictionary<string, StreamHolder> tables = new();
 
     public void AddTable(string tableName, Func<Stream> streamCreationFunc)
@@ -24,6 +24,18 @@ public class StreamedTableManager : IDisposable
     public bool StorageExists(string tableName) => tables.ContainsKey(tableName);
 
     public IEnumerable<string> GetTableNames() => tables.Keys;
+
+    public void Remove(string tableName)
+    {
+        if (tables.TryGetValue(tableName, out StreamHolder streamHolder))
+        {
+            streamHolder.LatestReadStream?.Close();
+            streamHolder.LatestReadStream?.Dispose();
+            streamHolder.LatestWriteStream?.Close();
+            streamHolder.LatestWriteStream?.Dispose();
+            tables.Remove(tableName);
+        }
+    }
 
     public BufferedResetStream GetReadingStream(string tableName)
     {

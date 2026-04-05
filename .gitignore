@@ -22,3 +22,10 @@ packages
 !.claude/agents/
 
 /.vscode
+/.beads/
+/.runtime/
+
+# Gas Town (added by gt)
+.logs/
+__pycache__/
+state.json

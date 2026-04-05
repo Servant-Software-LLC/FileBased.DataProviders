@@ -12,4 +12,10 @@ public class JsonClientFactoryTests
         ClientFactoryTests.CreateCommand_ReadsData(JsonClientFactory.Instance);
     }
 
+    [Fact]
+    public void GetFactory_FromConnection_ReturnsJsonClientFactory()
+    {
+        using var connection = new JsonConnection();
+        ClientFactoryTests.GetFactory_FromConnection_ReturnsSameInstance(connection, JsonClientFactory.Instance);
+    }
 }

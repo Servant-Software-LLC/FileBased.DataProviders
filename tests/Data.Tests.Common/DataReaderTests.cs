@@ -1,5 +1,6 @@
 ﻿using Data.Common.DataSource;
 using Data.Common.Extension;
+using Data.Common.Utils.ConnectionString;
 using Data.Tests.Common.Extensions;
 using Data.Tests.Common.POCOs;
 using Data.Tests.Common.Utils;
@@ -72,6 +73,28 @@ public static class DataReaderTests
         Assert.True(reader.Read());
         fieldCount = reader.FieldCount;
         Assert.Equal(4, fieldCount);
+
+        // Close the connection
+        connection.Close();
+    }
+
+    public static void Reader_ShouldReadData_WithEmbeddedRelativePath<TFileParameter>(Func<string, FileConnection<TFileParameter>> connectionFactory, string folderPath)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange - build a path with embedded relative segments, e.g. /path/to/Folder/../Folder
+        var folderName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var pathWithRelativeSegments = Path.Combine(folderPath, "..", folderName);
+
+        var connectionString = new FileConnectionString() { DataSource = pathWithRelativeSegments }.ConnectionString;
+        var connection = connectionFactory(connectionString);
+        connection.Open();
+
+        // Act
+        var command = connection.CreateCommand("SELECT * FROM employees");
+        var reader = command.ExecuteReader();
+
+        // Assert
+        Assert.True(reader.Read(), "Expected at least one row from employees table via path with embedded relative segments");
 
         // Close the connection
         connection.Close();
@@ -700,6 +723,88 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         connection.Close();
     }
 
+    public static void Reader_OrderBy_Ascending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in ascending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_Descending<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name DESC
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name DESC");
+        var reader = command.ExecuteReader();
+
+        // Assert — names in descending alphabetical order
+        Assert.True(reader.Read());
+        Assert.Equal("Mike", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Joe", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
+    public static void Reader_OrderBy_WithLimit<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - SELECT name FROM employees ORDER BY name ASC LIMIT 2
+        // ORDER BY must be applied before LIMIT so we get the first 2 alphabetically.
+        var command = connection.CreateCommand("SELECT name FROM [employees] ORDER BY name ASC LIMIT 2");
+        var reader = command.ExecuteReader();
+
+        // Assert — only first two rows after sorting: Bob, Jim
+        Assert.True(reader.Read());
+        Assert.Equal("Bob", reader["name"]);
+
+        Assert.True(reader.Read());
+        Assert.Equal("Jim", reader["name"]);
+
+        Assert.False(reader.Read());
+
+        connection.Close();
+    }
+
     public static void Reader_TableAlias<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
@@ -707,14 +812,17 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         var connection = createFileConnection();
         connection.Open();
 
-        // Act - Query the locations table
-
+        // Act - Query the locations table with a table alias and ORDER BY + LIMIT
         var command = connection.CreateCommand("SELECT \"l\".\"id\", \"l\".\"city\"\r\n    FROM \"locations\" AS \"l\"\r\n    ORDER BY \"l\".\"id\"\r\n    LIMIT 1");
         var reader = command.ExecuteReader();
 
-        // Assert
+        // Assert — first row by id ascending (id=1, city=Houston)
+        Assert.True(reader.Read());
+        Assert.Equal("Houston", reader["city"]);
 
-        //TODO
+        Assert.False(reader.Read());
+
+        connection.Close();
     }
 
     public static void Reader_Supports_Large_Data_Files<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection, UnendingStream unendingStream)
@@ -742,5 +850,36 @@ SELECT [c].[CustomerName], [o].[OrderDate], [oi].[Quantity], [p].[Name]
         //Validate the first record
         Assert.Equal(0, reader.GetInt32(nameof(TestRecord.Id)));
         Assert.Equal("Value 0", reader.GetString(nameof(TestRecord.Value)));
+    }
+
+    /// <summary>
+    /// Verifies that disposing a FileDataReader does not invalidate the connection-level
+    /// FileReader cache, allowing subsequent queries to reuse cached data without re-reading
+    /// from disk. Regression test for GitHub issue #163.
+    /// </summary>
+    public static void Reader_DisposeShouldNotBreakConnectionReuse<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        connection.Open();
+
+        // Act - First query: read and dispose (standard using pattern)
+        using (var reader1 = connection.CreateCommand("SELECT * FROM locations").ExecuteReader())
+        {
+            Assert.True(reader1.Read());
+        }
+
+        // Act - Second query on the same connection should succeed without error
+        // Prior to fix, this would force a full re-read from disk because the first
+        // reader's Dispose() called FileReader.Dispose() → MarkDataSetToUpdate()
+        using (var reader2 = connection.CreateCommand("SELECT * FROM locations").ExecuteReader())
+        {
+            Assert.True(reader2.Read());
+            Assert.True(reader2.FieldCount > 0);
+        }
+
+        connection.Close();
     }
 }

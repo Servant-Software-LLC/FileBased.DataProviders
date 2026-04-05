@@ -21,18 +21,19 @@ public class SelectTests
         Assert.NotNull(sqlDefinition.Select!.WhereClause);
 
         var whereClause = sqlDefinition.Select!.WhereClause;
-        var left = whereClause.Left;
+        Assert.NotNull(whereClause!.BinExpr);
+        var left = whereClause.BinExpr!.Left;
         Assert.NotNull(left);
         Assert.NotNull(left.BinExpr);
-        Assert.NotNull(left.BinExpr.Left.Function);
-        var rowCountFunc = left.BinExpr.Left.Function;
+        Assert.NotNull(left.BinExpr!.Left.Function);
+        var rowCountFunc = left.BinExpr!.Left.Function!;
         Assert.Equal("ROW_COUNT", rowCountFunc.FunctionName);
 
-        var right = whereClause.Right;
+        var right = whereClause.BinExpr!.Right;
         Assert.NotNull(right);
         Assert.NotNull(right.BinExpr);
-        Assert.NotNull(right.BinExpr.Right.Function);
-        var lastInsertIdFunc = right.BinExpr.Right.Function;
+        Assert.NotNull(right.BinExpr!.Right!.Function);
+        var lastInsertIdFunc = right.BinExpr!.Right.Function!;
         Assert.Equal("LAST_INSERT_ID", lastInsertIdFunc.FunctionName);
     }
 }

@@ -22,7 +22,7 @@ public abstract class FileUpdateWriter : FileWriter
                 fileReader.StopWatching();
             }
 
-            var virtualDataTable = fileReader.ReadFile(fileUpdate, fileTransaction?.TransactionScopedRows);
+            var virtualDataTable = fileReader.ReadFile(fileUpdate, fileTransaction?.TransactionScopedRows, shouldLock: IsTransactedLater);
 
             //Remember here, that the whole data table is going to reside in-memory at this point.
             var dataTable = virtualDataTable.ToDataTable();

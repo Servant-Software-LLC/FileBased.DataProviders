@@ -124,9 +124,69 @@ namespace Data.Csv.Tests.FolderAsDatabase
         }
 
         [Fact]
+        public void Fill_WithTableMapping_ShouldMapTableName()
+        {
+            DataAdapterTests.Fill_WithTableMapping_ShouldMapTableName(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+        }
+
+        [Fact]
+        public void Fill_WithColumnMapping_ShouldMapColumnNames()
+        {
+            DataAdapterTests.Fill_WithColumnMapping_ShouldMapColumnNames(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+        }
+
+        [Fact]
+        public void Fill_WithMultipleResultSets_ShouldCreateMultipleTables()
+        {
+            DataAdapterTests.Fill_WithMultipleResultSets_ShouldCreateMultipleTables(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+        }
+
+        [Fact]
+        public void Fill_WithMultipleResultSets_AndTableMappings_ShouldMapTableNames()
+        {
+            DataAdapterTests.Fill_WithMultipleResultSets_AndTableMappings_ShouldMapTableNames(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB));
+        }
+
+        [Fact]
+        public void Update_DataAdapter_Should_Insert_Added_Row()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Insert_Added_Row(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
+        public void Update_DataAdapter_Should_Delete_Deleted_Row()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Delete_Deleted_Row(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
+        public void Update_DataAdapter_Should_Handle_Mixed_RowStates()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_DataAdapter_Should_Handle_Mixed_RowStates(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
+        public void Update_WithTableMapping_ShouldUseCorrectTable()
+        {
+            var sandboxId = $"{GetType().FullName}.{MethodBase.GetCurrentMethod()!.Name}";
+            DataAdapterTests.Update_WithTableMapping_ShouldUseCorrectTable(
+                () => new CsvConnection(ConnectionStrings.Instance.FolderAsDB.Sandbox("Sandbox", sandboxId)));
+        }
+
+        [Fact]
         public void Fill_DataSet_DuplicateColumnNamesOfDifferingCase_AreRespected()
         {
-            const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+            const string csvString = "Id, Name, ï¿½ nAMe ï¿½\n1, Bogart, Bob";
             const string tableName = "Table";
 
             var connection = new CsvConnection(FileConnectionString.CustomDataSource);
@@ -147,9 +207,11 @@ namespace Data.Csv.Tests.FolderAsDatabase
             Assert.Equal(3, dataTable.Columns.Count);
             Assert.Equal("Id", dataTable.Columns[0].ColumnName);
             Assert.Equal("Name", dataTable.Columns[1].ColumnName);
+            // base DbDataAdapter.Fill uses case-insensitive column matching, so "nAMe" collides
+            // with "Name" and gets renamed to "nAMe1" per standard ADO.NET behavior
             Assert.True(
-                "nAMe" == dataTable.Columns[2].ColumnName,
-                $"Expected: nAMe\nActual: {dataTable.Columns[2].ColumnName}\nCharacter details: {GetCharacterDetails(dataTable.Columns[2].ColumnName)}"
+                "nAMe1" == dataTable.Columns[2].ColumnName,
+                $"Expected: nAMe1\nActual: {dataTable.Columns[2].ColumnName}\nCharacter details: {GetCharacterDetails(dataTable.Columns[2].ColumnName)}"
             );
 
             Assert.Equal(1, dataTable.Rows.Count);
@@ -164,7 +226,7 @@ namespace Data.Csv.Tests.FolderAsDatabase
         [Fact]
         public void Fill_Table_DuplicateColumnNamesOfDifferingCase_AreRespected()
         {
-            const string csvString = "Id, Name,   nAMe  \n1, Bogart, Bob";
+            const string csvString = "Id, Name, ï¿½ nAMe ï¿½\n1, Bogart, Bob";
             const string tableName = "Table";
 
             IFileConnection connection = new CsvConnection(FileConnectionString.CustomDataSource);

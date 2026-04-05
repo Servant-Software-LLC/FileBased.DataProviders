@@ -68,6 +68,12 @@ public abstract class StreamedDataSource : IDataSourceProvider, IDisposable
     public string StorageIdentifier(string tableName) => tableName;
 
     /// <summary>
+    /// Deletes the storage for the specified table from the in-memory store.
+    /// </summary>
+    /// <param name="tableName">The name of the table to delete.</param>
+    public void DeleteStorage(string tableName) => tables.Remove(tableName);
+
+    /// <summary>
     /// Starts watching the data source for changes. (Not applicable for in-memory streams.)
     /// </summary>
     public void StartWatching() { }

@@ -25,4 +25,14 @@ public static class ClientFactoryTests
         // Assert
         Assert.True(reader.HasRows);
     }
+
+    public static void GetFactory_FromConnection_ReturnsSameInstance(DbConnection connection, DbProviderFactory expectedFactory)
+    {
+        // Act
+        var factory = DbProviderFactories.GetFactory(connection);
+
+        // Assert
+        Assert.NotNull(factory);
+        Assert.Same(expectedFactory, factory);
+    }
 }

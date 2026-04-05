@@ -11,6 +11,7 @@ using EFCore.Xml.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using EFCore.Xml.Query.Internal;
 using EFCore.Xml.Diagnostics.Internal;
+using EFCore.Common.Query.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +32,8 @@ public static class XmlServiceCollectionExtensions
             .TryAdd<IProviderConventionSetBuilder, XmlConventionSetBuilder>()
 
             .TryAdd<IQuerySqlGeneratorFactory, XmlQuerySqlGeneratorFactory>()
+            .TryAdd<IMethodCallTranslatorProvider, FileMethodCallTranslatorProvider>()
+            .TryAdd<IMemberTranslatorProvider, FileMemberTranslatorProvider>()
 
             .TryAddProviderSpecificServices(m => m
                     .TryAddScoped<IXmlRelationalConnection, XmlRelationalConnection>()

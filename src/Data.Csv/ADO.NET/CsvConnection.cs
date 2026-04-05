@@ -1,6 +1,7 @@
 ﻿using Data.Common.DataSource;
 using Data.Common.Utils.ConnectionString;
 using Data.Csv.CsvIO;
+using Data.Csv.Utils;
 
 namespace System.Data.CsvClient;
 
@@ -32,9 +33,11 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc />
     public override string FileExtension => "csv";
 
-    public Func<IEnumerable<string>, Type> GuessTypeFunction { get; set; }
+    public Func<IEnumerable<string>, Type> GuessTypeFunction { get; set; } = TypeGuesser.GuessType;
     public int GuessTypeRows { get; set; } = 1000;
 
+    public string[] SupportedSeparators { get; set; } = new string[] { ",", ";", "|", "\t" };
+    public int GuessSeparatorRows { get; set; } = 100;
     protected override FileReader CreateFileReader => new CsvReader(this);
 
     /// <inheritdoc />
@@ -106,6 +109,9 @@ public class CsvConnection : FileConnection<CsvParameter>
     /// <inheritdoc/>
     protected override void CreateFileAsDatabase(string databaseFileName) =>
         File.WriteAllText(databaseFileName, string.Empty);
+
+    /// <inheritdoc/>
+    protected override Common.DbProviderFactory DbProviderFactory => CsvClientFactory.Instance;
 
     /// <inheritdoc/>
     protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new CsvDataSetWriter(this, fileStatement);

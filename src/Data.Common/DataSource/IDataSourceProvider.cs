@@ -66,6 +66,12 @@ public interface IDataSourceProvider
     void EnsureWatcher();
 
     /// <summary>
+    /// Deletes the storage for the specified table.
+    /// </summary>
+    /// <param name="tableName">The name of the table to delete.</param>
+    void DeleteStorage(string tableName);
+
+    /// <summary>
     /// Occurs when a table in the data source changes externally to the ADO.NET Data Provider.
     /// </summary>
     public event DataSourceEventHandler Changed;

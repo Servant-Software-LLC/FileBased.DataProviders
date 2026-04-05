@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides a data source implementation for file system-based storage.
 /// </summary>
-public class FileSystemDataSource : IDataSourceProvider
+public class FileSystemDataSource : IDataSourceProvider, IDisposable
 {
     private readonly string fileExtension;
     private FileSystemWatcher fileWatcher;
@@ -18,7 +18,7 @@ public class FileSystemDataSource : IDataSourceProvider
     /// <exception cref="ArgumentNullException">Thrown when the provided path is null or empty.</exception>
     public FileSystemDataSource(string path, DataSourceType dataSourceType, string fileExtension, IFileConnection fileConnection)
     {
-        Database = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : path;
+        Database = string.IsNullOrEmpty(path) ? throw new ArgumentNullException(nameof(path)) : Path.GetFullPath(path);
         DataSourceType = dataSourceType;
         this.fileExtension = fileExtension;
         this.fileConnection = fileConnection ?? throw new ArgumentNullException(nameof(fileConnection));
@@ -103,6 +103,24 @@ public class FileSystemDataSource : IDataSourceProvider
         DataSourceType.File => Path.GetFileName(Database),
         _ => throw new InvalidOperationException($"Cannot get a storage identifier for a data source of type {DataSourceType}")
     };
+
+    /// <summary>
+    /// Deletes the file for the specified table.
+    /// </summary>
+    /// <param name="tableName">The name of the table to delete.</param>
+    public void DeleteStorage(string tableName)
+    {
+        switch (DataSourceType)
+        {
+            case DataSourceType.Directory:
+                var path = GetTablePath(tableName);
+                if (File.Exists(path))
+                    File.Delete(path);
+                break;
+            default:
+                throw new InvalidOperationException($"Cannot delete storage for a data source of type {DataSourceType}. DROP TABLE is only supported for folder-as-database.");
+        }
+    }
 
     /// <summary>
     /// Starts watching the file system for changes in the data source.
@@ -203,9 +221,27 @@ public class FileSystemDataSource : IDataSourceProvider
         if (DataSourceType != DataSourceType.Directory)
             throw new InvalidOperationException($"Can only call the {nameof(GetTablePath)} method on a data source of type {nameof(DataSourceType.Directory)}. DataSourceType={DataSourceType}");
 
-        return Path.Combine(Database, GetTableFileName(tableName));
+        var fullPath = Path.GetFullPath(Path.Combine(Database, GetTableFileName(tableName)));
+        var sep = Path.DirectorySeparatorChar.ToString();
+        var databaseDir = Database.EndsWith(sep, StringComparison.Ordinal)
+            ? Database
+            : Database + sep;
+        if (!fullPath.StartsWith(databaseDir, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"Table name '{tableName}' contains invalid path characters.");
+
+        return fullPath;
     }
 
     private string GetTableFileName(string tableName) => $"{tableName}.{fileExtension}";
 
+    public void Dispose()
+    {
+        if (fileWatcher != null)
+        {
+            fileWatcher.Changed -= FileWatcher_Changed;
+            fileWatcher.EnableRaisingEvents = false;
+            fileWatcher.Dispose();
+            fileWatcher = null;
+        }
+    }
 }

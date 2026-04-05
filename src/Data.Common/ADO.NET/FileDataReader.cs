@@ -1,5 +1,7 @@
 ﻿using Data.Common.Utils;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Data.FileClient;
 
@@ -83,7 +85,14 @@ public abstract class FileDataReader : DbDataReader
     /// </summary>
     public override bool HasRows => result.HasRows;
 
-    public override void Close() => Dispose();
+    public override void Close()
+    {
+        log.LogDebug($"{GetType()}.{nameof(Close)}() called.");
+        // Do not dispose the shared FileReader — it is owned by FileConnection
+        // and must remain valid for subsequent queries on the same connection.
+        // Disposing it here would call MarkDataSetToUpdate(), invalidating
+        // the cached dataset and forcing a full re-read from disk.
+    }
 
     /// <summary>
     /// Advances to the next result, when reading the results of batch SQL statements.
@@ -346,7 +355,7 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetBytes)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         byte[] tempBuffer;
         tempBuffer = (byte[])result.CurrentDataRow![ordinal]!;
@@ -359,11 +368,11 @@ public abstract class FileDataReader : DbDataReader
         int byteCount = Math.Min(tempBuffer.Length - srcIndex, length);
         if (srcIndex < 0)
         {
-            throw new Exception("Invalid buffer index");
+            throw new ArgumentOutOfRangeException(nameof(dataIndex), "Invalid buffer index.");
         }
         else if ((bufferIndex < 0) || (bufferIndex > 0 && bufferIndex >= buffer.Length))
         {
-            throw new Exception("Invalid destination buffer index");
+            throw new ArgumentOutOfRangeException(nameof(bufferIndex), "Invalid destination buffer index.");
 
         }
 
@@ -373,7 +382,7 @@ public abstract class FileDataReader : DbDataReader
         }
         else if (length < 0)
         {
-            throw new Exception("Invalid data length");
+            throw new ArgumentOutOfRangeException(nameof(length), "Invalid data length.");
         }
         else
         {
@@ -408,11 +417,11 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetChars)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         char[] tempBuffer;
             tempBuffer = (char[])result.CurrentDataRow![ordinal]!;
-      
+
         if (buffer == null)
         {
             return tempBuffer.Length;
@@ -421,12 +430,12 @@ public abstract class FileDataReader : DbDataReader
         int charCount = Math.Min(tempBuffer.Length - srcIndex, length);
         if (srcIndex < 0)
         {
-            throw new Exception("Invalid buffer index");
+            throw new ArgumentOutOfRangeException(nameof(dataIndex), "Invalid buffer index.");
 
         }
         else if ((bufferIndex < 0) || (bufferIndex > 0 && bufferIndex >= buffer.Length))
         {
-            throw new Exception("Invalid destination buffer index");
+            throw new ArgumentOutOfRangeException(nameof(bufferIndex), "Invalid destination buffer index.");
 
         }
 
@@ -436,7 +445,7 @@ public abstract class FileDataReader : DbDataReader
         }
         else if (length < 0)
         {
-            throw new Exception("Invalid data length");
+            throw new ArgumentOutOfRangeException(nameof(length), "Invalid data length.");
 
         }
         else
@@ -455,7 +464,11 @@ public abstract class FileDataReader : DbDataReader
     public override string GetDataTypeName(int i)
     {
         log.LogDebug($"{GetType()}.{nameof(GetDataTypeName)}() called.");
-        return GetValueAsType<string>(i).GetType().Name;
+
+        if (result.WorkingResultSet == null)
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
+
+        return result.FileEnumerator.GetFieldType(i).Name;
     }
 
     /// <summary>
@@ -501,7 +514,7 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetFieldType)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         return result.FileEnumerator.GetFieldType(i);
     }
@@ -571,7 +584,7 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetName)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         return result.FileEnumerator.GetName(i);
     }
@@ -586,7 +599,7 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetOrdinal)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         return result.FileEnumerator.GetOrdinal(name);
     }
@@ -613,7 +626,7 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetValue)}() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         return result.CurrentDataRow != null ? result.CurrentDataRow[i]!
                                              : throw new ArgumentNullException(nameof(result.CurrentDataRow));
@@ -662,18 +675,55 @@ public abstract class FileDataReader : DbDataReader
         log.LogDebug($"{GetType()}.{nameof(GetValueAsType)}<{typeof(T).Name}>() called.");
 
         if (result.WorkingResultSet == null)
-            throw new Exception($"Unable to read value.  SQL statement did not yield any resultset.  Statement: {result.Statement}");
+            throw new InvalidOperationException($"No data exists for the row/column. SQL statement did not yield any resultset. Statement: {result.Statement}");
 
         return (T)Convert.ChangeType(result.CurrentDataRow![index], typeof(T))!;
     }
 
+    /// <inheritdoc/>
+    public override Task<bool> ReadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Read());
+    }
+
+    /// <inheritdoc/>
+    public override Task<bool> NextResultAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(NextResult());
+    }
+
+    /// <inheritdoc/>
+    public override Task<bool> IsDBNullAsync(int ordinal, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(IsDBNull(ordinal));
+    }
+
+    /// <inheritdoc/>
+    public override Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(GetFieldValue<T>(ordinal));
+    }
+
+
+#if !NETSTANDARD2_0
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+#endif
+
     /// <summary>
     /// Disposes of the resources used by this instance.
     /// </summary>
-    protected new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        log.LogDebug($"{GetType()}.{nameof(Dispose)}() called.");
-        fileReader.Dispose();
+        base.Dispose(disposing);
     }
 
     /// <summary>

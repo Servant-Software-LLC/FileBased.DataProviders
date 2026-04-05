@@ -127,5 +127,8 @@ public class JsonConnection : FileConnection<JsonParameter>
         File.WriteAllText(databaseFileName, "{}");
 
     /// <inheritdoc/>
+    protected override Common.DbProviderFactory DbProviderFactory => JsonClientFactory.Instance;
+
+    /// <inheritdoc/>
     protected override Func<FileStatement, IDataSetWriter> CreateDataSetWriter => fileStatement => new JsonDataSetWriter(this, fileStatement);
 }

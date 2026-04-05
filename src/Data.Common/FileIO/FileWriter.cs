@@ -1,4 +1,6 @@
-﻿namespace Data.Common.FileIO;
+﻿using System.Collections.Concurrent;
+
+namespace Data.Common.FileIO;
 
 public abstract class FileWriter
 {
@@ -9,13 +11,15 @@ public abstract class FileWriter
     protected readonly IFileTransaction fileTransaction;
     private readonly Lazy<IDataSetWriter> dataSetWriter;
 
+    private static readonly ConcurrentDictionary<string, ReaderWriterLockSlim> databaseLocks = new(StringComparer.OrdinalIgnoreCase);
+
     public FileWriter(IFileConnection fileConnection,
                       IFileCommand fileCommand,
                       FileStatement fileStatement)
     {
         this.fileCommand = fileCommand;
         this.fileStatement = fileStatement;
-        this.fileConnection = fileConnection; 
+        this.fileConnection = fileConnection;
         fileReader = fileConnection.FileReader;
         fileTransaction = fileCommand.FileTransaction;
 
@@ -23,8 +27,15 @@ public abstract class FileWriter
         dataSetWriter = new(() => writerFunc(fileStatement));
     }
 
-    public abstract int Execute();    
-    internal static ReaderWriterLockSlim readerWriterLock = new ReaderWriterLockSlim();
+    public abstract int Execute();
+
+    internal static ReaderWriterLockSlim GetLock(string databasePath)
+    {
+        var normalizedPath = Path.GetFullPath(databasePath);
+        return databaseLocks.GetOrAdd(normalizedPath, _ => new ReaderWriterLockSlim());
+    }
+
+    protected ReaderWriterLockSlim readerWriterLock => GetLock(fileConnection.Database);
 
     public bool IsTransaction
         => fileTransaction != null;
