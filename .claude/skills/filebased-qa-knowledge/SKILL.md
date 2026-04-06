@@ -218,6 +218,6 @@ Located in each test project under `Sources/`:
 - [ ] Cross-format CRUD matrix passes (SELECT/INSERT/UPDATE/DELETE per format)
 - [ ] Large file tests pass (5MB+)
 - [ ] Edge case tests pass (BOM, trailing commas, DateTime)
-- [ ] No new compiler warnings (TreatWarningsAsErrors not enabled in this repo)
+- [ ] No new compiler warnings (TreatWarningsAsErrors is enabled in Directory.Build.props)
 - [ ] NuGet packages build successfully (`dotnet pack --configuration Release`)
 - [ ] Version updated via UpdateVersion.ps1
