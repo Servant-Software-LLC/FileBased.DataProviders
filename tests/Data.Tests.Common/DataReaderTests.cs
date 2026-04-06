@@ -7,7 +7,6 @@ using Data.Tests.Common.Utils;
 using System.Data;
 using System.Data.Common;
 using System.Data.FileClient;
-using FluentAssertions;
 using Xunit;
 
 namespace Data.Tests.Common.FileAsDatabase;
