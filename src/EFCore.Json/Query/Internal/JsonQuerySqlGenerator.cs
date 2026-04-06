@@ -35,7 +35,7 @@ internal class JsonQuerySqlGenerator : QuerySqlGenerator
 
             Visit(
                 selectExpression.Limit
-                ?? new SqlConstantExpression(Expression.Constant(-1), selectExpression.Offset!.TypeMapping));
+                ?? new SqlConstantExpression(-1, selectExpression.Offset!.TypeMapping));
 
             if (selectExpression.Offset != null)
             {

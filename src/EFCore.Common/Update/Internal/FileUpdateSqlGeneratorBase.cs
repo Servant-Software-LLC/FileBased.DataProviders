@@ -1,3 +1,5 @@
+#nullable enable
+
 using Microsoft.EntityFrameworkCore.Update;
 using System.Text;
 
@@ -118,6 +120,6 @@ public abstract class FileUpdateSqlGeneratorBase : UpdateSqlGenerator
         // File-based provider does not support RETURNING clauses
     }
 
-    public override string GenerateNextSequenceValueOperation(string name, string schema)
+    public override string GenerateNextSequenceValueOperation(string name, string? schema)
         => throw new NotSupportedException($"{GetType().Name}: File-based ADO.NET provider does not support sequences.");
 }
