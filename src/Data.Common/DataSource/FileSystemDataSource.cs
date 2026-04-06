@@ -185,8 +185,9 @@ public class FileSystemDataSource : IDataSourceProvider, IDisposable
 
     private StreamReader GetTextReaderFromFilePath(string path)
     {
-        // Open the file stream
-        FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        // Open the file stream with FileShare.ReadWrite so that concurrent writers
+        // can open the same file without an IOException.
+        FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         // Create and return a StreamReader (which is a TextReader)
         return new StreamReader(fileStream);
@@ -202,8 +203,10 @@ public class FileSystemDataSource : IDataSourceProvider, IDisposable
     
     private TextWriter GetTextWriterFromFilePath(string path)
     {
-        // Open the file stream
-        FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write);
+        // Open the file stream with FileShare.Read (allow concurrent readers) and
+        // FileOptions.WriteThrough to ensure data is flushed to disk synchronously
+        // on close, preventing file-locking races between concurrent transactions.
+        FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, FileOptions.WriteThrough);
 
         // Create and return a StreamWriter (which is a TextWriter)
         return new StreamWriter(fileStream);
