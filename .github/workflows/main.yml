@@ -25,6 +25,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write       # OIDC token for NuGet Trusted Publishing
+      pull-requests: write  # coverage PR comment (marocchino/sticky-pull-request-comment)
 
     steps:
     - uses: actions/checkout@v4
@@ -54,32 +58,38 @@ jobs:
         name: Nuget Packages
         path: ${{github.workspace}}/src/**/*.nupkg
 
+    - name: NuGet login (OIDC → short-lived API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
     - name: Push to nuget.org (Common provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (Json provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (CSV provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (XML provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (XLS provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXlsPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$DataXlsPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (EF Common provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCommonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (EF Json provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreJsonPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (EF CSV provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreCsvPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
 
     - name: Push to nuget.org (EF XML provider)
-      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+      run: dotnet nuget push ${{github.workspace}}/src/bin/$BuildConfiguration/$EFCoreXmlPackageId.$PackageVersion.nupkg -s https://api.nuget.org/v3/index.json -k ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
     
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
