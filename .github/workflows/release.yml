@@ -43,8 +43,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Build (version from tag)
+        run: dotnet build --configuration Release -p:Version="${GITHUB_REF_NAME#v}"
+
       - name: Pack (version from tag)
-        run: dotnet pack --configuration Release -o nupkg -p:Version="${GITHUB_REF_NAME#v}"
+        run: dotnet pack --no-build --configuration Release -o nupkg -p:Version="${GITHUB_REF_NAME#v}"
 
       - name: NuGet login (OIDC → short-lived API key)
         uses: NuGet/login@v1
