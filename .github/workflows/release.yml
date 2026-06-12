@@ -1,0 +1,74 @@
+# Release pipeline — Servant Software standard (NuGet via Trusted Publishing).
+#
+# Trigger: push a tag `vX.Y.Z`. The published version is derived FROM the tag
+# (`v1.2.3` -> 1.2.3). Continuous CI (build/test on push & PR) lives in main.yml;
+# this workflow only releases.
+#
+# Auth: NuGet Trusted Publishing (OIDC) — no stored API key. Configure once on
+# nuget.org (Trusted Publishing): Repository Owner = Servant-Software-LLC,
+# Repository = FileBased.DataProviders, Workflow File = release.yml, Environment = (empty).
+# Plus a non-sensitive NUGET_USER repo secret (your nuget.org profile name).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC token for NuGet Trusted Publishing
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Pack (version from tag)
+        run: dotnet pack --configuration Release -o nupkg -p:Version="${GITHUB_REF_NAME#v}"
+
+      - name: NuGet login (OIDC → short-lived API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push packages
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for id in \
+            ServantSoftware.Data.Common \
+            ServantSoftware.Data.Json \
+            ServantSoftware.Data.Csv \
+            ServantSoftware.Data.Xml \
+            ServantSoftware.Data.Xls \
+            ServantSoftware.EFCore.FileBasedProviders.Common \
+            ServantSoftware.EFCore.Json \
+            ServantSoftware.EFCore.Csv \
+            ServantSoftware.EFCore.Xml ; do
+            dotnet nuget push "nupkg/$id.$VERSION.nupkg" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
