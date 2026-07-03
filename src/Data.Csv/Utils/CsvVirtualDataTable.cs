@@ -158,6 +158,14 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
         return stringBuilder.ToString();
     }
 
+    // Sentinel used to protect whitespace-only cells from DataFrame's CSV reader
+    // (Microsoft.VisualBasic TextFieldParser, whose TrimWhiteSpace defaults to true and cannot be
+    // configured through LoadCsv). A writer that must preserve such whitespace wraps the value in this
+    // guard on both ends so the field's edges are non-whitespace; ToDataRows strips it back off after
+    // parsing. Values that do not carry the guard (e.g. every CSV-provider value) are returned unchanged.
+    // A Unicode private-use character is used so it will not collide with real spreadsheet text.
+    public const char WhitespaceGuard = (char)0xE000;
+
     private IEnumerable<DataRow> ToDataRows(DataFrame dataFrame)
     {
         for (int rowIndex = 0; rowIndex < dataFrame.Rows.Count; rowIndex++)
@@ -165,11 +173,32 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             DataRow newRow = NewRow();
             for (int colIndex = 0; colIndex < Columns.Count; colIndex++)
             {
-                var value = dataFrame.Columns[colIndex][rowIndex] ?? DBNull.Value;
+                var value = StripWhitespaceGuard(dataFrame.Columns[colIndex][rowIndex]) ?? DBNull.Value;
                 newRow[colIndex] = value;
             }
             yield return newRow;
         }
+    }
+
+    private static object StripWhitespaceGuard(object value)
+    {
+        if (value is string text
+            && text.Length >= 3
+            && text[0] == WhitespaceGuard
+            && text[text.Length - 1] == WhitespaceGuard)
+        {
+            var inner = text.Substring(1, text.Length - 2);
+
+            // Only unwrap what the encoder actually guards: a whitespace-only cell. This keeps a real
+            // cell that merely happened to begin and end with the guard character (with non-whitespace
+            // content between) from being corrupted.
+            if (string.IsNullOrWhiteSpace(inner))
+            {
+                return inner;
+            }
+        }
+
+        return value;
     }
 
     public void Dispose()

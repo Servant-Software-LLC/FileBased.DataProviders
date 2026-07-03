@@ -65,6 +65,13 @@ public class XlsDataReaderTests
     }
 
     [Fact]
+    public void Reader_ShouldPreserveWhitespaceOnlyCell()
+    {
+        DataReaderTests.Reader_ShouldPreserveWhitespaceOnlyCell(() =>
+            new XlsConnection(ConnectionStrings.Instance.WithSpaceCellAsDB));
+    }
+
+    [Fact]
     public void Reader_Limit_ShouldReturnOnlyFirstRow()
     {
         DataReaderTests.Reader_Limit_ShouldReturnOnlyFirstRow(() =>

@@ -239,7 +239,38 @@ public static class DataReaderTests
 
         connection.Close();
     }
-    
+
+    public static void Reader_ShouldPreserveWhitespaceOnlyCell<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand("SELECT * FROM [Sheet1]");
+
+        // Act & Assert
+        connection.Open();
+        var found = false;
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (reader["Marker"].ToString() != "spaces")
+                {
+                    continue;
+                }
+
+                // A cell containing only whitespace must be read back with the whitespace intact,
+                // not trimmed away.
+                found = true;
+                Assert.IsType<string>(reader["Value"]);
+                Assert.Equal("  ", reader["Value"]);
+            }
+        }
+        connection.Close();
+
+        Assert.True(found, "The 'spaces' row was not returned by the reader.");
+    }
+
     public static void Reader_ShouldReadFormulasAsString<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {
