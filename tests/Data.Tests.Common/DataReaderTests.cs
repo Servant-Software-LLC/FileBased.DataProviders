@@ -239,7 +239,80 @@ public static class DataReaderTests
 
         connection.Close();
     }
-    
+
+    // NOTE: whitespace-only preservation is currently an XLS-provider behavior (only the XLS write path
+    // guards whitespace cells). The table name is parameterized so the fixture/sheet is not assumed.
+    public static void Reader_ShouldPreserveWhitespaceOnlyCell<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection, string tableName)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [{tableName}]");
+
+        // Act & Assert
+        connection.Open();
+        var found = false;
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (reader["Marker"].ToString() != "spaces")
+                {
+                    continue;
+                }
+
+                // A cell containing only whitespace must be read back with the whitespace intact,
+                // not trimmed away.
+                found = true;
+                Assert.IsType<string>(reader["Value"]);
+                Assert.Equal("  ", reader["Value"]);
+            }
+        }
+        connection.Close();
+
+        Assert.True(found, "The 'spaces' row was not returned by the reader.");
+    }
+
+    // Preserving a whitespace-only cell as text has a consequence for a column that also contains
+    // numbers: that column is read as text, because the cell cannot be both whitespace and a number.
+    // The whitespace is preserved and the numeric cells come back in their string form.
+    public static void Reader_WhitespaceCellInNumericLikeColumn_IsPreservedAsText<TFileParameter>(
+        Func<FileConnection<TFileParameter>> createFileConnection, string tableName)
+        where TFileParameter : FileParameter<TFileParameter>, new()
+    {
+        // Arrange
+        var connection = createFileConnection();
+        var command = connection.CreateCommand($"SELECT * FROM [{tableName}]");
+
+        // Act & Assert
+        connection.Open();
+        var seenMarkers = new List<string>();
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                var marker = reader["Marker"].ToString() ?? string.Empty;
+                seenMarkers.Add(marker);
+                switch (marker)
+                {
+                    case "num1":
+                        Assert.Equal("10", reader["Amount"]);
+                        break;
+                    case "num2":
+                        Assert.Equal("20", reader["Amount"]);
+                        break;
+                    case "spaces":
+                        Assert.Equal("  ", reader["Amount"]);
+                        break;
+                }
+            }
+        }
+        connection.Close();
+
+        Assert.Equal(new[] { "num1", "spaces", "num2" }.OrderBy(m => m), seenMarkers.OrderBy(m => m));
+    }
+
     public static void Reader_ShouldReadFormulasAsString<TFileParameter>(Func<FileConnection<TFileParameter>> createFileConnection)
         where TFileParameter : FileParameter<TFileParameter>, new()
     {

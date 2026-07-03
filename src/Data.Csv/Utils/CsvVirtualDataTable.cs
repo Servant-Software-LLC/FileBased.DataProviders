@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Analysis;
+using Data.Common.Utils;
 using Data.Common.Utils.ConnectionString;
 using SqlBuildingBlocks.POCOs;
 using System.Text;
@@ -17,6 +18,7 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
     private readonly int _guessTypeRows;
     private readonly FloatingPointDataType _preferredFloatingPointDataType;
     private readonly Func<IEnumerable<string>, Type> _guessTypeFunction;
+    private readonly bool _stripWhitespaceGuard;
 
     // Hold on to the underlying stream so we can keep paging through it.
     private readonly CsvTransformStream _transformStream;
@@ -49,13 +51,15 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             int guessTypeRows,
             FloatingPointDataType preferredFloatingPointDataType,
             Func<IEnumerable<string>, Type> guessTypeFunction,
-            char separator
+            char separator,
+            bool stripWhitespaceGuard = false
         )
         : base(tableName)
     {
         _pageSize = pageSize;
         _guessTypeRows = guessTypeRows > 0 ? guessTypeRows : throw new ArgumentOutOfRangeException(nameof(guessTypeRows), $"Guess type row must be greater than 0.  GuessRows: {guessTypeRows}");
         _preferredFloatingPointDataType = preferredFloatingPointDataType;
+        _stripWhitespaceGuard = stripWhitespaceGuard;
         _guessTypeFunction = guessTypeFunction;
 
         // Instead of using "using", store the reader and transform stream for later use.
@@ -165,12 +169,34 @@ public class CsvVirtualDataTable : VirtualDataTable, IDisposable
             DataRow newRow = NewRow();
             for (int colIndex = 0; colIndex < Columns.Count; colIndex++)
             {
-                var value = dataFrame.Columns[colIndex][rowIndex] ?? DBNull.Value;
+                var value = StripWhitespaceGuard(dataFrame.Columns[colIndex][rowIndex]) ?? DBNull.Value;
                 newRow[colIndex] = value;
             }
             yield return newRow;
         }
     }
+
+    // Removes the whitespace guard added by a producer (see CsvWhitespaceGuard). Only runs when this
+    // reader was told the source can contain guards (the XLS provider) — for other providers a value that
+    // merely looks guard-shaped is real data and must be returned untouched.
+    private object StripWhitespaceGuard(object value)
+    {
+        if (_stripWhitespaceGuard && value is string text && IsGuardedWhitespace(text))
+        {
+            return text.Substring(1, text.Length - 2);
+        }
+
+        return value;
+    }
+
+    // True when the value is exactly the guard sentinel + whitespace-only content + the guard sentinel —
+    // i.e. only what the producer would have emitted for a whitespace-only cell.
+    private static bool IsGuardedWhitespace(string value) =>
+        value != null
+        && value.Length >= 3
+        && value[0] == CsvWhitespaceGuard.Sentinel
+        && value[value.Length - 1] == CsvWhitespaceGuard.Sentinel
+        && string.IsNullOrWhiteSpace(value.Substring(1, value.Length - 2));
 
     public void Dispose()
     {
