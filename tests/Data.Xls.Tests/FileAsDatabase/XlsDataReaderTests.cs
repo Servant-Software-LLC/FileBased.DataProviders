@@ -68,7 +68,14 @@ public class XlsDataReaderTests
     public void Reader_ShouldPreserveWhitespaceOnlyCell()
     {
         DataReaderTests.Reader_ShouldPreserveWhitespaceOnlyCell(() =>
-            new XlsConnection(ConnectionStrings.Instance.WithSpaceCellAsDB));
+            new XlsConnection(ConnectionStrings.Instance.WithSpaceCellAsDB), "Sheet1");
+    }
+
+    [Fact]
+    public void Reader_WhitespaceCellInNumericLikeColumn_IsPreservedAsText()
+    {
+        DataReaderTests.Reader_WhitespaceCellInNumericLikeColumn_IsPreservedAsText(() =>
+            new XlsConnection(ConnectionStrings.Instance.WithSpaceCellMixedAsDB), "Sheet1");
     }
 
     [Fact]

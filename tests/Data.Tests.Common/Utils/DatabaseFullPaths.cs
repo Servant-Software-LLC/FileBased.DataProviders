@@ -21,6 +21,7 @@ public class DatabaseFullPaths
     public string EmptyCells => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"emptyCells.{extension}");
     public string CellsWithComma => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"cellsWithComma.{extension}");
     public string WithSpaceCell => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"withSpaceCell.{extension}");
+    public string WithSpaceCellMixed => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"withSpaceCellMixed.{extension}");
     public string eComFileDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"ecommerce.{extension}");
     public string eComFolderDataBase => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, $"eCom");
     public string FolderEmptyWithTables => Path.Combine(FileConnectionStringTestsExtensions.SourcesFolder, "EmptyDatabase");

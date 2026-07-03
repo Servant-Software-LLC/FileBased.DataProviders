@@ -9,5 +9,7 @@ public class ConnectionStrings : ConnectionStringsBase
 
     public FileConnectionString WithSpaceCellAsDB => new FileConnectionString { DataSource = Database.WithSpaceCell };
 
+    public FileConnectionString WithSpaceCellMixedAsDB => new FileConnectionString { DataSource = Database.WithSpaceCellMixed };
+
     public new static ConnectionStrings Instance => new ConnectionStrings();
 }
