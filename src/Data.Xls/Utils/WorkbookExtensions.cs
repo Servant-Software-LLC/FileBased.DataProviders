@@ -18,7 +18,8 @@ public static class WorkbookExtensions
         if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
         {
             var stringTable = workbook.SharedStringTablePart.SharedStringTable;
-            return stringTable.ChildElements[int.Parse(value)].InnerText;
+            var item = (SharedStringItem)stringTable.ChildElements[int.Parse(value)];
+            return GetSharedStringText(item);
         }
 
         if (cell.DataType != null && cell.DataType.Value == CellValues.Boolean)
@@ -31,6 +32,13 @@ public static class WorkbookExtensions
             return dateTimeValue;
 
         return value;
+    }
+
+    private static string GetSharedStringText(SharedStringItem item)
+    {
+        var directText = item.Text?.InnerText ?? string.Empty;
+        var runText = string.Concat(item.Elements<Run>().Select(r => r.Text?.InnerText ?? string.Empty));
+        return directText + runText;
     }
 
     private static bool TryGetDateTimeValue(WorkbookPart workbook, Cell cell, out string dateTimeValue)
